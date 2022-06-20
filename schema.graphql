@@ -1,0 +1,118 @@
+# noinspection GraphQLMissingType
+
+# derivedFrom doc https://thegraph.com/docs/en/developer/create-subgraph-hosted/#reverse-lookups
+# Need to use for all one-to-many relationships for performance reason.
+
+type ControllerEntity @entity {
+    "Central contract for storing all dependency addresses"
+    id: String!
+    vaultsCount: Int!
+    vaults: [VaultEntity!]! @derivedFrom(field: "vault")
+    operators: [Address]
+    addressChangeAnnounces: [AddressChangeAnnounceEntity!]!  @derivedFrom(field: "adr_announce")
+    proxyUpgradeAnnounces: [ProxyUpgradeAnnounceEntity!]!  @derivedFrom(field: "proxy_announce")
+}
+
+type AddressChangeAnnounceEntity @entity {
+    id: String!
+    aType: String!
+    newAddress: Address!
+    timeLockAt: Int!
+}
+
+type ProxyUpgradeAnnounceEntity @entity {
+    id: String!
+    proxy: Address!
+    implementation: Address!
+    timeLockAt: Int!
+}
+
+type VaultEntity @entity {
+    id: String!
+    address: Address!
+
+    # dependencies
+    gauge: GaugeEntity!
+    splitter: SplitterEntity!
+    insurance: InsuranceEntity!
+
+    # attributes
+    asset: Address!
+    decimals: Int!
+    name: String!
+    symbol: String!
+    buffer: BigDecimal!
+    maxWithdrawAssets: BigDecimal!
+    maxRedeemShares: BigDecimal!
+    maxDepositAssets: BigDecimal!
+    maxMintShares: BigDecimal!
+    depositFee: BigDecimal!
+    withdrawFee: BigDecimal!
+    doHardWorkOnInvest: Boolean!
+
+    # stats
+    totalAssets: BigDecimal!
+    totalAssetsUSD: BigDecimal!
+    splitterAssets: BigDecimal!
+    sharePrice: BigDecimal!
+    totalSupply: BigDecimal!
+    assetPrice: BigDecimal!
+
+    users: [VaultUserEntity!]! @derivedFrom(field: "user")
+    usersCount: Int!
+}
+
+type InsuranceEntity @entity {
+    id: String!
+    address: Address!
+
+    # dependencies
+    vault: VaultEntity!
+
+    # attributes
+    asset: Address!
+
+    # stats
+    balance: BigDecimal!
+    balanceHistory: BigDecimal!
+    covered: BigDecimal!
+}
+
+type SplitterEntity @entity {
+    id: String!
+    address: Address!
+
+    # dependencies
+    vault: VaultEntity!
+
+    #attributes
+    asset: Address!
+    strategies: [StrategyEntity!]! @derivedFrom(field: "strategy")
+
+}
+
+type StrategyEntity @entity {
+    id: String!
+    address: Address!
+
+    paused: Boolean!
+    apr: BigDecimals!
+}
+
+type GaugeEntity @entity {
+    id: String!
+    address: Address!
+}
+
+type BribeEntity @entity {
+    id: String!
+    address: Address!
+}
+
+type VaultUserEntity @entity {
+    id: String!
+    address: Address!
+}
+
+
+

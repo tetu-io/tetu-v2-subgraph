@@ -1,0 +1,48 @@
+specVersion: 0.0.2
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: Controller
+    network: arbitrum-rinkeby
+    source:
+      address: ""
+      abi: Controller
+      startBlock: 26815772
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - AddressChangeAnnounced
+        - AddressChanged
+        - ContractInitialized
+        - Initialized
+        - ProxyUpgradeAnnounced
+        - ProxyUpgraded
+        - RegisterVault
+        - RevisionIncreased
+        - VaultRemoved
+      abis:
+        - name: Controller
+          file: ./abis/Controller.json
+      eventHandlers:
+        - event: AddressChangeAnnounced(uint256,address)
+          handler: handleAddressChangeAnnounced
+        - event: AddressChanged(uint256,address,address)
+          handler: handleAddressChanged
+        - event: ContractInitialized(address,uint256,uint256)
+          handler: handleContractInitialized
+        - event: Initialized(uint8)
+          handler: handleInitialized
+        - event: ProxyUpgradeAnnounced(address,address)
+          handler: handleProxyUpgradeAnnounced
+        - event: ProxyUpgraded(address,address)
+          handler: handleProxyUpgraded
+        - event: RegisterVault(address)
+          handler: handleRegisterVault
+        - event: RevisionIncreased(uint256,address)
+          handler: handleRevisionIncreased
+        - event: VaultRemoved(address)
+          handler: handleVaultRemoved
+      file: ./src/mapping.ts
