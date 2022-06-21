@@ -6,26 +6,30 @@ dataSources:
     name: Controller
     network: arbitrum-rinkeby
     source:
-      address: ""
+      address: "0x286c02C93f3CF48BB759A93756779A1C78bCF833"
       abi: Controller
-      startBlock: 26815772
+      startBlock: 13134323
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
-        - AddressChangeAnnounced
-        - AddressChanged
-        - ContractInitialized
-        - Initialized
-        - ProxyUpgradeAnnounced
-        - ProxyUpgraded
-        - RegisterVault
-        - RevisionIncreased
-        - VaultRemoved
+        - ControllerEntity
+        - AddressChangeAnnounceEntity
+        - ProxyUpgradeAnnounceEntity
       abis:
         - name: Controller
-          file: ./abis/Controller.json
+          file: ./abis/ControllerV2.json
+          # keep Vault related entities under Controller
+          # not all vaults from VaultFactory is valid
+        - name: Strategy
+          file: ./abis/StrategyBaseV2.json
+        - name: Splitter
+          file: ./abis/StrategySplitterV2.json
+        - name: Vault
+          file: ./abis/TetuVaultV2.json
+        - name: Insurance
+          file: ./abis/VaultInsurance.json
       eventHandlers:
         - event: AddressChangeAnnounced(uint256,address)
           handler: handleAddressChangeAnnounced
@@ -45,4 +49,258 @@ dataSources:
           handler: handleRevisionIncreased
         - event: VaultRemoved(address)
           handler: handleVaultRemoved
-      file: ./src/mapping.ts
+      file: ./src/controller.ts
+
+  - kind: ethereum/contract
+    name: Forwarder
+    network: arbitrum-rinkeby
+    source:
+      address: "0x0C6868831c504Fb0bB61A54FEfC6464804380508"
+      abi: Forwarder
+      startBlock: 13134323
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - ForwarderEntity
+      abis:
+        - name: Forwarder
+          file: ./abis/ForwarderV3.json
+      eventHandlers:
+        - event: ContractInitialized(address,uint256,uint256)
+          handler: handleContractInitialized
+        - event: Distributed(address,address,uint256,uint256,uint256,uint256,uint256,uint256)
+          handler: handleDistributed
+        - event: GaugeRatioChanged(uint256,uint256)
+          handler: handleGaugeRatioChanged
+        - event: Initialized(uint8)
+          handler: handleInitialized
+        - event: InvestFundRatioChanged(uint256,uint256)
+          handler: handleInvestFundRatioChanged
+        - event: RevisionIncreased(uint256,address)
+          handler: handleRevisionIncreased
+        - event: SlippageChanged(address,uint256)
+          handler: handleSlippageChanged
+        - event: TetuThresholdChanged(uint256,uint256)
+          handler: handleTetuThresholdChanged
+      file: ./src/forwarder.ts
+
+  - kind: ethereum/contract
+    name: PlatformVoter
+    network: arbitrum-rinkeby
+    source:
+      address: "0xC363F3D4e1C005bf5321040653A088F71Bb974Ab"
+      abi: PlatformVoter
+      startBlock: 13134323
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - PlatformVoterEntity
+      abis:
+        - name: PlatformVoter
+          file: ./abis/PlatformVoter.json
+      eventHandlers:
+        - event: AttributeChanged(uint256,uint256)
+          handler: handleAttributeChanged
+        - event: ContractInitialized(address,uint256,uint256)
+          handler: handleContractInitialized
+        - event: Initialized(uint8)
+          handler: handleInitialized
+        - event: RevisionIncreased(uint256,address)
+          handler: handleRevisionIncreased
+        - event: VoteReset(uint256,uint256,address,uint256,uint256,uint256)
+          handler: handleVoteReset
+        - event: Voted(uint256,uint256,uint256,address,uint256,uint256,uint256,uint256,uint256)
+          handler: handleVoted
+      file: ./src/platfrom-voter.ts
+
+  - kind: ethereum/contract
+    name: MultiBribe
+    network: arbitrum-rinkeby
+    source:
+      address: "0x5373C3d09C39D8F256f88E08aa61402FE14A3792"
+      abi: MultiBribe
+      startBlock: 13134323
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - BribeEntity
+      abis:
+        - name: MultiBribe
+          file: ./abis/MultiBribe.json
+      eventHandlers:
+        - event: BalanceDecreased(indexed address,indexed address,uint256)
+          handler: handleBalanceDecreased
+        - event: BalanceIncreased(indexed address,indexed address,uint256)
+          handler: handleBalanceIncreased
+        - event: BribeDeposit(indexed address,indexed uint256,uint256)
+          handler: handleBribeDeposit
+        - event: BribeWithdraw(indexed address,indexed uint256,uint256)
+          handler: handleBribeWithdraw
+        - event: ClaimRewards(indexed address,address,indexed address,uint256,address)
+          handler: handleClaimRewards
+        - event: ContractInitialized(address,uint256,uint256)
+          handler: handleContractInitialized
+        - event: Initialized(uint8)
+          handler: handleInitialized
+        - event: NotifyReward(indexed address,address,indexed address,uint256)
+          handler: handleNotifyReward
+        - event: RevisionIncreased(uint256,address)
+          handler: handleRevisionIncreased
+      file: ./src/bribe.ts
+
+  - kind: ethereum/contract
+    name: MultiGauge
+    network: arbitrum-rinkeby
+    source:
+      address: "0x255707B70BF90aa112006E1b07B9AeA6De021424"
+      abi: MultiGauge
+      startBlock: 13134323
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - GaugeEntity
+      abis:
+        - name: MultiGauge
+          file: ./abis/MultiGauge.json
+      eventHandlers:
+        - event: BalanceDecreased(indexed address,indexed address,uint256)
+          handler: handleBalanceDecreased
+        - event: BalanceIncreased(indexed address,indexed address,uint256)
+          handler: handleBalanceIncreased
+        - event: ClaimRewards(indexed address,address,indexed address,uint256,address)
+          handler: handleClaimRewards
+        - event: ContractInitialized(address,uint256,uint256)
+          handler: handleContractInitialized
+        - event: Deposit(indexed address,indexed address,uint256)
+          handler: handleDeposit
+        - event: Initialized(uint8)
+          handler: handleInitialized
+        - event: NotifyReward(indexed address,address,indexed address,uint256)
+          handler: handleNotifyReward
+        - event: RevisionIncreased(uint256,address)
+          handler: handleRevisionIncreased
+        - event: VeTokenLocked(indexed address,indexed address,uint256)
+          handler: handleVeTokenLocked
+        - event: VeTokenUnlocked(indexed address,indexed address,uint256)
+          handler: handleVeTokenUnlocked
+        - event: Withdraw(indexed address,indexed address,uint256,bool,uint256)
+          handler: handleWithdraw
+      file: ./src/gauge.ts
+
+  - kind: ethereum/contract
+    name: TetuVoter
+    network: arbitrum-rinkeby
+    source:
+      address: "0x6ce857d3037e87465b003aCbA264DDF2Cec6D5E4"
+      abi: TetuVoter
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - TetuVoterEntity
+      abis:
+        - name: TetuVoter
+          file: ./abis/TetuVoter.json
+      eventHandlers:
+        - event: Abstained(uint256,int256)
+          handler: handleAbstained
+        - event: Attach(indexed address,indexed address,indexed address,uint256)
+          handler: handleAttach
+        - event: ContractInitialized(address,uint256,uint256)
+          handler: handleContractInitialized
+        - event: Deposit(indexed address,indexed address,uint256,uint256)
+          handler: handleDeposit
+        - event: Detach(indexed address,indexed address,indexed address,uint256)
+          handler: handleDetach
+        - event: DistributeReward(indexed address,indexed address,uint256)
+          handler: handleDistributeReward
+        - event: GaugeCreated(indexed address,address,indexed address,indexed address)
+          handler: handleGaugeCreated
+        - event: Initialized(uint8)
+          handler: handleInitialized
+        - event: NotifyReward(indexed address,uint256)
+          handler: handleNotifyReward
+        - event: RevisionIncreased(uint256,address)
+          handler: handleRevisionIncreased
+        - event: Voted(indexed address,uint256,int256)
+          handler: handleVoted
+        - event: Whitelisted(indexed address,indexed address)
+          handler: handleWhitelisted
+        - event: Withdraw(indexed address,indexed address,uint256,uint256)
+          handler: handleWithdraw
+      file: ./src/tetu-voter.ts
+
+  - kind: ethereum/contract
+    name: VeDistributor
+    network: arbitrum-rinkeby
+    source:
+      address: "0x099C314F792e1F91f53765Fc64AaDCcf4dCf1538"
+      abi: VeDistributor
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - VeDistEntity
+      abis:
+        - name: VeDistributor
+          file: ./abis/VeDistributor.json
+      eventHandlers:
+        - event: CheckpointToken(uint256,uint256)
+          handler: handleCheckpointToken
+        - event: Claimed(uint256,uint256,uint256,uint256)
+          handler: handleClaimed
+        - event: ContractInitialized(address,uint256,uint256)
+          handler: handleContractInitialized
+        - event: Initialized(uint8)
+          handler: handleInitialized
+        - event: RevisionIncreased(uint256,address)
+          handler: handleRevisionIncreased
+      file: ./src/ve-dist.ts
+
+  - kind: ethereum/contract
+    name: VeTetu
+    network: arbitrum-rinkeby
+    source:
+      address: "0xd353254872E8797B159594c1E528b8Be9a6cb1F8"
+      abi: VeTetu
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - VeTetuEntity
+      abis:
+        - name: VeTetu
+          file: ./abis/VeTetu.json
+      eventHandlers:
+        - event: Approval(indexed address,indexed address,indexed uint256)
+          handler: handleApproval
+        - event: ApprovalForAll(indexed address,indexed address,bool)
+          handler: handleApprovalForAll
+        - event: ContractInitialized(address,uint256,uint256)
+          handler: handleContractInitialized
+        - event: Deposit(indexed address,indexed address,uint256,uint256,indexed uint256,uint8,uint256)
+          handler: handleDeposit
+        - event: Initialized(uint8)
+          handler: handleInitialized
+        - event: PawnshopWhitelisted(address)
+          handler: handlePawnshopWhitelisted
+        - event: RevisionIncreased(uint256,address)
+          handler: handleRevisionIncreased
+        - event: Supply(indexed address,uint256,uint256)
+          handler: handleSupply
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+        - event: Withdraw(indexed address,indexed address,uint256,uint256,uint256)
+          handler: handleWithdraw
+      file: ./src/ve.ts

@@ -167,31 +167,40 @@
   {
     "inputs": [],
     "name": "CONTROLLABLE_VERSION",
-    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
     "name": "CONTROLLER_VERSION",
-    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
     "name": "TIME_LOCK",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "address", "name": "controller_", "type": "address" }
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
-    "name": "__Controllable_init",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -200,13 +209,21 @@
     "outputs": [
       {
         "components": [
-          { "internalType": "uint256", "name": "_type", "type": "uint256" },
+          {
+            "internalType": "uint256",
+            "name": "_type",
+            "type": "uint256"
+          },
           {
             "internalType": "address",
             "name": "newAddress",
             "type": "address"
           },
-          { "internalType": "uint256", "name": "timeLockAt", "type": "uint256" }
+          {
+            "internalType": "uint256",
+            "name": "timeLockAt",
+            "type": "uint256"
+          }
         ],
         "internalType": "struct ControllerV2.AddressAnnounce[]",
         "name": "announces",
@@ -223,7 +240,11 @@
         "name": "_type",
         "type": "uint8"
       },
-      { "internalType": "address", "name": "value", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "value",
+        "type": "address"
+      }
     ],
     "name": "announceAddressChange",
     "outputs": [],
@@ -232,7 +253,11 @@
   },
   {
     "inputs": [
-      { "internalType": "address[]", "name": "proxies", "type": "address[]" },
+      {
+        "internalType": "address[]",
+        "name": "proxies",
+        "type": "address[]"
+      },
       {
         "internalType": "address[]",
         "name": "implementations",
@@ -260,41 +285,75 @@
   {
     "inputs": [],
     "name": "controller",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
     "name": "created",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
     "name": "createdBlock",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
     "name": "forwarder",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
     "name": "governance",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "oldLogic", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "oldLogic",
+        "type": "address"
+      }
     ],
     "name": "increaseRevision",
     "outputs": [],
@@ -303,7 +362,11 @@
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "_governance", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "_governance",
+        "type": "address"
+      }
     ],
     "name": "init",
     "outputs": [],
@@ -313,50 +376,102 @@
   {
     "inputs": [],
     "name": "investFund",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "_value", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "_value",
+        "type": "address"
+      }
     ],
     "name": "isController",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "_value", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "_value",
+        "type": "address"
+      }
     ],
     "name": "isGovernance",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "value", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "value",
+        "type": "address"
+      }
     ],
     "name": "isOperator",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "_vault", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "_vault",
+        "type": "address"
+      }
     ],
     "name": "isValidVault",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
     "name": "liquidator",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
@@ -364,7 +479,11 @@
     "inputs": [],
     "name": "operatorsList",
     "outputs": [
-      { "internalType": "address[]", "name": "", "type": "address[]" }
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
     ],
     "stateMutability": "view",
     "type": "function"
@@ -372,21 +491,45 @@
   {
     "inputs": [],
     "name": "platformVoter",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
     "name": "previousImplementation",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "name": "proxyAnnounces",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
@@ -396,13 +539,21 @@
     "outputs": [
       {
         "components": [
-          { "internalType": "address", "name": "proxy", "type": "address" },
+          {
+            "internalType": "address",
+            "name": "proxy",
+            "type": "address"
+          },
           {
             "internalType": "address",
             "name": "implementation",
             "type": "address"
           },
-          { "internalType": "uint256", "name": "timeLockAt", "type": "uint256" }
+          {
+            "internalType": "uint256",
+            "name": "timeLockAt",
+            "type": "uint256"
+          }
         ],
         "internalType": "struct ControllerV2.ProxyAnnounce[]",
         "name": "announces",
@@ -414,7 +565,11 @@
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "value", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "value",
+        "type": "address"
+      }
     ],
     "name": "registerOperator",
     "outputs": [],
@@ -423,7 +578,11 @@
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "vault", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "vault",
+        "type": "address"
+      }
     ],
     "name": "registerVault",
     "outputs": [],
@@ -432,7 +591,11 @@
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "value", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "value",
+        "type": "address"
+      }
     ],
     "name": "removeOperator",
     "outputs": [],
@@ -441,7 +604,11 @@
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "vault", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "vault",
+        "type": "address"
+      }
     ],
     "name": "removeVault",
     "outputs": [],
@@ -451,13 +618,23 @@
   {
     "inputs": [],
     "name": "revision",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "address[]", "name": "proxies", "type": "address[]" }
+      {
+        "internalType": "address[]",
+        "name": "proxies",
+        "type": "address[]"
+      }
     ],
     "name": "upgradeProxy",
     "outputs": [],
@@ -467,14 +644,32 @@
   {
     "inputs": [],
     "name": "vaultController",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "id", "type": "uint256" }],
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      }
+    ],
     "name": "vaults",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
@@ -482,7 +677,11 @@
     "inputs": [],
     "name": "vaultsList",
     "outputs": [
-      { "internalType": "address[]", "name": "", "type": "address[]" }
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
     ],
     "stateMutability": "view",
     "type": "function"
@@ -490,21 +689,39 @@
   {
     "inputs": [],
     "name": "vaultsListLength",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
     "name": "veDistributor",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
     "name": "voter",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   }

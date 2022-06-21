@@ -5,31 +5,46 @@
 
 type ControllerEntity @entity {
     "Central contract for storing all dependency addresses"
-    id: String!
+    id: ID!
+
+    # dependencies
+    tetuVoter: TetuVoterEntity!
+    vaultController: VaultControllerEntity!
+    liquidator: LiquidatorEntity!
+    forwarder: ForwarderEntity!
+    investFund: InvestFundEntity!
+    veDistributor: VeDistEntity!
+    platformVoter: PlatformVoterEntity!
+
+
+    # attributes
+    version: String!
     vaultsCount: Int!
-    vaults: [VaultEntity!]! @derivedFrom(field: "vault")
-    operators: [Address]
-    addressChangeAnnounces: [AddressChangeAnnounceEntity!]!  @derivedFrom(field: "adr_announce")
-    proxyUpgradeAnnounces: [ProxyUpgradeAnnounceEntity!]!  @derivedFrom(field: "proxy_announce")
+    vaults: [VaultEntity!]! @derivedFrom(field: "controller")
+    operators: [String!]!
+    addressChangeAnnounces: [AddressChangeAnnounceEntity!]!  @derivedFrom(field: "controller")
+    proxyUpgradeAnnounces: [ProxyUpgradeAnnounceEntity!]!  @derivedFrom(field: "controller")
 }
 
 type AddressChangeAnnounceEntity @entity {
-    id: String!
+    id: ID!
+    controller: ControllerEntity!
     aType: String!
-    newAddress: Address!
+    newAddress: String!
     timeLockAt: Int!
 }
 
 type ProxyUpgradeAnnounceEntity @entity {
-    id: String!
-    proxy: Address!
-    implementation: Address!
+    id: ID!
+    controller: ControllerEntity!
+    proxy: String!
+    implementation: String!
     timeLockAt: Int!
 }
 
 type VaultEntity @entity {
-    id: String!
-    address: Address!
+    id: ID!
+    controller: ControllerEntity!
 
     # dependencies
     gauge: GaugeEntity!
@@ -37,7 +52,8 @@ type VaultEntity @entity {
     insurance: InsuranceEntity!
 
     # attributes
-    asset: Address!
+    version: String!
+    asset: String!
     decimals: Int!
     name: String!
     symbol: String!
@@ -58,19 +74,30 @@ type VaultEntity @entity {
     totalSupply: BigDecimal!
     assetPrice: BigDecimal!
 
-    users: [VaultUserEntity!]! @derivedFrom(field: "user")
+    users: [UserVault!]! @derivedFrom(field: "vault")
     usersCount: Int!
 }
 
+type UserVault @entity {
+    "Mapping entity for connection vault and user entities"
+    id: ID!
+    vault: VaultEntity!
+    user: UserEntity!
+}
+
+type UserEntity @entity {
+    id: ID!
+    vaults: [UserVault!]! @derivedFrom(field: "user")
+}
+
 type InsuranceEntity @entity {
-    id: String!
-    address: Address!
+    id: ID!
 
     # dependencies
     vault: VaultEntity!
 
     # attributes
-    asset: Address!
+    asset: String!
 
     # stats
     balance: BigDecimal!
@@ -79,40 +106,75 @@ type InsuranceEntity @entity {
 }
 
 type SplitterEntity @entity {
-    id: String!
-    address: Address!
+    id: ID!
 
     # dependencies
     vault: VaultEntity!
 
     #attributes
-    asset: Address!
-    strategies: [StrategyEntity!]! @derivedFrom(field: "strategy")
+    version: String!
+    asset: String!
+    strategies: [StrategyEntity!]! @derivedFrom(field: "splitter")
+    totalApr: BigDecimal!
+    scheduledStrategies: [String!]!
 
 }
 
 type StrategyEntity @entity {
-    id: String!
-    address: Address!
+    id: ID!
 
+    # dependencies
+    splitter: SplitterEntity!
+
+    #attributes
+    version: String!
+    asset: String!
+    compoundRatio: BigDecimal!
     paused: Boolean!
-    apr: BigDecimals!
+    apr: BigDecimal!
+    aprHistory: [BigDecimal!]!
+    lastHardWork: Int!
 }
 
 type GaugeEntity @entity {
-    id: String!
-    address: Address!
+    id: ID!
 }
 
 type BribeEntity @entity {
-    id: String!
-    address: Address!
+    id: ID!
 }
 
-type VaultUserEntity @entity {
-    id: String!
-    address: Address!
+
+type TetuVoterEntity @entity {
+    id: ID!
 }
 
+type VaultControllerEntity @entity {
+    id: ID!
+}
+
+type LiquidatorEntity @entity {
+    id: ID!
+}
+
+type ForwarderEntity @entity {
+    id: ID!
+}
+
+type InvestFundEntity @entity {
+    id: ID!
+}
+
+type VeDistEntity @entity {
+    id: ID!
+}
+
+type PlatformVoterEntity @entity {
+    id: ID!
+}
+
+type VeTetuEntity @entity {
+    id: ID!
+}
 
 

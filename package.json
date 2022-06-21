@@ -1,13 +1,14 @@
 {
   "name": "tetu-v2",
-  "license": "UNLICENSED",
+  "version": "1.0.0",
+  "license": "MIT",
   "scripts": {
-    "codegen": "graph codegen",
+    "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ tetu-io/tetu-v2",
-    "create-local": "graph create --node http://localhost:8020/ tetu-io/tetu-v2",
-    "remove-local": "graph remove --node http://localhost:8020/ tetu-io/tetu-v2",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 tetu-io/tetu-v2"
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ dystopia-exchange/dystopia-v2",
+    "create-local": "graph create --node http://localhost:8020/ dystopia-exchange/dystopia-v2",
+    "remove-local": "graph remove --node http://localhost:8020/ dystopia-exchange/dystopia-v2",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 dystopia-exchange/dystopia-v2"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.22.4",
