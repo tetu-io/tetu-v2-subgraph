@@ -6,6 +6,8 @@
 type ControllerEntity @entity {
     "Central contract for storing all dependency addresses"
     id: ID!
+    version: String!
+    revision: Int!
 
     # dependencies
     tetuVoter: TetuVoterEntity!
@@ -27,6 +29,7 @@ type ControllerEntity @entity {
 }
 
 type AddressChangeAnnounceEntity @entity {
+    "Important address change announce info"
     id: ID!
     controller: ControllerEntity!
     aType: String!
@@ -35,6 +38,7 @@ type AddressChangeAnnounceEntity @entity {
 }
 
 type ProxyUpgradeAnnounceEntity @entity {
+    "Proxy upgrade announce info"
     id: ID!
     controller: ControllerEntity!
     proxy: String!
@@ -43,7 +47,10 @@ type ProxyUpgradeAnnounceEntity @entity {
 }
 
 type VaultEntity @entity {
+    "TetuVaultV2 info"
     id: ID!
+    version: String!
+    revision: Int!
     controller: ControllerEntity!
 
     # dependencies
@@ -76,6 +83,8 @@ type VaultEntity @entity {
 
     users: [UserVault!]! @derivedFrom(field: "vault")
     usersCount: Int!
+
+    vote: VaultVoteEntity!
 }
 
 type UserVault @entity {
@@ -85,12 +94,8 @@ type UserVault @entity {
     user: UserEntity!
 }
 
-type UserEntity @entity {
-    id: ID!
-    vaults: [UserVault!]! @derivedFrom(field: "user")
-}
-
 type InsuranceEntity @entity {
+    "Insurance contract connected to the SmartVaultV2"
     id: ID!
 
     # dependencies
@@ -106,7 +111,10 @@ type InsuranceEntity @entity {
 }
 
 type SplitterEntity @entity {
+    "Strategy splitter connected to the SmartVaultV2"
     id: ID!
+    version: String!
+    revision: Int!
 
     # dependencies
     vault: VaultEntity!
@@ -121,7 +129,10 @@ type SplitterEntity @entity {
 }
 
 type StrategyEntity @entity {
+    "Strategy under control of the StrategySplitter"
     id: ID!
+    version: String!
+    revision: Int!
 
     # dependencies
     splitter: SplitterEntity!
@@ -137,44 +148,228 @@ type StrategyEntity @entity {
 }
 
 type GaugeEntity @entity {
+    "Central Gauge for Tetu vaults"
     id: ID!
+    version: String!
+    revision: Int!
+
+    # dependencies
+    ve: VeTetuEntity!
+
+    #attributes
+    operator: String!
+    defaultRewardToken: String!
+    stakingTokens: [String!]!
+    userGauges: [UserGauge!]! @derivedFrom(field: "gauge")
+
+}
+
+type UserGauge @entity {
+    "Mapping entity for connection gauge and user entities"
+    id: ID!
+    gauge: GaugeEntity!
+    user: UserEntity!
 }
 
 type BribeEntity @entity {
+    "Central Bribe contract for veTETU"
     id: ID!
+    version: String!
+    revision: Int!
+
+    # dependencies
+    ve: VeTetuEntity!
+
+    #attributes
+    operator: String!
+    defaultRewardToken: String!
+    stakingTokens: [String!]!
+    userBribes: [UserBribe!]! @derivedFrom(field: "bribe")
 }
 
+type UserBribe @entity {
+    "Mapping entity for connection bribe and user entities"
+    id: ID!
+    bribe: BribeEntity!
+    user: UserEntity!
+}
 
 type TetuVoterEntity @entity {
+    "Voter for distribute TETU rewards to gauges"
     id: ID!
+    version: String!
+    revision: Int!
+
+    # dependencies
+    ve: VeTetuEntity!
+    gauge: GaugeEntity!
+    bribe: BribeEntity!
+    token: String!
+
+    #attributes
+    vaultVotes: [VaultVoteEntity!]! @derivedFrom(field: "tetuVoter")
+    rewardsTotalAmount: BigDecimal!
 }
 
-type VaultControllerEntity @entity {
+type UserTetuVote @entity {
+    "User vote for a vault"
     id: ID!
+
+    tetuVoter: TetuVoterEntity!
+    user: UserEntity!
+
+    amount: BigDecimal!
+    percent: BigDecimal!
+}
+
+type VaultVoteEntity @entity {
+    "Vault vote info"
+    id: ID!
+
+    # dependencies
+    tetuVoter: TetuVoterEntity!
+    vault: VaultEntity!
+
+    #attributes
+    votePercent: BigDecimal!
+    voteAmount: BigDecimal!
+    expectReward: BigDecimal!
 }
 
 type LiquidatorEntity @entity {
+    "A central place for selling tokens"
     id: ID!
+    version: String!
+    revision: Int!
 }
 
 type ForwarderEntity @entity {
+    "Accumulate rewards and distribute them to Invest Fund / Tetu Voter / Ve Distributor"
     id: ID!
+    version: String!
+    revision: Int!
+
+    # dependencies
+    tetu: String!
+
+    # attributes
+    tetuThreshold: BigDecimal!
+    toInvestFundRatio: BigDecimal!
+    toGaugesRatio: BigDecimal!
 }
 
 type InvestFundEntity @entity {
+    "Contract for holding assets for the Second Stage"
     id: ID!
+    version: String!
+    revision: Int!
+
+    tetuAmount: BigDecimal!
+    usdcAmount: BigDecimal!
 }
 
 type VeDistEntity @entity {
+    "Distributor for veTETU rewards"
     id: ID!
+    version: String!
+    revision: Int!
+
+    #dependencies
+    ve: VeTetuEntity!
+    rewardToken: String!
+
+    #attributes
+    activePeriod: Int!
+    timeCursor: Int!
+    tokenLastBalance: BigDecimal!
+    lastTokenTime: BigDecimal!
 }
 
 type PlatformVoterEntity @entity {
+    "Voter for different platform attributes"
     id: ID!
+    version: String!
+    revision: Int!
+
+    #dependencies
+    ve: VeTetuEntity!
+
+    #attributes
+    votes: [PlatformVoteEntity!]! @derivedFrom(field: "platformVoter")
+
+}
+
+type PlatformVoteEntity @entity {
+    id: ID!
+
+    #dependencies
+    platformVoter: PlatformVoterEntity!
+    user: UserEntity!
+
+    #attributes
+    amount: BigDecimal!
+    percent: BigDecimal!
 }
 
 type VeTetuEntity @entity {
     id: ID!
+    version: String!
+    revision: Int!
+
+    tokens: [VeTetuTokenEntity!]! @derivedFrom(field: "ve")
+    count: Int!
+    users: [VeUserEntity!]! @derivedFrom(field: "ve")
+    epoch: Int!
+    allowedPawnshops: [String!]!
+}
+
+type VeUserEntity @entity {
+    id: ID!
+
+    ve: VeTetuEntity!
+    user: UserEntity!
+
+    locked: [VeUserTokenEntity!]! @derivedFrom(field: "veUser")
+    derivedAmount: BigDecimal!
+    lockedEnd: Int!
+    attachments: Int!
+    voted: Int!
+}
+
+type VeUserTokenEntity @entity {
+    id: ID!
+
+    veUser: VeUserEntity!
+    token: String!
+    amount: BigDecimal!
+}
+
+type VeTetuTokenEntity @entity {
+    id: ID!
+
+    ve: VeTetuEntity!
+
+    address: String!
+    weight: BigDecimal!
+    supply: BigDecimal!
+}
+
+type UserEntity @entity {
+    "Tetu user accumulated info"
+    id: ID!
+    vaults: [UserVault!]! @derivedFrom(field: "user")
+    gauges: [UserGauge!]! @derivedFrom(field: "user")
+    bribes: [UserBribe!]! @derivedFrom(field: "user")
+    tetuVotes: [UserTetuVote!]! @derivedFrom(field: "user")
+    platformVotes: [PlatformVoteEntity!]! @derivedFrom(field: "user")
+    ve: [VeUserEntity!]! @derivedFrom(field: "user")
+}
+
+type VaultControllerEntity @entity {
+    "TBD"
+    id: ID!
+    version: String!
+    revision: Int!
 }
 
 
