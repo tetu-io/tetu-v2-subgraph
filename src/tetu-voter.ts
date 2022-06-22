@@ -11,8 +11,10 @@ import {
   Voted,
   Whitelisted,
   GaugeCreated,
-  Withdraw
+  Withdraw,
+  TetuVoter
 } from "./types/TetuVoter/TetuVoter";
+import {TetuVoterEntity} from "./types/schema";
 
 export function handleAbstained(event: Abstained): void {
 }
@@ -52,3 +54,11 @@ export function handleWhitelisted(event: Whitelisted): void {
 
 export function handleWithdraw(event: Withdraw): void {
 }
+
+// export function loadTetuVoter(address: string): TetuVoterEntity {
+//
+//   const voter = TetuVoterEntity.load(address);
+//
+//   return voter;
+// }
+

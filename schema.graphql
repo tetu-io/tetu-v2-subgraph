@@ -8,6 +8,9 @@ type ControllerEntity @entity {
     id: ID!
     version: String!
     revision: Int!
+    createdTs: Int!
+    createdBlock: Int!
+    implementations: [String!]!
 
     # dependencies
     tetuVoter: TetuVoterEntity!
@@ -20,9 +23,9 @@ type ControllerEntity @entity {
 
 
     # attributes
-    version: String!
+    governance: String!
     vaultsCount: Int!
-    vaults: [VaultEntity!]! @derivedFrom(field: "controller")
+    vaults: [VaultEntity!]! # link only whitelisted
     operators: [String!]!
     addressChangeAnnounces: [AddressChangeAnnounceEntity!]!  @derivedFrom(field: "controller")
     proxyUpgradeAnnounces: [ProxyUpgradeAnnounceEntity!]!  @derivedFrom(field: "controller")
@@ -33,6 +36,7 @@ type AddressChangeAnnounceEntity @entity {
     id: ID!
     controller: ControllerEntity!
     aType: String!
+    idType: Int!
     newAddress: String!
     timeLockAt: Int!
 }
@@ -46,20 +50,34 @@ type ProxyUpgradeAnnounceEntity @entity {
     timeLockAt: Int!
 }
 
+type VaultFactoryEntity @entity {
+    "Factory for create vaults with all dependencies"
+    id: ID!
+    controller: ControllerEntity!
+    proxyImpl: String!
+    vaultImpl: String!
+    vaultInsuranceImpl: String!
+    splitterImpl: String!
+    deployedVaults: [VaultEntity!]!  @derivedFrom(field: "factory")
+}
+
 type VaultEntity @entity {
     "TetuVaultV2 info"
     id: ID!
     version: String!
     revision: Int!
-    controller: ControllerEntity!
+    createdTs: Int!
+    createdBlock: Int!
+    implementations: [String!]!
 
     # dependencies
+    controller: ControllerEntity!
     gauge: GaugeEntity!
     splitter: SplitterEntity!
     insurance: InsuranceEntity!
+    factory: VaultFactoryEntity!
 
     # attributes
-    version: String!
     asset: String!
     decimals: Int!
     name: String!
@@ -115,12 +133,14 @@ type SplitterEntity @entity {
     id: ID!
     version: String!
     revision: Int!
+    createdTs: Int!
+    createdBlock: Int!
+    implementations: [String!]!
 
     # dependencies
     vault: VaultEntity!
 
     #attributes
-    version: String!
     asset: String!
     strategies: [StrategyEntity!]! @derivedFrom(field: "splitter")
     totalApr: BigDecimal!
@@ -133,12 +153,14 @@ type StrategyEntity @entity {
     id: ID!
     version: String!
     revision: Int!
+    createdTs: Int!
+    createdBlock: Int!
+    implementations: [String!]!
 
     # dependencies
     splitter: SplitterEntity!
 
     #attributes
-    version: String!
     asset: String!
     compoundRatio: BigDecimal!
     paused: Boolean!
@@ -152,6 +174,9 @@ type GaugeEntity @entity {
     id: ID!
     version: String!
     revision: Int!
+    createdTs: Int!
+    createdBlock: Int!
+    implementations: [String!]!
 
     # dependencies
     ve: VeTetuEntity!
@@ -176,6 +201,9 @@ type BribeEntity @entity {
     id: ID!
     version: String!
     revision: Int!
+    createdTs: Int!
+    createdBlock: Int!
+    implementations: [String!]!
 
     # dependencies
     ve: VeTetuEntity!
@@ -199,8 +227,12 @@ type TetuVoterEntity @entity {
     id: ID!
     version: String!
     revision: Int!
+    createdTs: Int!
+    createdBlock: Int!
+    implementations: [String!]!
 
     # dependencies
+    controller: ControllerEntity!
     ve: VeTetuEntity!
     gauge: GaugeEntity!
     bribe: BribeEntity!
@@ -241,6 +273,11 @@ type LiquidatorEntity @entity {
     id: ID!
     version: String!
     revision: Int!
+    createdTs: Int!
+    createdBlock: Int!
+    implementations: [String!]!
+
+    controller: ControllerEntity!
 }
 
 type ForwarderEntity @entity {
@@ -248,9 +285,13 @@ type ForwarderEntity @entity {
     id: ID!
     version: String!
     revision: Int!
+    createdTs: Int!
+    createdBlock: Int!
+    implementations: [String!]!
 
     # dependencies
     tetu: String!
+    controller: ControllerEntity!
 
     # attributes
     tetuThreshold: BigDecimal!
@@ -263,6 +304,11 @@ type InvestFundEntity @entity {
     id: ID!
     version: String!
     revision: Int!
+    createdTs: Int!
+    createdBlock: Int!
+    implementations: [String!]!
+
+    controller: ControllerEntity!
 
     tetuAmount: BigDecimal!
     usdcAmount: BigDecimal!
@@ -273,10 +319,14 @@ type VeDistEntity @entity {
     id: ID!
     version: String!
     revision: Int!
+    createdTs: Int!
+    createdBlock: Int!
+    implementations: [String!]!
 
     #dependencies
     ve: VeTetuEntity!
     rewardToken: String!
+    controller: ControllerEntity!
 
     #attributes
     activePeriod: Int!
@@ -290,9 +340,13 @@ type PlatformVoterEntity @entity {
     id: ID!
     version: String!
     revision: Int!
+    createdTs: Int!
+    createdBlock: Int!
+    implementations: [String!]!
 
     #dependencies
     ve: VeTetuEntity!
+    controller: ControllerEntity!
 
     #attributes
     votes: [PlatformVoteEntity!]! @derivedFrom(field: "platformVoter")
@@ -315,6 +369,9 @@ type VeTetuEntity @entity {
     id: ID!
     version: String!
     revision: Int!
+    createdTs: Int!
+    createdBlock: Int!
+    implementations: [String!]!
 
     tokens: [VeTetuTokenEntity!]! @derivedFrom(field: "ve")
     count: Int!
@@ -357,6 +414,7 @@ type VeTetuTokenEntity @entity {
 type UserEntity @entity {
     "Tetu user accumulated info"
     id: ID!
+
     vaults: [UserVault!]! @derivedFrom(field: "user")
     gauges: [UserGauge!]! @derivedFrom(field: "user")
     bribes: [UserBribe!]! @derivedFrom(field: "user")
@@ -370,6 +428,11 @@ type VaultControllerEntity @entity {
     id: ID!
     version: String!
     revision: Int!
+    createdTs: Int!
+    createdBlock: Int!
+    implementations: [String!]!
+
+    controller: ControllerEntity!
 }
 
 

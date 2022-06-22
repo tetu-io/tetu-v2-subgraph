@@ -1,17 +1,17 @@
-specVersion: 0.0.2
+specVersion: 0.0.4
 schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
     name: Controller
-    network: arbitrum-rinkeby
+    network: fuji
     source:
-      address: "0x286c02C93f3CF48BB759A93756779A1C78bCF833"
+      address: "0x81367059892aa1D8503a79a0Af9254DD0a09afBF"
       abi: Controller
-      startBlock: 13134323
+      startBlock: 10880028
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - ControllerEntity
@@ -20,16 +20,8 @@ dataSources:
       abis:
         - name: Controller
           file: ./abis/ControllerV2.json
-          # keep Vault related entities under Controller
-          # not all vaults from VaultFactory is valid
-        - name: Strategy
-          file: ./abis/StrategyBaseV2.json
-        - name: Splitter
-          file: ./abis/StrategySplitterV2.json
-        - name: Vault
-          file: ./abis/TetuVaultV2.json
-        - name: Insurance
-          file: ./abis/VaultInsurance.json
+        - name: Proxy
+          file: ./abis/Proxy.json
       eventHandlers:
         - event: AddressChangeAnnounced(uint256,address)
           handler: handleAddressChangeAnnounced
@@ -37,8 +29,6 @@ dataSources:
           handler: handleAddressChanged
         - event: ContractInitialized(address,uint256,uint256)
           handler: handleContractInitialized
-        - event: Initialized(uint8)
-          handler: handleInitialized
         - event: ProxyUpgradeAnnounced(address,address)
           handler: handleProxyUpgradeAnnounced
         - event: ProxyUpgraded(address,address)
@@ -49,18 +39,28 @@ dataSources:
           handler: handleRevisionIncreased
         - event: VaultRemoved(address)
           handler: handleVaultRemoved
+        - event: AddressAnnounceRemove(uint256)
+          handler: handleAddressAnnounceRemove
+        - event: ProxyAnnounceRemoved(address)
+          handler: handleProxyAnnounceRemoved
+        - event: Upgraded(indexed address)
+          handler: handleUpgraded
+        - event: OperatorAdded(address)
+          handler: handleOperatorAdded
+        - event: OperatorRemoved(address)
+          handler: handleOperatorRemoved
       file: ./src/controller.ts
 
   - kind: ethereum/contract
     name: Forwarder
-    network: arbitrum-rinkeby
+    network: fuji
     source:
-      address: "0x0C6868831c504Fb0bB61A54FEfC6464804380508"
+      address: "0xeE7FFE79689B3d826C7389B95780F42849Fb7019"
       abi: Forwarder
-      startBlock: 13134323
+      startBlock: 10880028
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - ForwarderEntity
@@ -74,8 +74,6 @@ dataSources:
           handler: handleDistributed
         - event: GaugeRatioChanged(uint256,uint256)
           handler: handleGaugeRatioChanged
-        - event: Initialized(uint8)
-          handler: handleInitialized
         - event: InvestFundRatioChanged(uint256,uint256)
           handler: handleInvestFundRatioChanged
         - event: RevisionIncreased(uint256,address)
@@ -84,18 +82,20 @@ dataSources:
           handler: handleSlippageChanged
         - event: TetuThresholdChanged(uint256,uint256)
           handler: handleTetuThresholdChanged
+        - event: Upgraded(indexed address)
+          handler: handleUpgraded
       file: ./src/forwarder.ts
 
   - kind: ethereum/contract
     name: PlatformVoter
-    network: arbitrum-rinkeby
+    network: fuji
     source:
-      address: "0xC363F3D4e1C005bf5321040653A088F71Bb974Ab"
+      address: "0x2d91C960b03F2C39604aE1b644ba508a1366057c"
       abi: PlatformVoter
-      startBlock: 13134323
+      startBlock: 10880028
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - PlatformVoterEntity
@@ -107,26 +107,26 @@ dataSources:
           handler: handleAttributeChanged
         - event: ContractInitialized(address,uint256,uint256)
           handler: handleContractInitialized
-        - event: Initialized(uint8)
-          handler: handleInitialized
         - event: RevisionIncreased(uint256,address)
           handler: handleRevisionIncreased
         - event: VoteReset(uint256,uint256,address,uint256,uint256,uint256)
           handler: handleVoteReset
         - event: Voted(uint256,uint256,uint256,address,uint256,uint256,uint256,uint256,uint256)
           handler: handleVoted
+        - event: Upgraded(indexed address)
+          handler: handleUpgraded
       file: ./src/platfrom-voter.ts
 
   - kind: ethereum/contract
     name: MultiBribe
-    network: arbitrum-rinkeby
+    network: fuji
     source:
-      address: "0x5373C3d09C39D8F256f88E08aa61402FE14A3792"
+      address: "0xC9d5917A0cb82450Cd687AF31eCAaC967D7F121C"
       abi: MultiBribe
-      startBlock: 13134323
+      startBlock: 10880028
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - BribeEntity
@@ -146,24 +146,24 @@ dataSources:
           handler: handleClaimRewards
         - event: ContractInitialized(address,uint256,uint256)
           handler: handleContractInitialized
-        - event: Initialized(uint8)
-          handler: handleInitialized
         - event: NotifyReward(indexed address,address,indexed address,uint256)
           handler: handleNotifyReward
         - event: RevisionIncreased(uint256,address)
           handler: handleRevisionIncreased
+        - event: Upgraded(indexed address)
+          handler: handleUpgraded
       file: ./src/bribe.ts
 
   - kind: ethereum/contract
     name: MultiGauge
-    network: arbitrum-rinkeby
+    network: fuji
     source:
-      address: "0x255707B70BF90aa112006E1b07B9AeA6De021424"
+      address: "0xbEB411eAD71713E7f2814326498Ff2a054242206"
       abi: MultiGauge
-      startBlock: 13134323
+      startBlock: 10880028
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - GaugeEntity
@@ -181,8 +181,6 @@ dataSources:
           handler: handleContractInitialized
         - event: Deposit(indexed address,indexed address,uint256)
           handler: handleDeposit
-        - event: Initialized(uint8)
-          handler: handleInitialized
         - event: NotifyReward(indexed address,address,indexed address,uint256)
           handler: handleNotifyReward
         - event: RevisionIncreased(uint256,address)
@@ -193,17 +191,20 @@ dataSources:
           handler: handleVeTokenUnlocked
         - event: Withdraw(indexed address,indexed address,uint256,bool,uint256)
           handler: handleWithdraw
+        - event: Upgraded(indexed address)
+          handler: handleUpgraded
       file: ./src/gauge.ts
 
   - kind: ethereum/contract
     name: TetuVoter
-    network: arbitrum-rinkeby
+    network: fuji
     source:
-      address: "0x6ce857d3037e87465b003aCbA264DDF2Cec6D5E4"
+      address: "0x08d7607b2FD46ae255040014a39CDC2094e55901"
       abi: TetuVoter
+      startBlock: 10880028
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - TetuVoterEntity
@@ -225,8 +226,6 @@ dataSources:
           handler: handleDistributeReward
         - event: GaugeCreated(indexed address,address,indexed address,indexed address)
           handler: handleGaugeCreated
-        - event: Initialized(uint8)
-          handler: handleInitialized
         - event: NotifyReward(indexed address,uint256)
           handler: handleNotifyReward
         - event: RevisionIncreased(uint256,address)
@@ -237,17 +236,20 @@ dataSources:
           handler: handleWhitelisted
         - event: Withdraw(indexed address,indexed address,uint256,uint256)
           handler: handleWithdraw
+        - event: Upgraded(indexed address)
+          handler: handleUpgraded
       file: ./src/tetu-voter.ts
 
   - kind: ethereum/contract
     name: VeDistributor
-    network: arbitrum-rinkeby
+    network: fuji
     source:
-      address: "0x099C314F792e1F91f53765Fc64AaDCcf4dCf1538"
+      address: "0x13d862a01d0AB241509A2e47e31d0db04e9b9F49"
       abi: VeDistributor
+      startBlock: 10880028
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - VeDistEntity
@@ -261,21 +263,22 @@ dataSources:
           handler: handleClaimed
         - event: ContractInitialized(address,uint256,uint256)
           handler: handleContractInitialized
-        - event: Initialized(uint8)
-          handler: handleInitialized
         - event: RevisionIncreased(uint256,address)
           handler: handleRevisionIncreased
+        - event: Upgraded(indexed address)
+          handler: handleUpgraded
       file: ./src/ve-dist.ts
 
   - kind: ethereum/contract
     name: VeTetu
-    network: arbitrum-rinkeby
+    network: fuji
     source:
-      address: "0xd353254872E8797B159594c1E528b8Be9a6cb1F8"
+      address: "0xB5A5D5fE893bC26C6E70CEbb8a193f764A438fd5"
       abi: VeTetu
+      startBlock: 10880028
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - VeTetuEntity
@@ -291,8 +294,6 @@ dataSources:
           handler: handleContractInitialized
         - event: Deposit(indexed address,indexed address,uint256,uint256,indexed uint256,uint8,uint256)
           handler: handleDeposit
-        - event: Initialized(uint8)
-          handler: handleInitialized
         - event: PawnshopWhitelisted(address)
           handler: handlePawnshopWhitelisted
         - event: RevisionIncreased(uint256,address)
@@ -303,4 +304,172 @@ dataSources:
           handler: handleTransfer
         - event: Withdraw(indexed address,indexed address,uint256,uint256,uint256)
           handler: handleWithdraw
+        - event: Upgraded(indexed address)
+          handler: handleUpgraded
       file: ./src/ve.ts
+  - kind: ethereum/contract
+    name: VaultFactory
+    network: fuji
+    source:
+      address: "0x00aE29E31748898B8B404b4DcF076738F68439d4"
+      abi: VaultFactory
+      startBlock: 10880028
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - VaultFactoryEntity
+      abis:
+        - name: VaultFactory
+          file: ./abis/VaultFactory.json
+      eventHandlers:
+        - event: VaultDeployed(address,address,string,string,address,uint256,address,address,address,address,address)
+          handler: handleVaultDeployed
+      file: ./src/vault-factory.ts
+
+templates:
+  - name: Vault
+    kind: ethereum/contract
+    network: fuji
+    source:
+      abi: Vault
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/vault.ts
+      entities:
+        - VaultEntity
+        - InsuranceEntity
+      abis:
+        - name: Vault
+          file: ./abis/TetuVaultV2.json
+        - name: Insurance
+          file: ./abis/VaultInsurance.json
+      eventHandlers:
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
+        - event: Upgraded(indexed address)
+          handler: handleUpgraded
+        - event: BufferChanged(uint256,uint256)
+          handler: handleBufferChanged
+        - event: ContractInitialized(address,uint256,uint256)
+          handler: handleContractInitialized
+        - event: Deposit(indexed address,indexed address,uint256,uint256)
+          handler: handleDeposit
+        - event: DoHardWorkOnInvestChanged(bool,bool)
+          handler: handleDoHardWorkOnInvestChanged
+        - event: FeeChanged(uint256,uint256)
+          handler: handleFeeChanged
+        - event: FeeTransfer(uint256)
+          handler: handleFeeTransfer
+        - event: Init(address,address,string,string,address,uint256)
+          handler: handleInit
+        - event: Initialized(uint8)
+          handler: handleInitialized
+        - event: Invest(address,uint256)
+          handler: handleInvest
+        - event: LossCovered(uint256)
+          handler: handleLossCovered
+        - event: MaxDepositChanged(uint256,uint256)
+          handler: handleMaxDepositChanged
+        - event: MaxWithdrawChanged(uint256,uint256)
+          handler: handleMaxWithdrawChanged
+        - event: RevisionIncreased(uint256,address)
+          handler: handleRevisionIncreased
+        - event: SplitterChanged(address,address)
+          handler: handleSplitterChanged
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+        - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleWithdraw
+
+  - name: StrategySplitter
+    kind: ethereum/contract
+    network: fuji
+    source:
+      abi: StrategySplitter
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/splitter.ts
+      entities:
+        - SplitterEntity
+      abis:
+        - name: StrategySplitter
+          file: ./abis/StrategySplitterV2.json
+      eventHandlers:
+        - event: ContinueInvesting(address,uint256,address)
+          handler: handleContinueInvesting
+        - event: Upgraded(indexed address)
+          handler: handleUpgraded
+        - event: ContractInitialized(address,uint256,uint256)
+          handler: handleContractInitialized
+        - event: HardWork(address,address,uint256,uint256,uint256,uint256,uint256)
+          handler: handleHardWork
+        - event: Initialized(uint8)
+          handler: handleInitialized
+        - event: ManualAprChanged(address,address,uint256,uint256)
+          handler: handleManualAprChanged
+        - event: Paused(address,address)
+          handler: handlePaused
+        - event: Rebalance(address,address,uint256,uint256,uint256,uint256)
+          handler: handleRebalance
+        - event: RevisionIncreased(uint256,address)
+          handler: handleRevisionIncreased
+        - event: StrategyAdded(address,uint256)
+          handler: handleStrategyAdded
+        - event: StrategyRatioChanged(address,uint256)
+          handler: handleStrategyRatioChanged
+        - event: StrategyRemoved(address)
+          handler: handleStrategyRemoved
+        - event: StrategyScheduled(address,uint256,uint256)
+          handler: handleStrategyScheduled
+
+  - name: Strategy
+    kind: ethereum/contract
+    network: fuji
+    source:
+      abi: Strategy
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/strategy.ts
+      entities:
+        - StrategyEntity
+      abis:
+        - name: Strategy
+          file: ./abis/StrategyBaseV2.json
+      eventHandlers:
+        - event: Claimed(address,uint256)
+          handler: handleClaimed
+        - event: Upgraded(indexed address)
+          handler: handleUpgraded
+        - event: CompoundRatioChanged(uint256,uint256)
+          handler: handleCompoundRatioChanged
+        - event: ContractInitialized(address,uint256,uint256)
+          handler: handleContractInitialized
+        - event: DepositToPool(uint256)
+          handler: handleDepositToPool
+        - event: EmergencyExit(address,uint256)
+          handler: handleEmergencyExit
+        - event: InvestAll(uint256)
+          handler: handleInvestAll
+        - event: ManualClaim(address)
+          handler: handleManualClaim
+        - event: RevisionIncreased(uint256,address)
+          handler: handleRevisionIncreased
+        - event: WithdrawAllFromPool(uint256)
+          handler: handleWithdrawAllFromPool
+        - event: WithdrawAllToSplitter(uint256)
+          handler: handleWithdrawAllToSplitter
+        - event: WithdrawFromPool(uint256)
+          handler: handleWithdrawFromPool
+        - event: WithdrawToSplitter(uint256,uint256,uint256)
+          handler: handleWithdrawToSplitter
+
+
+
