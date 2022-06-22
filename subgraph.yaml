@@ -22,6 +22,8 @@ dataSources:
           file: ./abis/ControllerV2.json
         - name: Proxy
           file: ./abis/Proxy.json
+        - name: Liquidator
+          file: ./abis/TetuLiquidator.json
       eventHandlers:
         - event: AddressChangeAnnounced(uint256,address)
           handler: handleAddressChangeAnnounced
@@ -311,9 +313,9 @@ dataSources:
     name: VaultFactory
     network: fuji
     source:
-      address: "0x00aE29E31748898B8B404b4DcF076738F68439d4"
+      address: "0xc8Be20e84E608c9c17422a4928D77Cb7c677d260"
       abi: VaultFactory
-      startBlock: 10880028
+      startBlock: 10907395
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -323,9 +325,23 @@ dataSources:
       abis:
         - name: VaultFactory
           file: ./abis/VaultFactory.json
+        - name: Vault
+          file: ./abis/TetuVaultV2.json
+        - name: Controller
+          file: ./abis/ControllerV2.json
+        - name: Proxy
+          file: ./abis/Proxy.json
+        - name: Liquidator
+          file: ./abis/TetuLiquidator.json
       eventHandlers:
         - event: VaultDeployed(address,address,string,string,address,uint256,address,address,address,address,address)
           handler: handleVaultDeployed
+        - event: VaultImplChanged(address)
+          handler: handleVaultImplChanged
+        - event: VaultInsuranceImplChanged(address)
+          handler: handleVaultInsuranceImplChanged
+        - event: SplitterImplChanged(address)
+          handler: handleSplitterImplChanged
       file: ./src/vault-factory.ts
 
 templates:

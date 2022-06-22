@@ -54,7 +54,6 @@ type VaultFactoryEntity @entity {
     "Factory for create vaults with all dependencies"
     id: ID!
     controller: ControllerEntity!
-    proxyImpl: String!
     vaultImpl: String!
     vaultInsuranceImpl: String!
     splitterImpl: String!

@@ -8,11 +8,6 @@
       },
       {
         "internalType": "address",
-        "name": "_proxyImpl",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
         "name": "_vaultImpl",
         "type": "address"
       },
@@ -29,6 +24,19 @@
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "value",
+        "type": "address"
+      }
+    ],
+    "name": "SplitterImplChanged",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -101,6 +109,32 @@
       }
     ],
     "name": "VaultDeployed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "value",
+        "type": "address"
+      }
+    ],
+    "name": "VaultImplChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "value",
+        "type": "address"
+      }
+    ],
+    "name": "VaultInsuranceImplChanged",
     "type": "event"
   },
   {
@@ -179,32 +213,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "proxyImpl",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "value",
-        "type": "address"
-      }
-    ],
-    "name": "setProxyImpl",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

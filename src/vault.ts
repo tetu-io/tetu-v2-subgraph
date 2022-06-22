@@ -79,10 +79,11 @@ export function handleWithdraw(event: Withdraw): void {
 }
 
 
-export function getVault(address: string): VaultEntity {
+export function getOrCreateVault(address: string): VaultEntity {
   let vault = VaultEntity.load(address);
   if (!vault) {
     vault = new VaultEntity(address);
+    vault.save();
   }
   return vault;
 }
