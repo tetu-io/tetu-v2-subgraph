@@ -24,8 +24,8 @@ type ControllerEntity @entity {
 
     # attributes
     governance: String!
-    vaultsCount: Int!
-    vaults: [VaultEntity!]! # link only whitelisted
+    whitelistedVaults: Int!
+    vaults: [VaultEntity!]! @derivedFrom(field: "controller")
     operators: [String!]!
     addressChangeAnnounces: [AddressChangeAnnounceEntity!]!  @derivedFrom(field: "controller")
     proxyUpgradeAnnounces: [ProxyUpgradeAnnounceEntity!]!  @derivedFrom(field: "controller")
@@ -53,10 +53,16 @@ type ProxyUpgradeAnnounceEntity @entity {
 type VaultFactoryEntity @entity {
     "Factory for create vaults with all dependencies"
     id: ID!
+
+    #dependencies
     controller: ControllerEntity!
+
+    #attributes
     vaultImpl: String!
     vaultInsuranceImpl: String!
     splitterImpl: String!
+
+    vaultsCount: Int!
     deployedVaults: [VaultEntity!]!  @derivedFrom(field: "factory")
 }
 
@@ -102,6 +108,9 @@ type VaultEntity @entity {
     usersCount: Int!
 
     vote: VaultVoteEntity!
+
+    isControllerWhitelisted: Boolean!
+    isGaugeWhitelisted: Boolean!
 }
 
 type UserVault @entity {

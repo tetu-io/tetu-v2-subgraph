@@ -14,7 +14,7 @@ import {Controller} from "./types/VaultFactory/Controller";
 import {Liquidator} from "./types/VaultFactory/Liquidator";
 
 export function handleVaultDeployed(event: VaultDeployed): void {
-  createOrGetFactory(event.address.toHexString())
+  const factory = createOrGetFactory(event.address.toHexString())
 
   const vault = new VaultEntity(event.params.vaultProxy.toHexString());
   const vaultCtr = Vault.bind(event.params.vaultProxy)
@@ -85,6 +85,12 @@ export function handleVaultDeployed(event: VaultDeployed): void {
   vault.assetPrice = assetPrice
   vault.totalAssetsUSD = totalAssets.times(assetPrice)
 
+  vault.isControllerWhitelisted = false;
+  vault.isGaugeWhitelisted = false;
+
+  factory.vaultsCount = factory.vaultsCount + 1;
+
+  factory.save();
   vault.save();
 }
 
@@ -115,6 +121,7 @@ export function createOrGetFactory(address: string): VaultFactoryEntity {
     factory.vaultImpl = factoryCtr.vaultImpl().toHexString()
     factory.vaultInsuranceImpl = factoryCtr.vaultInsuranceImpl().toHexString()
     factory.splitterImpl = factoryCtr.splitterImpl().toHexString()
+    factory.vaultsCount = 0;
     factory.save();
   }
   return factory;

@@ -14,7 +14,7 @@ import {
 import {
   AddressChangeAnnounceEntity,
   ControllerEntity,
-  ProxyUpgradeAnnounceEntity
+  ProxyUpgradeAnnounceEntity, VaultEntity
 } from "./types/schema";
 import {ADDRESS_ZERO} from "./constants";
 import {BigInt, store} from "@graphprotocol/graph-ts";
@@ -43,8 +43,7 @@ export function handleContractInitialized(event: ContractInitialized): void {
 
     const gov = controllerCtr.governance().toHexString();
     controller.governance = gov;
-    controller.vaultsCount = 0;
-    controller.vaults = [];
+    controller.whitelistedVaults = 0;
     controller.operators = [gov];
     controller.save()
   }
@@ -140,20 +139,30 @@ export function handleRegisterVault(event: RegisterVault): void {
   if (!controller) {
     return;
   }
-  controller.vaultsCount = controller.vaultsCount + 1
-  controller.vaults.push(event.params.vault.toHexString())
+
+  const vault = VaultEntity.load(event.params.vault.toHexString());
+  if(!!vault) {
+    vault.isControllerWhitelisted = true
+    vault.save()
+  }
+
+  controller.whitelistedVaults = controller.whitelistedVaults + 1
   controller.save()
 }
 
 export function handleVaultRemoved(event: VaultRemoved): void {
-  let controller = ControllerEntity.load(event.address.toHexString())
+  const controller = ControllerEntity.load(event.address.toHexString())
   if (!controller) {
     return;
   }
-  const id = controller.vaults.indexOf(event.params.vault.toHexString());
-  controller.vaults[id] = controller.vaults[controller.vaults.length - 1];
-  controller.vaults.pop();
-  controller.vaultsCount = controller.vaultsCount - 1
+
+  const vault = VaultEntity.load(event.params.vault.toHexString());
+  if(!!vault) {
+    vault.isControllerWhitelisted = false
+    vault.save()
+  }
+
+  controller.whitelistedVaults = controller.whitelistedVaults - 1
   controller.save()
 }
 
