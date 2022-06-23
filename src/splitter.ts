@@ -6,9 +6,12 @@ import {
   Paused,
   Rebalance,
   RevisionIncreased,
-  StrategyAdded, StrategyRatioChanged, StrategyRemoved, StrategyScheduled,
+  StrategyAdded, StrategyRatioChanged, StrategyRemoved, StrategyScheduled, StrategySplitter,
   Upgraded
 } from "./types/templates/StrategySplitter/StrategySplitter";
+import {SplitterEntity} from "./types/schema";
+import {Address} from "@graphprotocol/graph-ts";
+import {USDC} from "./constants";
 
 
 export function handleContinueInvesting(event: ContinueInvesting): void {
@@ -46,3 +49,6 @@ export function handleStrategyRemoved(event: StrategyRemoved): void {
 
 export function handleStrategyScheduled(event: StrategyScheduled): void {
 }
+
+
+

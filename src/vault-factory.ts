@@ -5,13 +5,21 @@ import {
   VaultImplChanged,
   VaultInsuranceImplChanged
 } from "./types/VaultFactory/VaultFactory";
-import {VaultEntity, VaultFactoryEntity, VaultVoteEntity} from "./types/schema";
+import {
+  InsuranceEntity,
+  SplitterEntity,
+  VaultEntity,
+  VaultFactoryEntity,
+  VaultVoteEntity
+} from "./types/schema";
 import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {formatUnits, parseUnits} from "./helpers";
 import {USDC} from "./constants";
 import {Vault} from "./types/VaultFactory/Vault";
 import {Controller} from "./types/VaultFactory/Controller";
 import {Liquidator} from "./types/VaultFactory/Liquidator";
+import {StrategySplitter} from "./types/templates/StrategySplitter/StrategySplitter";
+import {Proxy} from "./types/VaultFactory/Proxy";
 
 export function handleVaultDeployed(event: VaultDeployed): void {
   const factory = createOrGetFactory(event.address.toHexString())
@@ -26,6 +34,15 @@ export function handleVaultDeployed(event: VaultDeployed): void {
   const feeDenominator = vaultCtr.FEE_DENOMINATOR()
   const totalAssets = formatUnits(vaultCtr.totalAssets(), decimals);
 
+  createSplitter(event.params.splitterProxy.toHexString());
+  vault.splitter = event.params.splitterProxy.toHexString();
+  createInsurance(
+    event.params.insurance.toHexString(),
+    event.params.asset.toHexString(),
+    event.params.vaultProxy.toHexString()
+  );
+  vault.insurance = event.params.insurance.toHexString();
+
 
   vault.version = vaultCtr.VAULT_VERSION();
   vault.revision = vaultCtr.revision().toI32();
@@ -34,8 +51,6 @@ export function handleVaultDeployed(event: VaultDeployed): void {
   vault.implementations = [event.params.vaultLogic.toHexString()];
   vault.controller = controllerAdr.toHexString();
   vault.gauge = event.params.gauge.toHexString();
-  vault.splitter = event.params.splitterProxy.toHexString();
-  vault.insurance = event.params.insurance.toHexString();
   vault.factory = event.address.toHexString();
   vault.asset = event.params.asset.toHexString();
   vault.decimals = decimals.toI32();
@@ -125,4 +140,45 @@ export function createOrGetFactory(address: string): VaultFactoryEntity {
     factory.save();
   }
   return factory;
+}
+
+export function createSplitter(address: string): SplitterEntity {
+  let splitter = SplitterEntity.load(address);
+  if (!splitter) {
+    splitter = new SplitterEntity(address);
+    const splitterCtr = StrategySplitter.bind(Address.fromString(address))
+    const proxy = Proxy.bind(Address.fromString(address))
+
+    splitter.version = splitterCtr.SPLITTER_VERSION()
+    splitter.revision = splitterCtr.revision().toI32()
+    splitter.createdTs = splitterCtr.created().toI32()
+    splitter.createdBlock = splitterCtr.createdBlock().toI32()
+    splitter.implementations = [proxy.implementation().toHexString()]
+    splitter.vault = splitterCtr.vault().toHexString()
+    splitter.asset = splitterCtr.asset().toHexString()
+    splitter.totalApr = BigDecimal.fromString('0')
+    splitter.scheduledStrategies = []
+
+    splitter.save();
+  }
+  return splitter;
+}
+
+export function createInsurance(
+  address: string,
+  asset: string,
+  vault: string,
+): InsuranceEntity {
+  let insurance = InsuranceEntity.load(address);
+  if (!insurance) {
+    insurance = new InsuranceEntity(address)
+    insurance.vault = vault;
+    insurance.asset = asset;
+    insurance.balance = BigDecimal.fromString('0');
+    insurance.balanceHistory = BigDecimal.fromString('0');
+    insurance.covered = BigDecimal.fromString('0');
+    insurance.save();
+  }
+
+  return insurance;
 }

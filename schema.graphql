@@ -116,8 +116,24 @@ type VaultEntity @entity {
 type UserVault @entity {
     "Mapping entity for connection vault and user entities"
     id: ID!
+
+    # dependencies
     vault: VaultEntity!
     user: UserEntity!
+
+    #attributes
+    approves: [VaultApproveEntity!]! @derivedFrom(field: "userVault")
+}
+
+type VaultApproveEntity @entity {
+    id: ID!
+
+    #dependencies
+    userVault: UserVault!
+
+    #attributes
+    amount: BigDecimal!
+    spender: String!
 }
 
 type InsuranceEntity @entity {
@@ -249,6 +265,8 @@ type TetuVoterEntity @entity {
     #attributes
     vaultVotes: [VaultVoteEntity!]! @derivedFrom(field: "tetuVoter")
     rewardsTotalAmount: BigDecimal!
+
+    users: [UserTetuVote!]! @derivedFrom(field: "tetuVoter")
 }
 
 type UserTetuVote @entity {
