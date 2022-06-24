@@ -123,6 +123,7 @@ type UserVault @entity {
 
     #attributes
     approves: [VaultApproveEntity!]! @derivedFrom(field: "userVault")
+    balance: BigDecimal!
 }
 
 type VaultApproveEntity @entity {

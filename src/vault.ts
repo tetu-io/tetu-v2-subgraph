@@ -1,4 +1,4 @@
-import {VaultEntity} from "./types/schema";
+import {UserVault, VaultEntity} from "./types/schema";
 import {
   Approval,
   BufferChanged,
@@ -20,11 +20,30 @@ import {
   Withdraw
 } from "./types/templates/Vault/Vault";
 import {Vault} from "./types/VaultFactory/Vault";
-import {BigInt} from "@graphprotocol/graph-ts";
+import {BigInt, ethereum} from "@graphprotocol/graph-ts";
 import {formatUnits} from "./helpers";
 import {createSplitter} from "./vault-factory";
 
 export function handleDeposit(event: Deposit): void {
+  const vault = VaultEntity.load(event.address.toHexString());
+  if (!vault) {
+    return;
+  }
+
+  let user = getOrCreateVaultUser(event);
+
+}
+
+export function getOrCreateVaultUser(event: ethereum.Event): UserVault {
+  let user = UserVault.load(userId(event));
+  if (!user) {
+    user = new UserVault(userId(event));
+  }
+  return user;
+}
+
+export function userId(event: ethereum.Event): string {
+  return event.transaction.from.toHexString() + "_" + event.address.toHexString();
 }
 
 export function handleWithdraw(event: Withdraw): void {
