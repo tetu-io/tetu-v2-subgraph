@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 import {
   ContinueInvesting,
   ContractInitialized,
@@ -6,12 +8,12 @@ import {
   Paused,
   Rebalance,
   RevisionIncreased,
-  StrategyAdded, StrategyRatioChanged, StrategyRemoved, StrategyScheduled, StrategySplitter,
+  StrategyAdded,
+  StrategyRatioChanged,
+  StrategyRemoved,
+  StrategyScheduled,
   Upgraded
 } from "./types/templates/StrategySplitter/StrategySplitter";
-import {SplitterEntity} from "./types/schema";
-import {Address} from "@graphprotocol/graph-ts";
-import {USDC} from "./constants";
 
 
 export function handleContinueInvesting(event: ContinueInvesting): void {

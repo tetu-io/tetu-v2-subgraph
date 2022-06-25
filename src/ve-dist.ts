@@ -1,8 +1,11 @@
+// noinspection JSUnusedGlobalSymbols
+
 import {
   CheckpointToken,
   Claimed,
   ContractInitialized,
-  Initialized, RevisionIncreased
+  Initialized,
+  RevisionIncreased
 } from "./types/VeDistributor/VeDistributor";
 
 

@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 import {
   SplitterImplChanged,
   VaultDeployed,
@@ -12,7 +14,7 @@ import {
   VaultFactoryEntity,
   VaultVoteEntity
 } from "./types/schema";
-import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
+import {Address, BigDecimal, BigInt, log} from "@graphprotocol/graph-ts";
 import {formatUnits, parseUnits} from "./helpers";
 import {USDC} from "./constants";
 import {Vault} from "./types/VaultFactory/Vault";
@@ -20,6 +22,7 @@ import {Controller} from "./types/VaultFactory/Controller";
 import {Liquidator} from "./types/VaultFactory/Liquidator";
 import {StrategySplitter} from "./types/templates/StrategySplitter/StrategySplitter";
 import {Proxy} from "./types/VaultFactory/Proxy";
+import {StrategySplitter as SplitterTemplate, Vault as VaultTemplate} from './types/templates'
 
 export function handleVaultDeployed(event: VaultDeployed): void {
   const factory = createOrGetFactory(event.address.toHexString())
@@ -28,6 +31,7 @@ export function handleVaultDeployed(event: VaultDeployed): void {
   const vaultCtr = Vault.bind(event.params.vaultProxy)
   const controllerAdr = vaultCtr.controller();
   const controllerCtr = Controller.bind(controllerAdr)
+  const assetCtr = Vault.bind(event.params.asset);
 
   const decimals = BigInt.fromI32(vaultCtr.decimals());
 
@@ -65,6 +69,7 @@ export function handleVaultDeployed(event: VaultDeployed): void {
   vault.withdrawFee = vaultCtr.withdrawFee().toBigDecimal().div(feeDenominator.toBigDecimal());
   vault.doHardWorkOnInvest = vaultCtr.doHardWorkOnInvest();
   vault.totalAssets = totalAssets;
+  vault.vaultAssets = formatUnits(assetCtr.balanceOf(event.params.vaultProxy), decimals);
   vault.splitterAssets = formatUnits(vaultCtr.splitterAssets(), decimals);
   vault.sharePrice = formatUnits(vaultCtr.sharePrice(), decimals);
   vault.totalSupply = formatUnits(vaultCtr.totalSupply(), decimals);
@@ -82,21 +87,12 @@ export function handleVaultDeployed(event: VaultDeployed): void {
   }
   vault.vote = event.params.vaultProxy.toHexString();
 
-  let assetPrice = BigDecimal.fromString('0');
-  const liquidator = Liquidator.bind(controllerCtr.liquidator())
-  if (event.params.asset.equals(Address.fromString(USDC))) {
-    assetPrice = BigDecimal.fromString('1');
-  } else {
-    if (!!liquidator) {
-      assetPrice = formatUnits(
-        liquidator.getPrice(
-          event.params.asset,
-          Address.fromString(USDC),
-          parseUnits(BigDecimal.fromString('1'), decimals)
-        ),
-        decimals);
-    }
-  }
+  const assetPrice = tryGetUsdPrice(
+    controllerCtr.liquidator().toHexString(),
+    event.params.asset.toHexString(),
+    decimals
+  );
+
   vault.assetPrice = assetPrice
   vault.totalAssetsUSD = totalAssets.times(assetPrice)
 
@@ -104,6 +100,8 @@ export function handleVaultDeployed(event: VaultDeployed): void {
   vault.isGaugeWhitelisted = false;
 
   factory.vaultsCount = factory.vaultsCount + 1;
+
+  VaultTemplate.create(event.params.vaultProxy);
 
   factory.save();
   vault.save();
@@ -159,6 +157,7 @@ export function createSplitter(address: string): SplitterEntity {
     splitter.totalApr = BigDecimal.fromString('0')
     splitter.scheduledStrategies = []
 
+    SplitterTemplate.create(Address.fromString(address));
     splitter.save();
   }
   return splitter;
@@ -181,4 +180,26 @@ export function createInsurance(
   }
 
   return insurance;
+}
+
+export function tryGetUsdPrice(
+  liquidatorAdr: string,
+  asset: string,
+  decimals: BigInt
+): BigDecimal {
+  // @ts-ignore
+  if (asset.toLowerCase() === USDC.toLowerCase()) {
+    return BigDecimal.fromString('1');
+  }
+  const liquidator = Liquidator.bind(Address.fromString(liquidatorAdr))
+  const p = liquidator.try_getPrice(
+    Address.fromString(asset),
+    Address.fromString(USDC),
+    parseUnits(BigDecimal.fromString('1'), decimals)
+  );
+  if (!p.reverted) {
+    return formatUnits(p.value, decimals);
+  }
+  log.error("=== FAILED GET PRICE === liquidator: {} asset: {}", [liquidatorAdr, asset]);
+  return BigDecimal.fromString('0')
 }

@@ -1,4 +1,3 @@
-/* eslint-disable prefer-const */
 import {BigDecimal, BigInt} from '@graphprotocol/graph-ts'
 import {ONE_BI, ZERO_BI} from "./constants";
 
@@ -20,6 +19,6 @@ export function parseUnits(amount: BigDecimal, decimals: BigInt): BigInt {
   if (decimals == ZERO_BI) {
     return BigInt.fromString(amount.toString());
   }
-  return BigInt.fromString(amount.div(exponentToBigDecimal(decimals)).toString())
+  return BigInt.fromString(amount.times(exponentToBigDecimal(decimals)).toString())
 }
 

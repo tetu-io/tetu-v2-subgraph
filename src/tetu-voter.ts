@@ -1,20 +1,20 @@
+// noinspection JSUnusedGlobalSymbols
+
 import {
   Abstained,
   Attach,
+  ContractInitialized,
   Deposit,
   Detach,
   DistributeReward,
-  ContractInitialized,
-  NotifyReward,
+  GaugeCreated,
   Initialized,
+  NotifyReward,
   RevisionIncreased,
   Voted,
   Whitelisted,
-  GaugeCreated,
-  Withdraw,
-  TetuVoter
+  Withdraw
 } from "./types/TetuVoter/TetuVoter";
-import {TetuVoterEntity} from "./types/schema";
 
 export function handleAbstained(event: Abstained): void {
 }

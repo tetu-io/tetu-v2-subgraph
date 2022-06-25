@@ -99,6 +99,7 @@ type VaultEntity @entity {
     # stats
     totalAssets: BigDecimal!
     totalAssetsUSD: BigDecimal!
+    vaultAssets: BigDecimal!
     splitterAssets: BigDecimal!
     sharePrice: BigDecimal!
     totalSupply: BigDecimal!
@@ -122,7 +123,7 @@ type UserVault @entity {
     user: UserEntity!
 
     #attributes
-    approves: [VaultApproveEntity!]! @derivedFrom(field: "userVault")
+    approves: [VaultApproveEntity!]! @derivedFrom(field: "user")
     balance: BigDecimal!
 }
 
@@ -130,7 +131,7 @@ type VaultApproveEntity @entity {
     id: ID!
 
     #dependencies
-    userVault: UserVault!
+    user: UserVault!
 
     #attributes
     amount: BigDecimal!

@@ -1,20 +1,26 @@
+// noinspection JSUnusedGlobalSymbols
+
 import {
   AddressAnnounceRemove,
   AddressChangeAnnounced,
   AddressChanged,
   ContractInitialized,
   Controller,
-  Initialized, OperatorAdded, OperatorRemoved, ProxyAnnounceRemoved,
+  OperatorAdded,
+  OperatorRemoved,
+  ProxyAnnounceRemoved,
   ProxyUpgradeAnnounced,
   ProxyUpgraded,
   RegisterVault,
-  RevisionIncreased, Upgraded,
+  RevisionIncreased,
+  Upgraded,
   VaultRemoved
 } from "./types/Controller/Controller";
 import {
   AddressChangeAnnounceEntity,
   ControllerEntity,
-  ProxyUpgradeAnnounceEntity, VaultEntity
+  ProxyUpgradeAnnounceEntity,
+  VaultEntity
 } from "./types/schema";
 import {ADDRESS_ZERO} from "./constants";
 import {BigInt, store} from "@graphprotocol/graph-ts";
@@ -63,7 +69,9 @@ export function handleUpgraded(event: Upgraded): void {
   if (!controller) {
     return;
   }
-  controller.implementations.push(event.params.implementation.toHexString())
+  const implementations = controller.implementations;
+  implementations.push(event.params.implementation.toHexString())
+  controller.implementations = implementations;
   controller.save()
 }
 
@@ -171,7 +179,9 @@ export function handleOperatorAdded(event: OperatorRemoved): void {
   if (!controller) {
     return;
   }
-  controller.operators.push(event.params.operator.toHexString());
+  const operators = controller.operators;
+  operators.push(event.params.operator.toHexString());
+  controller.operators = operators;
   controller.save()
 }
 

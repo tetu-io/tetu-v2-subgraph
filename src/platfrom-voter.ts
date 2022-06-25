@@ -1,7 +1,12 @@
+// noinspection JSUnusedGlobalSymbols
+
 import {
   AttributeChanged,
   ContractInitialized,
-  Initialized, RevisionIncreased, Voted, VoteReset
+  Initialized,
+  RevisionIncreased,
+  Voted,
+  VoteReset
 } from "./types/PlatformVoter/PlatformVoter";
 
 
