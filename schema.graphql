@@ -124,7 +124,31 @@ type UserVault @entity {
 
     #attributes
     approves: [VaultApproveEntity!]! @derivedFrom(field: "user")
-    balance: BigDecimal!
+    balanceShares: BigDecimal!
+    balanceAssets: BigDecimal!
+    balanceAssetsUsd: BigDecimal!
+    lastUpdate: Int!
+
+    # profit
+    compoundProfitTotal: BigDecimal!
+    acProfitCount: Int!
+    acAprSum: BigDecimal! # for calculate average apr
+    compoundProfits: [UserCompoundProfit!]! @derivedFrom(field: "userVault")
+}
+
+type UserCompoundProfit @entity {
+    "Auto-compounded profit history for a vault user"
+    id: ID!
+
+    userVault: UserVault!
+
+    time: Int!
+    balanceShares: BigDecimal!
+    balanceAssets: BigDecimal!
+    balanceAssetsUsd: BigDecimal!
+    profit: BigDecimal!
+    apr: BigDecimal!
+    averageApr: BigDecimal!
 }
 
 type VaultApproveEntity @entity {

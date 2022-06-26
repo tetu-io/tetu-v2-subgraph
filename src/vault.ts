@@ -1,6 +1,12 @@
 // noinspection JSUnusedGlobalSymbols
 
-import {UserEntity, UserVault, VaultApproveEntity, VaultEntity} from "./types/schema";
+import {
+  InsuranceEntity, UserCompoundProfit,
+  UserEntity,
+  UserVault,
+  VaultApproveEntity,
+  VaultEntity
+} from "./types/schema";
 import {
   Approval,
   BufferChanged,
@@ -19,79 +25,120 @@ import {
   Vault,
   Withdraw,
 } from "./types/templates/Vault/Vault";
-import {Address, BigDecimal, BigInt, ethereum, log} from "@graphprotocol/graph-ts";
+import {
+  Address,
+  BigDecimal,
+  BigInt,
+  ByteArray,
+  crypto,
+  ethereum,
+  log
+} from "@graphprotocol/graph-ts";
 import {formatUnits, parseUnits} from "./helpers";
 import {createSplitter} from "./vault-factory";
-import {ADDRESS_ZERO, USDC} from "./constants";
+import {ADDRESS_ZERO, DAY, getUSDC} from "./constants";
 import {Controller} from "./types/templates/Vault/Controller";
 import {Liquidator} from "./types/templates/Vault/Liquidator";
 
-export function handleDeposit(event: Deposit): void {
-  const vault = updateVaultAttributes(event.address.toHexString());
-
-  // const vaultCtr = Vault.bind(event.address);
-  // const decimals = BigInt.fromI32(vaultCtr.decimals());
-  // const amount = formatUnits(event.params.shares, decimals);
-  //
-  // const user = getOrCreateVaultUser(userIdFrom(event), event.address.toHexString(), event.transaction.from.toHexString());
-  //
-  // if (user.balance.le(BigDecimal.fromString('0'))) {
-  //   vault.usersCount = vault.usersCount + 1;
-  // }
-  // user.balance = user.balance.plus(amount);
-  //
-  // user.save();
-  vault.save();
-}
-
-
-export function handleWithdraw(event: Withdraw): void {
-  const vault = updateVaultAttributes(event.address.toHexString());
-
-  // const vaultCtr = Vault.bind(event.address);
-  // const decimals = BigInt.fromI32(vaultCtr.decimals());
-  // const amount = formatUnits(event.params.shares, decimals);
-  //
-  // const user = getOrCreateVaultUser(userIdFrom(event), event.address.toHexString(), event.transaction.from.toHexString());
-  //
-  // user.balance = user.balance.minus(amount);
-  //
-  // if (user.balance.le(BigDecimal.fromString('0'))) {
-  //   vault.usersCount = vault.usersCount - 1;
-  // }
-  //
-  // user.save();
-  vault.save();
-}
-
 export function handleTransfer(event: Transfer): void {
-  const vault = VaultEntity.load(event.address.toHexString());
+  const vault = updateVaultAttributes(event.address.toHexString());
   if (!vault) {
     return;
   }
   const vaultCtr = Vault.bind(event.address);
-  const decimals = BigInt.fromI32(vaultCtr.decimals());
-  const amount = formatUnits(event.params.value, decimals);
+  const decimals = BigInt.fromI32(vault.decimals);
 
   if (event.params.from.notEqual(Address.fromString(ADDRESS_ZERO))) {
-    const userFrom = getOrCreateVaultUser(event.address.toHexString(), event.params.from.toHexString());
-    userFrom.balance = userFrom.balance.minus(amount);
-    if (userFrom.balance.le(BigDecimal.fromString('0'))) {
-      vault.usersCount = vault.usersCount - 1;
-    }
-    userFrom.save();
+    updateUser(
+      event.address.toHexString(),
+      event.params.from.toHexString(),
+      decimals,
+      event.block.timestamp,
+      vault,
+      vaultCtr,
+      -1,
+      formatUnits(event.params.value, decimals)
+    );
   }
 
   if (event.params.to.notEqual(Address.fromString(ADDRESS_ZERO))) {
-    const userTo = getOrCreateVaultUser(event.address.toHexString(), event.params.to.toHexString());
-    if (userTo.balance.le(BigDecimal.fromString('0'))) {
-      vault.usersCount = vault.usersCount + 1;
-    }
-    userTo.balance = userTo.balance.plus(amount);
-    userTo.save();
+    updateUser(
+      event.address.toHexString(),
+      event.params.to.toHexString(),
+      decimals,
+      event.block.timestamp,
+      vault,
+      vaultCtr,
+      1,
+      formatUnits(event.params.value, decimals)
+    );
   }
 
   vault.save();
+}
+
+function updateUser(
+  vaultAdr: string,
+  userAdr: string,
+  decimals: BigInt,
+  timestamp: BigInt,
+  vault: VaultEntity,
+  vaultCtr: Vault,
+  // @ts-ignore
+  increase: i32,
+  sharesTransferred: BigDecimal
+): void {
+  const user = getOrCreateVaultUser(vaultAdr, userAdr);
+  if (user.balanceShares.le(BigDecimal.fromString('0'))) {
+    vault.usersCount = vault.usersCount + increase;
+  }
+  const balanceShares = formatUnits(vaultCtr.balanceOf(Address.fromString(userAdr)), decimals);
+  const balanceAssets = balanceShares.times(vault.sharePrice);
+
+  //calculate profit
+  const lastUpdateOld = user.lastUpdate;
+  if (lastUpdateOld != 0) {
+    const balanceAssetsOld = user.balanceAssets;
+    const assetTransferred = sharesTransferred.times(vault.sharePrice);
+    const balanceBeforeTransfer = increase > 0 ?
+      balanceAssets.minus(assetTransferred)
+      : balanceAssets.plus(assetTransferred);
+    const profit = balanceBeforeTransfer.minus(balanceAssetsOld);
+
+    user.compoundProfitTotal = user.compoundProfitTotal.plus(profit);
+
+
+    const profitEntity = new UserCompoundProfit(crypto.keccak256(ByteArray.fromUTF8(user.id + timestamp.toHexString())).toHexString());
+
+    // apr
+    const time = timestamp.toBigDecimal().minus(BigInt.fromI32(lastUpdateOld).toBigDecimal());
+    const apr = profit.div(balanceBeforeTransfer).div(time.div(DAY)).times(BigDecimal.fromString('36500'));
+
+    profitEntity.userVault = user.id;
+
+    profitEntity.profit = profit;
+    profitEntity.time = timestamp.toI32();
+    profitEntity.balanceShares = balanceShares;
+    profitEntity.balanceAssets = balanceAssets;
+    profitEntity.balanceAssetsUsd = balanceAssets.times(vault.assetPrice)
+    profitEntity.profit = profit;
+    profitEntity.apr = apr;
+
+    user.compoundProfitTotal = user.compoundProfitTotal.plus(profit);
+    user.acProfitCount = user.acProfitCount + 1;
+    user.acAprSum = user.acAprSum.plus(apr);
+
+    profitEntity.averageApr = user.acAprSum.div(BigInt.fromI32(user.acProfitCount).toBigDecimal())
+
+    profitEntity.save();
+  }
+
+
+  user.balanceShares = balanceShares;
+  user.balanceAssets = balanceAssets;
+  user.balanceAssetsUsd = user.balanceAssets.times(vault.assetPrice);
+  user.lastUpdate = timestamp.toI32()
+  user.save();
 }
 
 export function handleApproval(event: Approval): void {
@@ -115,12 +162,35 @@ export function handleApproval(event: Approval): void {
 }
 
 export function handleFeeTransfer(event: FeeTransfer): void {
-}
+  const vault = VaultEntity.load(event.address.toHexString());
+  if (!vault) {
+    return;
+  }
 
-export function handleInvest(event: Invest): void {
+  let insurance = InsuranceEntity.load(vault.insurance);
+  if (!insurance) {
+    return;
+  }
+
+  insurance.balance = insurance.balance.plus(formatUnits(event.params.amount, BigInt.fromI32(vault.decimals)));
+  insurance.balanceHistory = insurance.balanceHistory.plus(formatUnits(event.params.amount, BigInt.fromI32(vault.decimals)));
+  insurance.save();
 }
 
 export function handleLossCovered(event: LossCovered): void {
+  const vault = VaultEntity.load(event.address.toHexString());
+  if (!vault) {
+    return;
+  }
+
+  let insurance = InsuranceEntity.load(vault.insurance);
+  if (!insurance) {
+    return;
+  }
+
+  insurance.balance = insurance.balance.minus(formatUnits(event.params.amount, BigInt.fromI32(vault.decimals)));
+  insurance.covered = insurance.covered.plus(formatUnits(event.params.amount, BigInt.fromI32(vault.decimals)));
+  insurance.save();
 }
 
 // *****************************************
@@ -214,7 +284,7 @@ export function handleSplitterChanged(event: SplitterChanged): void {
 }
 
 
-export function updateVaultAttributes(address: string): VaultEntity {
+function updateVaultAttributes(address: string): VaultEntity {
   const vault = VaultEntity.load(address);
   if (!vault) {
     log.critical("Vault not found {}", [address]);
@@ -247,18 +317,25 @@ export function updateVaultAttributes(address: string): VaultEntity {
   return vault;
 }
 
-export function getOrCreateVaultUser(
+function getOrCreateVaultUser(
   vaultAdr: string,
   userAdr: string,
 ): UserVault {
-  const userId = userAdr + "_" + vaultAdr;
+  const userId = crypto.keccak256(ByteArray.fromUTF8(userAdr + "_" + vaultAdr)).toHexString();
   let vaultUser = UserVault.load(userId);
   if (!vaultUser) {
     vaultUser = new UserVault(userId);
 
     vaultUser.vault = vaultAdr;
     vaultUser.user = userAdr;
-    vaultUser.balance = BigDecimal.fromString('0');
+    vaultUser.balanceShares = BigDecimal.fromString('0');
+    vaultUser.balanceAssets = BigDecimal.fromString('0');
+    vaultUser.balanceAssetsUsd = BigDecimal.fromString('0');
+    vaultUser.lastUpdate = 0;
+
+    vaultUser.compoundProfitTotal = BigDecimal.fromString('0');
+    vaultUser.acProfitCount = 0;
+    vaultUser.acAprSum = BigDecimal.fromString('0');
 
     let user = UserEntity.load(userId);
     if (!user) {
@@ -271,19 +348,18 @@ export function getOrCreateVaultUser(
   return vaultUser;
 }
 
-export function tryGetUsdPrice(
+function tryGetUsdPrice(
   liquidatorAdr: string,
   asset: string,
   decimals: BigInt
 ): BigDecimal {
-  // @ts-ignore
-  if (asset.toLowerCase() === USDC.toLowerCase()) {
+  if (getUSDC().equals(Address.fromString(asset))) {
     return BigDecimal.fromString('1');
   }
   const liquidator = Liquidator.bind(Address.fromString(liquidatorAdr))
   const p = liquidator.try_getPrice(
     Address.fromString(asset),
-    Address.fromString(USDC),
+    getUSDC(),
     parseUnits(BigDecimal.fromString('1'), decimals)
   );
   if (!p.reverted) {

@@ -16,13 +16,13 @@ import {
 } from "./types/schema";
 import {Address, BigDecimal, BigInt, log} from "@graphprotocol/graph-ts";
 import {formatUnits, parseUnits} from "./helpers";
-import {USDC} from "./constants";
 import {Vault} from "./types/VaultFactory/Vault";
 import {Controller} from "./types/VaultFactory/Controller";
 import {Liquidator} from "./types/VaultFactory/Liquidator";
 import {StrategySplitter} from "./types/templates/StrategySplitter/StrategySplitter";
 import {Proxy} from "./types/VaultFactory/Proxy";
 import {StrategySplitter as SplitterTemplate, Vault as VaultTemplate} from './types/templates'
+import {getUSDC} from "./constants";
 
 export function handleVaultDeployed(event: VaultDeployed): void {
   const factory = createOrGetFactory(event.address.toHexString())
@@ -187,14 +187,13 @@ export function tryGetUsdPrice(
   asset: string,
   decimals: BigInt
 ): BigDecimal {
-  // @ts-ignore
-  if (asset.toLowerCase() === USDC.toLowerCase()) {
+  if (getUSDC().equals(Address.fromString(asset))) {
     return BigDecimal.fromString('1');
   }
   const liquidator = Liquidator.bind(Address.fromString(liquidatorAdr))
   const p = liquidator.try_getPrice(
     Address.fromString(asset),
-    Address.fromString(USDC),
+    getUSDC(),
     parseUnits(BigDecimal.fromString('1'), decimals)
   );
   if (!p.reverted) {
