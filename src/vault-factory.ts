@@ -154,9 +154,7 @@ export function createSplitter(address: string): SplitterEntity {
     splitter.implementations = [proxy.implementation().toHexString()]
     splitter.vault = splitterCtr.vault().toHexString()
     splitter.asset = splitterCtr.asset().toHexString()
-    splitter.totalApr = BigDecimal.fromString('0')
     splitter.scheduledStrategies = []
-    splitter.totalApr = BigDecimal.fromString('0');
     splitter.profit = BigDecimal.fromString('0');
     splitter.loss = BigDecimal.fromString('0');
 

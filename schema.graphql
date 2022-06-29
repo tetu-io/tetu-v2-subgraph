@@ -104,15 +104,32 @@ type VaultEntity @entity {
     sharePrice: BigDecimal!
     totalSupply: BigDecimal!
     assetPrice: BigDecimal!
-    # todo history
+    usersCount: Int!
+
+    history: [VaultHistory!]! @derivedFrom(field: "vault")
 
     users: [UserVault!]! @derivedFrom(field: "vault")
-    usersCount: Int!
 
     vote: VaultVoteEntity!
 
     isControllerWhitelisted: Boolean!
     isGaugeWhitelisted: Boolean!
+}
+
+type VaultHistory @entity {
+    id: ID!
+
+    vault: VaultEntity!
+
+    time: Int!
+    totalAssets: BigDecimal!
+    totalAssetsUSD: BigDecimal!
+    vaultAssets: BigDecimal!
+    splitterAssets: BigDecimal!
+    sharePrice: BigDecimal!
+    totalSupply: BigDecimal!
+    assetPrice: BigDecimal!
+    usersCount: Int!
 }
 
 type UserVault @entity {
@@ -181,7 +198,7 @@ type InsuranceEntity @entity {
 }
 
 type SplitterEntity @entity {
-    "Strategy splitter connected to the SmartVaultV2"
+    "Strategy splitter connected to the VaultV2"
     id: ID!
     version: String!
     revision: Int!
@@ -197,7 +214,6 @@ type SplitterEntity @entity {
     strategies: [StrategyEntity!]! @derivedFrom(field: "splitter")
     scheduledStrategies: [String!]!
 
-    totalApr: BigDecimal! #todo
     profit: BigDecimal!
     loss: BigDecimal!
 }

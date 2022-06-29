@@ -1,20 +1,20 @@
 // noinspection JSUnusedGlobalSymbols
 
 import {
-  InsuranceEntity, UserCompoundProfit,
+  InsuranceEntity,
+  UserCompoundProfit,
   UserEntity,
   UserVault,
   VaultApproveEntity,
-  VaultEntity
+  VaultEntity,
+  VaultHistory
 } from "./types/schema";
 import {
   Approval,
   BufferChanged,
-  Deposit,
   DoHardWorkOnInvestChanged,
   FeeChanged,
   FeeTransfer,
-  Invest,
   LossCovered,
   MaxDepositChanged,
   MaxWithdrawChanged,
@@ -23,17 +23,8 @@ import {
   Transfer,
   Upgraded,
   Vault,
-  Withdraw,
 } from "./types/templates/Vault/Vault";
-import {
-  Address,
-  BigDecimal,
-  BigInt,
-  ByteArray,
-  crypto,
-  ethereum,
-  log
-} from "@graphprotocol/graph-ts";
+import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
 import {formatUnits, parseUnits} from "./helpers";
 import {createSplitter} from "./vault-factory";
 import {ADDRESS_ZERO, DAY, getUSDC} from "./constants";
@@ -41,7 +32,10 @@ import {Controller} from "./types/templates/Vault/Controller";
 import {Liquidator} from "./types/templates/Vault/Liquidator";
 
 export function handleTransfer(event: Transfer): void {
-  const vault = updateVaultAttributes(event.address.toHexString());
+  const vault = updateVaultAttributes(
+    event.address.toHexString(),
+    event.block.timestamp.toI32()
+  );
   if (!vault) {
     return;
   }
@@ -284,7 +278,11 @@ export function handleSplitterChanged(event: SplitterChanged): void {
 }
 
 
-function updateVaultAttributes(address: string): VaultEntity {
+function updateVaultAttributes(
+  address: string,
+  // @ts-ignore
+  time: i32
+): VaultEntity {
   const vault = VaultEntity.load(address);
   if (!vault) {
     log.critical("Vault not found {}", [address]);
@@ -313,6 +311,21 @@ function updateVaultAttributes(address: string): VaultEntity {
   );
   vault.assetPrice = assetPrice
   vault.totalAssetsUSD = totalAssets.times(assetPrice)
+
+  const history = new VaultHistory(vault.id + "_" + BigInt.fromI32(time).toString());
+  history.vault = address;
+  history.time = time;
+  history.totalAssets = vault.totalAssets;
+  history.totalAssetsUSD = vault.totalAssetsUSD;
+  history.vaultAssets = vault.vaultAssets;
+  history.splitterAssets = vault.splitterAssets;
+  history.sharePrice = vault.sharePrice;
+  history.totalSupply = vault.totalSupply;
+  history.assetPrice = vault.assetPrice;
+  history.usersCount = vault.usersCount;
+  history.save();
+
+
   // need to save vault after the call
   return vault;
 }
