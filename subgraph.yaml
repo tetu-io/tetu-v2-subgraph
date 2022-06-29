@@ -470,22 +470,16 @@ templates:
         - name: Strategy
           file: ./abis/StrategyBaseV2.json
       eventHandlers:
-        - event: Claimed(address,uint256)
-          handler: handleClaimed
         - event: Upgraded(indexed address)
           handler: handleUpgraded
         - event: CompoundRatioChanged(uint256,uint256)
           handler: handleCompoundRatioChanged
-        - event: ContractInitialized(address,uint256,uint256)
-          handler: handleContractInitialized
         - event: DepositToPool(uint256)
           handler: handleDepositToPool
         - event: EmergencyExit(address,uint256)
           handler: handleEmergencyExit
         - event: InvestAll(uint256)
           handler: handleInvestAll
-        - event: ManualClaim(address)
-          handler: handleManualClaim
         - event: RevisionIncreased(uint256,address)
           handler: handleRevisionIncreased
         - event: WithdrawAllFromPool(uint256)
