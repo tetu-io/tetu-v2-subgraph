@@ -104,6 +104,7 @@ type VaultEntity @entity {
     sharePrice: BigDecimal!
     totalSupply: BigDecimal!
     assetPrice: BigDecimal!
+    # todo history
 
     users: [UserVault!]! @derivedFrom(field: "vault")
     usersCount: Int!
@@ -152,6 +153,7 @@ type UserCompoundProfit @entity {
 }
 
 type VaultApproveEntity @entity {
+    "Vault share token approves"
     id: ID!
 
     #dependencies
@@ -193,9 +195,11 @@ type SplitterEntity @entity {
     #attributes
     asset: String!
     strategies: [StrategyEntity!]! @derivedFrom(field: "splitter")
-    totalApr: BigDecimal!
     scheduledStrategies: [String!]!
 
+    totalApr: BigDecimal! #todo
+    profit: BigDecimal!
+    loss: BigDecimal!
 }
 
 type StrategyEntity @entity {
@@ -214,9 +218,29 @@ type StrategyEntity @entity {
     asset: String!
     compoundRatio: BigDecimal!
     paused: Boolean!
-    apr: BigDecimal!
-    aprHistory: [BigDecimal!]!
     lastHardWork: Int!
+
+    history: [StrategyHistory!]! @derivedFrom(field: "strategy")
+    tvl: BigDecimal!
+    profit: BigDecimal!
+    loss: BigDecimal!
+    apr: BigDecimal!
+    averageApr: BigDecimal!
+}
+
+type StrategyHistory @entity {
+    id: ID!
+
+    # dependencies
+    strategy: StrategyEntity!
+
+    #attributes
+    time: Int!
+    tvl: BigDecimal!
+    profit: BigDecimal!
+    loss: BigDecimal!
+    apr: BigDecimal!
+    averageApr: BigDecimal!
 }
 
 type GaugeEntity @entity {

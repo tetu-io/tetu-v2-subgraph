@@ -137,7 +137,7 @@ export function handleProxyUpgraded(event: ProxyUpgraded): void {
   store.remove('ProxyUpgradeAnnounceEntity', id);
 }
 
-function handleProxyAnnounceRemoved(event: ProxyAnnounceRemoved): void {
+export function handleProxyAnnounceRemoved(event: ProxyAnnounceRemoved): void {
   const id = event.params.proxy.toHexString()
   store.remove('ProxyUpgradeAnnounceEntity', id);
 }

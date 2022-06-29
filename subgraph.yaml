@@ -6,9 +6,9 @@ dataSources:
     name: Controller
     network: fuji
     source:
-      address: "0x81367059892aa1D8503a79a0Af9254DD0a09afBF"
+      address: "0x6eEFe56159B5fE6626541CB55744C50B5FbA59D6"
       abi: Controller
-      startBlock: 10880028
+      startBlock: 10993329
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -57,9 +57,9 @@ dataSources:
     name: Forwarder
     network: fuji
     source:
-      address: "0xeE7FFE79689B3d826C7389B95780F42849Fb7019"
+      address: "0x811eb43826CB1c8f83400449f967DdC507360728"
       abi: Forwarder
-      startBlock: 10880028
+      startBlock: 10993329
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -92,9 +92,9 @@ dataSources:
     name: PlatformVoter
     network: fuji
     source:
-      address: "0x2d91C960b03F2C39604aE1b644ba508a1366057c"
+      address: "0x1Ae75D0A2AFE092b1aC417c5c43515E54eE12E51"
       abi: PlatformVoter
-      startBlock: 10880028
+      startBlock: 10993329
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -123,9 +123,9 @@ dataSources:
     name: MultiBribe
     network: fuji
     source:
-      address: "0xC9d5917A0cb82450Cd687AF31eCAaC967D7F121C"
+      address: "0x633b054bb63a0e13012e28167A916201892d122F"
       abi: MultiBribe
-      startBlock: 10880028
+      startBlock: 10993329
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -160,9 +160,9 @@ dataSources:
     name: MultiGauge
     network: fuji
     source:
-      address: "0xbEB411eAD71713E7f2814326498Ff2a054242206"
+      address: "0x4bf56695415F725E43c3E04354b604bcFb6DFb6E"
       abi: MultiGauge
-      startBlock: 10880028
+      startBlock: 10993329
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -201,9 +201,9 @@ dataSources:
     name: TetuVoter
     network: fuji
     source:
-      address: "0x08d7607b2FD46ae255040014a39CDC2094e55901"
+      address: "0x91aB05f1da222A74CeaCCD895FEe011749ce0C1C"
       abi: TetuVoter
-      startBlock: 10880028
+      startBlock: 10993329
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -246,9 +246,9 @@ dataSources:
     name: VeDistributor
     network: fuji
     source:
-      address: "0x13d862a01d0AB241509A2e47e31d0db04e9b9F49"
+      address: "0xcEd6998485B1cc3f47Bbc80f7456cdB9B02bf8e1"
       abi: VeDistributor
-      startBlock: 10880028
+      startBlock: 10993329
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -275,9 +275,9 @@ dataSources:
     name: VeTetu
     network: fuji
     source:
-      address: "0xB5A5D5fE893bC26C6E70CEbb8a193f764A438fd5"
+      address: "0xd8FB34AEb9CEbb0A72d46A078978c9918b133579"
       abi: VeTetu
-      startBlock: 10880028
+      startBlock: 10993329
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -313,7 +313,7 @@ dataSources:
     name: VaultFactory
     network: fuji
     source:
-      address: "0xc8Be20e84E608c9c17422a4928D77Cb7c677d260"
+      address: "0xD35951C225A5B691462ff82B549e94AAF7dD1fbd"
       abi: VaultFactory
       startBlock: 10907395
     mapping:
@@ -412,13 +412,21 @@ templates:
       abis:
         - name: StrategySplitter
           file: ./abis/StrategySplitterV2.json
+        - name: Vault
+          file: ./abis/TetuVaultV2.json
+        - name: Controller
+          file: ./abis/ControllerV2.json
+        - name: Liquidator
+          file: ./abis/TetuLiquidator.json
+        - name: Strategy
+          file: ./abis/StrategyBaseV2.json
+        - name: Proxy
+          file: ./abis/Proxy.json
       eventHandlers:
         - event: ContinueInvesting(address,uint256,address)
           handler: handleContinueInvesting
         - event: Upgraded(indexed address)
           handler: handleUpgraded
-        - event: ContractInitialized(address,uint256,uint256)
-          handler: handleContractInitialized
         - event: HardWork(address,address,uint256,uint256,uint256,uint256,uint256)
           handler: handleHardWork
         - event: ManualAprChanged(address,address,uint256,uint256)
@@ -437,6 +445,14 @@ templates:
           handler: handleStrategyRemoved
         - event: StrategyScheduled(address,uint256,uint256)
           handler: handleStrategyScheduled
+        - event: ScheduledStrategyRemove(address)
+          handler: handleScheduledStrategyRemove
+        - event: Loss(address,uint256)
+          handler: handleLoss
+        - event: Invested(address,uint256)
+          handler: handleInvested
+        - event: WithdrawFromStrategy(address)
+          handler: handleWithdrawFromStrategy
 
   - name: Strategy
     kind: ethereum/contract
