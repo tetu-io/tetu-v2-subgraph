@@ -406,11 +406,11 @@ type InvestFundEntity @entity {
 }
 
 type InvestFundBalance @entity {
+    "Token stored to Invest Fund info"
     id: ID!
 
     fund: InvestFundEntity!
 
-    token: String!
     amount: BigDecimal!
     history: [InvestFundBalanceHistory!]! @derivedFrom(field: "fundBalance")
 }

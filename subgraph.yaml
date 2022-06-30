@@ -344,7 +344,7 @@ templates:
     source:
       abi: InvestFundAbi
     mapping:
-      file: ./src/forwarder.ts
+      file: ./src/invest-fund.ts
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
