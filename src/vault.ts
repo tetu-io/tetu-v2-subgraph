@@ -1,6 +1,7 @@
 // noinspection JSUnusedGlobalSymbols
 
 import {
+  InsuranceBalance,
   InsuranceEntity,
   UserCompoundProfit,
   UserEntity,
@@ -167,8 +168,17 @@ export function handleFeeTransfer(event: FeeTransfer): void {
   }
 
   insurance.balance = insurance.balance.plus(formatUnits(event.params.amount, BigInt.fromI32(vault.decimals)));
-  insurance.balanceHistory = insurance.balanceHistory.plus(formatUnits(event.params.amount, BigInt.fromI32(vault.decimals)));
+  saveInsuranceBalance(insurance, event.block.timestamp);
   insurance.save();
+}
+
+function saveInsuranceBalance(insurance: InsuranceEntity, time: BigInt): void {
+  const h = new InsuranceBalance(insurance.id + "_" + time.toString());
+  h.insurance = insurance.id;
+  h.time = time.toI32();
+  h.balance = insurance.balance;
+  h.covered = insurance.covered;
+  h.save();
 }
 
 export function handleLossCovered(event: LossCovered): void {
@@ -217,7 +227,7 @@ export function handleBufferChanged(event: BufferChanged): void {
     return;
   }
   const vaultCtr = VaultAbi.bind(event.address)
-  vault.buffer = event.params.newValue.toBigDecimal().div(vaultCtr.BUFFER_DENOMINATOR().toBigDecimal());
+  vault.buffer = event.params.newValue.toBigDecimal().times(BigDecimal.fromString('100')).div(vaultCtr.BUFFER_DENOMINATOR().toBigDecimal());
   vault.save();
 }
 
@@ -237,8 +247,8 @@ export function handleFeeChanged(event: FeeChanged): void {
   }
   const vaultCtr = VaultAbi.bind(event.address);
   const denominator = vaultCtr.FEE_DENOMINATOR();
-  vault.depositFee = event.params.depositFee.toBigDecimal().div(denominator.toBigDecimal());
-  vault.withdrawFee = event.params.withdrawFee.toBigDecimal().div(denominator.toBigDecimal());
+  vault.depositFee = event.params.depositFee.toBigDecimal().times(BigDecimal.fromString('100')).div(denominator.toBigDecimal());
+  vault.withdrawFee = event.params.withdrawFee.toBigDecimal().times(BigDecimal.fromString('100')).div(denominator.toBigDecimal());
   vault.save();
 }
 

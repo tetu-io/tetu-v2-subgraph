@@ -25,7 +25,7 @@ import {
   VaultEntity
 } from "./types/schema";
 import {ADDRESS_ZERO} from "./constants";
-import {Address, BigInt, store} from "@graphprotocol/graph-ts";
+import {Address, BigDecimal, BigInt, store} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/ControllerData/ProxyAbi";
 import {ForwarderTemplate, InvestFundTemplate} from "./types/templates";
 import {formatUnits} from "./helpers";
@@ -162,8 +162,8 @@ function createForwarder(address: string): void {
     forwarder.implementations = [proxy.implementation().toHexString()];
     forwarder.tetu = forwarderCtr.tetu().toHexString();
     forwarder.tetuThreshold = formatUnits(forwarderCtr.tetuThreshold(), BigInt.fromI32(18));
-    forwarder.toInvestFundRatio = forwarderCtr.toInvestFundRatio().toBigDecimal().div(denominator);
-    forwarder.toGaugesRatio = forwarderCtr.toGaugesRatio().toBigDecimal().div(denominator);
+    forwarder.toInvestFundRatio = forwarderCtr.toInvestFundRatio().toBigDecimal().times(BigDecimal.fromString('100')).div(denominator);
+    forwarder.toGaugesRatio = forwarderCtr.toGaugesRatio().toBigDecimal().times(BigDecimal.fromString('100')).div(denominator);
     forwarder.controller = forwarderCtr.controller().toHexString();
 
     ForwarderTemplate.create(Address.fromString(address));

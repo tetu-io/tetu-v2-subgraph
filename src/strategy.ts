@@ -14,7 +14,7 @@ import {
   WithdrawToSplitter
 } from "./types/templates/StrategyTemplate/StrategyAbi";
 import {StrategyEntity, StrategyHistory} from "./types/schema";
-import {Address, BigInt} from "@graphprotocol/graph-ts";
+import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 
 // ***************************************************
 //                 STATE CHANGES
@@ -32,7 +32,7 @@ export function handleCompoundRatioChanged(event: CompoundRatioChanged): void {
   const strategy = StrategyEntity.load(event.address.toHexString()) as StrategyEntity;
   const strategyCtr = StrategyAbi.bind(event.address);
   const compoundDenominator = strategyCtr.COMPOUND_DENOMINATOR();
-  strategy.compoundRatio = event.params.newValue.toBigDecimal().div(compoundDenominator.toBigDecimal());
+  strategy.compoundRatio = event.params.newValue.toBigDecimal().times(BigDecimal.fromString('100')).div(compoundDenominator.toBigDecimal());
   strategy.save()
 }
 

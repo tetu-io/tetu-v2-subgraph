@@ -187,10 +187,10 @@ function getOrCreateStrategy(address: string): StrategyEntity {
     strategy.implementations = [proxy.implementation().toHexString()];
     strategy.splitter = splitterAdr.toHexString();
     strategy.asset = strategyCtr.asset().toHexString();
-    strategy.compoundRatio = strategyCtr.compoundRatio().toBigDecimal().div(compoundDenominator.toBigDecimal());
+    strategy.compoundRatio = strategyCtr.compoundRatio().toBigDecimal().times(BigDecimal.fromString('100')).div(compoundDenominator.toBigDecimal());
     strategy.paused = splitterCtr.pausedStrategies(Address.fromString(address));
-    strategy.apr = splitterCtr.strategiesAPR(Address.fromString(address)).toBigDecimal().div(aprDenominator.toBigDecimal());
-    strategy.averageApr = splitterCtr.averageApr(Address.fromString(address)).toBigDecimal().div(aprDenominator.toBigDecimal());
+    strategy.apr = splitterCtr.strategiesAPR(Address.fromString(address)).toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator.toBigDecimal());
+    strategy.averageApr = splitterCtr.averageApr(Address.fromString(address)).toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator.toBigDecimal());
     strategy.lastHardWork = 0;
     strategy.tvl = strategyCtr.totalAssets().toBigDecimal();
     strategy.profit = BigDecimal.fromString('0');

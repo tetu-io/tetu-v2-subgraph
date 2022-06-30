@@ -193,7 +193,16 @@ type InsuranceEntity @entity {
 
     # stats
     balance: BigDecimal!
-    balanceHistory: BigDecimal!
+    covered: BigDecimal!
+
+    history: [InsuranceBalance!]! @derivedFrom(field: "insurance")
+}
+
+type InsuranceBalance @entity {
+    id: ID!
+    insurance: InsuranceEntity!
+    time: Int!
+    balance: BigDecimal!
     covered: BigDecimal!
 }
 

@@ -60,13 +60,13 @@ export function handleVaultDeployed(event: VaultDeployed): void {
   vault.decimals = decimals.toI32();
   vault.name = event.params.name;
   vault.symbol = event.params.symbol;
-  vault.buffer = event.params.buffer.toBigDecimal().div(vaultCtr.BUFFER_DENOMINATOR().toBigDecimal());
+  vault.buffer = event.params.buffer.toBigDecimal().times(BigDecimal.fromString('100')).div(vaultCtr.BUFFER_DENOMINATOR().toBigDecimal());
   vault.maxWithdrawAssets = formatUnits(vaultCtr.maxWithdrawAssets(), decimals);
   vault.maxRedeemShares = formatUnits(vaultCtr.maxRedeemShares(), decimals);
   vault.maxDepositAssets = formatUnits(vaultCtr.maxDepositAssets(), decimals);
   vault.maxMintShares = formatUnits(vaultCtr.maxMintShares(), decimals);
-  vault.depositFee = vaultCtr.depositFee().toBigDecimal().div(feeDenominator.toBigDecimal());
-  vault.withdrawFee = vaultCtr.withdrawFee().toBigDecimal().div(feeDenominator.toBigDecimal());
+  vault.depositFee = vaultCtr.depositFee().toBigDecimal().times(BigDecimal.fromString('100')).div(feeDenominator.toBigDecimal());
+  vault.withdrawFee = vaultCtr.withdrawFee().toBigDecimal().times(BigDecimal.fromString('100')).div(feeDenominator.toBigDecimal());
   vault.doHardWorkOnInvest = vaultCtr.doHardWorkOnInvest();
   vault.totalAssets = totalAssets;
   vault.vaultAssets = formatUnits(assetCtr.balanceOf(event.params.vaultProxy), decimals);
@@ -175,7 +175,6 @@ export function createInsurance(
     insurance.vault = vault;
     insurance.asset = asset;
     insurance.balance = BigDecimal.fromString('0');
-    insurance.balanceHistory = BigDecimal.fromString('0');
     insurance.covered = BigDecimal.fromString('0');
     insurance.save();
   }
