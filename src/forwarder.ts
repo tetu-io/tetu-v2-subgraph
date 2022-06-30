@@ -9,7 +9,7 @@ import {
   RevisionIncreased,
   SlippageChanged,
   TetuThresholdChanged
-} from "./types/Forwarder/Forwarder";
+} from "./types/templates/ForwarderTemplate/ForwarderAbi";
 
 export function handleContractInitialized(event: ContractInitialized): void {
 }

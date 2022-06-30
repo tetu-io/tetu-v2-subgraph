@@ -2,7 +2,9 @@
 
 import {
   ContinueInvesting,
-  HardWork, Invested, Loss,
+  HardWork,
+  Invested,
+  Loss,
   ManualAprChanged,
   Paused,
   Rebalance,
@@ -10,16 +12,16 @@ import {
   StrategyAdded,
   StrategyRemoved,
   StrategyScheduled,
-  StrategySplitter,
-  Upgraded
-} from "./types/templates/StrategySplitter/StrategySplitter";
+  StrategySplitterAbi,
+  Upgraded,
+  WithdrawFromStrategy
+} from "./types/templates/StrategySplitterTemplate/StrategySplitterAbi";
 import {SplitterEntity, StrategyEntity, StrategyHistory} from "./types/schema";
-import {Strategy as StrategyTemplate} from './types/templates'
-import {Address, BigDecimal, BigInt, log} from "@graphprotocol/graph-ts";
-import {Strategy} from "./types/templates/Strategy/Strategy";
-import {Proxy} from "./types/templates/StrategySplitter/Proxy";
+import {StrategyTemplate} from './types/templates'
+import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
+import {StrategyAbi} from "./types/templates/StrategyTemplate/StrategyAbi";
+import {ProxyAbi} from "./types/templates/StrategySplitterTemplate/ProxyAbi";
 import {ADDRESS_ZERO} from "./constants";
-import {WithdrawFromStrategy} from "./types/VaultFactory/StrategySplitter";
 
 // ***************************************************
 //             ADD/REMOVE STRATEGIES
@@ -68,7 +70,7 @@ export function handleStrategyRemoved(event: StrategyRemoved): void {
 
 export function handleManualAprChanged(event: ManualAprChanged): void {
   const strategy = getOrCreateStrategy(event.params.strategy.toHexString());
-  const splitterCtr = StrategySplitter.bind(event.address);
+  const splitterCtr = StrategySplitterAbi.bind(event.address);
 
   strategy.apr = event.params.newApr.toBigDecimal();
   strategy.averageApr = splitterCtr.averageApr(event.params.strategy).toBigDecimal()
@@ -171,10 +173,10 @@ function getOrCreateStrategy(address: string): StrategyEntity {
 
   if (!strategy) {
     strategy = new StrategyEntity(address);
-    const strategyCtr = Strategy.bind(Address.fromString(address));
+    const strategyCtr = StrategyAbi.bind(Address.fromString(address));
     const splitterAdr = strategyCtr.splitter();
-    const splitterCtr = StrategySplitter.bind(splitterAdr);
-    const proxy = Proxy.bind(Address.fromString(address))
+    const splitterCtr = StrategySplitterAbi.bind(splitterAdr);
+    const proxy = ProxyAbi.bind(Address.fromString(address))
     const compoundDenominator = strategyCtr.COMPOUND_DENOMINATOR();
     const aprDenominator = splitterCtr.APR_DENOMINATOR();
 
@@ -225,7 +227,7 @@ export function updateTvl(
   time: i32
 ): void {
   const strategy = getOrCreateStrategy(strategyAdr);
-  const strategyCtr = Strategy.bind(Address.fromString(strategyAdr));
+  const strategyCtr = StrategyAbi.bind(Address.fromString(strategyAdr));
   strategy.tvl = strategyCtr.totalAssets().toBigDecimal();
   saveStrategyHistory(strategy, time);
   strategy.save();

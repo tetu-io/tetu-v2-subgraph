@@ -22,14 +22,14 @@ import {
   SplitterChanged,
   Transfer,
   Upgraded,
-  Vault,
-} from "./types/templates/Vault/Vault";
+  VaultAbi,
+} from "./types/templates/VaultTemplate/VaultAbi";
 import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
 import {formatUnits, parseUnits} from "./helpers";
 import {createSplitter} from "./vault-factory";
 import {ADDRESS_ZERO, DAY, getUSDC} from "./constants";
-import {Controller} from "./types/templates/Vault/Controller";
-import {Liquidator} from "./types/templates/Vault/Liquidator";
+import {ControllerAbi} from "./types/templates/VaultTemplate/ControllerAbi";
+import {LiquidatorAbi} from "./types/templates/VaultTemplate/LiquidatorAbi";
 
 export function handleTransfer(event: Transfer): void {
   const vault = updateVaultAttributes(
@@ -39,7 +39,7 @@ export function handleTransfer(event: Transfer): void {
   if (!vault) {
     return;
   }
-  const vaultCtr = Vault.bind(event.address);
+  const vaultCtr = VaultAbi.bind(event.address);
   const decimals = BigInt.fromI32(vault.decimals);
 
   if (event.params.from.notEqual(Address.fromString(ADDRESS_ZERO))) {
@@ -77,7 +77,7 @@ function updateUser(
   decimals: BigInt,
   timestamp: BigInt,
   vault: VaultEntity,
-  vaultCtr: Vault,
+  vaultCtr: VaultAbi,
   // @ts-ignore
   increase: i32,
   sharesTransferred: BigDecimal
@@ -140,7 +140,7 @@ export function handleApproval(event: Approval): void {
   if (!vault) {
     return;
   }
-  const vaultCtr = Vault.bind(event.address);
+  const vaultCtr = VaultAbi.bind(event.address);
   const user = getOrCreateVaultUser(event.address.toHexString(), event.params.owner.toHexString());
   const decimals = BigInt.fromI32(vaultCtr.decimals());
 
@@ -216,7 +216,7 @@ export function handleBufferChanged(event: BufferChanged): void {
   if (!vault) {
     return;
   }
-  const vaultCtr = Vault.bind(event.address)
+  const vaultCtr = VaultAbi.bind(event.address)
   vault.buffer = event.params.newValue.toBigDecimal().div(vaultCtr.BUFFER_DENOMINATOR().toBigDecimal());
   vault.save();
 }
@@ -235,7 +235,7 @@ export function handleFeeChanged(event: FeeChanged): void {
   if (!vault) {
     return;
   }
-  const vaultCtr = Vault.bind(event.address);
+  const vaultCtr = VaultAbi.bind(event.address);
   const denominator = vaultCtr.FEE_DENOMINATOR();
   vault.depositFee = event.params.depositFee.toBigDecimal().div(denominator.toBigDecimal());
   vault.withdrawFee = event.params.withdrawFee.toBigDecimal().div(denominator.toBigDecimal());
@@ -247,7 +247,7 @@ export function handleMaxDepositChanged(event: MaxDepositChanged): void {
   if (!vault) {
     return;
   }
-  const vaultCtr = Vault.bind(event.address);
+  const vaultCtr = VaultAbi.bind(event.address);
   const decimals = BigInt.fromI32(vaultCtr.decimals());
   vault.maxDepositAssets = formatUnits(event.params.maxAssets, decimals);
   vault.maxMintShares = formatUnits(event.params.maxShares, decimals);
@@ -259,7 +259,7 @@ export function handleMaxWithdrawChanged(event: MaxWithdrawChanged): void {
   if (!vault) {
     return;
   }
-  const vaultCtr = Vault.bind(event.address);
+  const vaultCtr = VaultAbi.bind(event.address);
   const decimals = BigInt.fromI32(vaultCtr.decimals());
   vault.maxWithdrawAssets = formatUnits(event.params.maxAssets, decimals);
   vault.maxRedeemShares = formatUnits(event.params.maxShares, decimals);
@@ -290,10 +290,10 @@ function updateVaultAttributes(
     return new VaultEntity(address);
   }
 
-  const vaultCtr = Vault.bind(Address.fromString(address));
-  const assetCtr = Vault.bind(Address.fromString(vault.asset));
+  const vaultCtr = VaultAbi.bind(Address.fromString(address));
+  const assetCtr = VaultAbi.bind(Address.fromString(vault.asset));
   const controllerAdr = vaultCtr.controller();
-  const controllerCtr = Controller.bind(controllerAdr)
+  const controllerCtr = ControllerAbi.bind(controllerAdr)
 
   const decimals = BigInt.fromI32(vaultCtr.decimals());
   const totalAssets = formatUnits(vaultCtr.totalAssets(), decimals);
@@ -369,7 +369,7 @@ function tryGetUsdPrice(
   if (getUSDC().equals(Address.fromString(asset))) {
     return BigDecimal.fromString('1');
   }
-  const liquidator = Liquidator.bind(Address.fromString(liquidatorAdr))
+  const liquidator = LiquidatorAbi.bind(Address.fromString(liquidatorAdr))
   const p = liquidator.try_getPrice(
     Address.fromString(asset),
     getUSDC(),

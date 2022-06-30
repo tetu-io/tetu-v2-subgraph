@@ -3,10 +3,10 @@
 import {
   SplitterImplChanged,
   VaultDeployed,
-  VaultFactory,
+  VaultFactoryAbi,
   VaultImplChanged,
   VaultInsuranceImplChanged
-} from "./types/VaultFactory/VaultFactory";
+} from "./types/VaultFactoryData/VaultFactoryAbi";
 import {
   InsuranceEntity,
   SplitterEntity,
@@ -16,22 +16,22 @@ import {
 } from "./types/schema";
 import {Address, BigDecimal, BigInt, log} from "@graphprotocol/graph-ts";
 import {formatUnits, parseUnits} from "./helpers";
-import {Vault} from "./types/VaultFactory/Vault";
-import {Controller} from "./types/VaultFactory/Controller";
-import {Liquidator} from "./types/VaultFactory/Liquidator";
-import {StrategySplitter} from "./types/templates/StrategySplitter/StrategySplitter";
-import {Proxy} from "./types/VaultFactory/Proxy";
-import {StrategySplitter as SplitterTemplate, Vault as VaultTemplate} from './types/templates'
+import {VaultAbi} from "./types/VaultFactoryData/VaultAbi";
+import {ControllerAbi} from "./types/VaultFactoryData/ControllerAbi";
+import {LiquidatorAbi} from "./types/VaultFactoryData/LiquidatorAbi";
+import {ProxyAbi} from "./types/VaultFactoryData/ProxyAbi";
+import {StrategySplitterTemplate, VaultTemplate} from './types/templates'
 import {getUSDC} from "./constants";
+import {StrategySplitterAbi} from "./types/VaultFactoryData/StrategySplitterAbi";
 
 export function handleVaultDeployed(event: VaultDeployed): void {
   const factory = createOrGetFactory(event.address.toHexString())
 
   const vault = new VaultEntity(event.params.vaultProxy.toHexString());
-  const vaultCtr = Vault.bind(event.params.vaultProxy)
+  const vaultCtr = VaultAbi.bind(event.params.vaultProxy)
   const controllerAdr = vaultCtr.controller();
-  const controllerCtr = Controller.bind(controllerAdr)
-  const assetCtr = Vault.bind(event.params.asset);
+  const controllerCtr = ControllerAbi.bind(controllerAdr)
+  const assetCtr = VaultAbi.bind(event.params.asset);
 
   const decimals = BigInt.fromI32(vaultCtr.decimals());
 
@@ -129,7 +129,7 @@ export function createOrGetFactory(address: string): VaultFactoryEntity {
   let factory = VaultFactoryEntity.load(address);
   if (!factory) {
     factory = new VaultFactoryEntity(address);
-    const factoryCtr = VaultFactory.bind(Address.fromString(address))
+    const factoryCtr = VaultFactoryAbi.bind(Address.fromString(address))
     factory.controller = factoryCtr.controller().toHexString()
     factory.vaultImpl = factoryCtr.vaultImpl().toHexString()
     factory.vaultInsuranceImpl = factoryCtr.vaultInsuranceImpl().toHexString()
@@ -144,8 +144,8 @@ export function createSplitter(address: string): SplitterEntity {
   let splitter = SplitterEntity.load(address);
   if (!splitter) {
     splitter = new SplitterEntity(address);
-    const splitterCtr = StrategySplitter.bind(Address.fromString(address))
-    const proxy = Proxy.bind(Address.fromString(address))
+    const splitterCtr = StrategySplitterAbi.bind(Address.fromString(address))
+    const proxy = ProxyAbi.bind(Address.fromString(address))
 
     splitter.version = splitterCtr.SPLITTER_VERSION()
     splitter.revision = splitterCtr.revision().toI32()
@@ -158,7 +158,7 @@ export function createSplitter(address: string): SplitterEntity {
     splitter.profit = BigDecimal.fromString('0');
     splitter.loss = BigDecimal.fromString('0');
 
-    SplitterTemplate.create(Address.fromString(address));
+    StrategySplitterTemplate.create(Address.fromString(address));
     splitter.save();
   }
   return splitter;
@@ -191,7 +191,7 @@ export function tryGetUsdPrice(
   if (getUSDC().equals(Address.fromString(asset))) {
     return BigDecimal.fromString('1');
   }
-  const liquidator = Liquidator.bind(Address.fromString(liquidatorAdr))
+  const liquidator = LiquidatorAbi.bind(Address.fromString(liquidatorAdr))
   const p = liquidator.try_getPrice(
     Address.fromString(asset),
     getUSDC(),

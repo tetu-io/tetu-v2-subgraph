@@ -2,13 +2,13 @@ specVersion: 0.0.4
 schema:
   file: ./schema.graphql
 dataSources:
-  - kind: ethereum/contract
-    name: Controller
+  - name: ControllerData
+    kind: ethereum/contract
     network: fuji
     source:
-      address: "0x6eEFe56159B5fE6626541CB55744C50B5FbA59D6"
-      abi: Controller
-      startBlock: 10993329
+      address: "0xff24f83b3B8891c8eEdB2dCB6b5915AE5a92dc2F"
+      abi: ControllerAbi
+      startBlock: 11113655
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -18,12 +18,16 @@ dataSources:
         - AddressChangeAnnounceEntity
         - ProxyUpgradeAnnounceEntity
       abis:
-        - name: Controller
+        - name: ControllerAbi
           file: ./abis/ControllerV2.json
-        - name: Proxy
+        - name: ProxyAbi
           file: ./abis/Proxy.json
-        - name: Liquidator
+        - name: LiquidatorAbi
           file: ./abis/TetuLiquidator.json
+        - name: InvestFundAbi
+          file: ./abis/InvestFundV2.json
+        - name: ForwarderAbi
+          file: ./abis/ForwarderV3.json
       eventHandlers:
         - event: AddressChangeAnnounced(uint256,address)
           handler: handleAddressChangeAnnounced
@@ -53,56 +57,58 @@ dataSources:
           handler: handleOperatorRemoved
       file: ./src/controller.ts
 
-  - kind: ethereum/contract
-    name: Forwarder
+  - name: VaultFactoryData
+    kind: ethereum/contract
     network: fuji
     source:
-      address: "0x811eb43826CB1c8f83400449f967DdC507360728"
-      abi: Forwarder
-      startBlock: 10993329
+      address: "0x9aD77Bf475cf9c2df8198Bce7AB5B26d309f5526"
+      abi: VaultFactoryAbi
+      startBlock: 11114354
     mapping:
+      file: ./src/vault-factory.ts
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - ForwarderEntity
+        - VaultFactoryEntity
       abis:
-        - name: Forwarder
-          file: ./abis/ForwarderV3.json
+        - name: VaultFactoryAbi
+          file: ./abis/VaultFactory.json
+        - name: VaultAbi
+          file: ./abis/TetuVaultV2.json
+        - name: ControllerAbi
+          file: ./abis/ControllerV2.json
+        - name: ProxyAbi
+          file: ./abis/Proxy.json
+        - name: LiquidatorAbi
+          file: ./abis/TetuLiquidator.json
+        - name: StrategySplitterAbi
+          file: ./abis/StrategySplitterV2.json
       eventHandlers:
-        - event: ContractInitialized(address,uint256,uint256)
-          handler: handleContractInitialized
-        - event: Distributed(address,address,uint256,uint256,uint256,uint256,uint256,uint256)
-          handler: handleDistributed
-        - event: GaugeRatioChanged(uint256,uint256)
-          handler: handleGaugeRatioChanged
-        - event: InvestFundRatioChanged(uint256,uint256)
-          handler: handleInvestFundRatioChanged
-        - event: RevisionIncreased(uint256,address)
-          handler: handleRevisionIncreased
-        - event: SlippageChanged(address,uint256)
-          handler: handleSlippageChanged
-        - event: TetuThresholdChanged(uint256,uint256)
-          handler: handleTetuThresholdChanged
-        - event: Upgraded(indexed address)
-          handler: handleUpgraded
-      file: ./src/forwarder.ts
+        - event: VaultDeployed(address,address,string,string,address,uint256,address,address,address,address,address)
+          handler: handleVaultDeployed
+        - event: VaultImplChanged(address)
+          handler: handleVaultImplChanged
+        - event: VaultInsuranceImplChanged(address)
+          handler: handleVaultInsuranceImplChanged
+        - event: SplitterImplChanged(address)
+          handler: handleSplitterImplChanged
 
-  - kind: ethereum/contract
-    name: PlatformVoter
+templates:
+  - name: PlatformVoterTemplate
+    kind: ethereum/contract
     network: fuji
     source:
-      address: "0x1Ae75D0A2AFE092b1aC417c5c43515E54eE12E51"
-      abi: PlatformVoter
-      startBlock: 10993329
+      abi: PlatformVoterAbi
     mapping:
+      file: ./src/platfrom-voter.ts
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - PlatformVoterEntity
       abis:
-        - name: PlatformVoter
+        - name: PlatformVoterAbi
           file: ./abis/PlatformVoter.json
       eventHandlers:
         - event: AttributeChanged(uint256,uint256)
@@ -117,23 +123,21 @@ dataSources:
           handler: handleVoted
         - event: Upgraded(indexed address)
           handler: handleUpgraded
-      file: ./src/platfrom-voter.ts
 
-  - kind: ethereum/contract
-    name: MultiBribe
+  - name: MultiBribeTemplate
+    kind: ethereum/contract
     network: fuji
     source:
-      address: "0x633b054bb63a0e13012e28167A916201892d122F"
-      abi: MultiBribe
-      startBlock: 10993329
+      abi: MultiBribeAbi
     mapping:
+      file: ./src/bribe.ts
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - BribeEntity
       abis:
-        - name: MultiBribe
+        - name: MultiBribeAbi
           file: ./abis/MultiBribe.json
       eventHandlers:
         - event: BalanceDecreased(indexed address,indexed address,uint256)
@@ -154,23 +158,21 @@ dataSources:
           handler: handleRevisionIncreased
         - event: Upgraded(indexed address)
           handler: handleUpgraded
-      file: ./src/bribe.ts
 
-  - kind: ethereum/contract
-    name: MultiGauge
+  - name: MultiGaugeTemplate
+    kind: ethereum/contract
     network: fuji
     source:
-      address: "0x4bf56695415F725E43c3E04354b604bcFb6DFb6E"
-      abi: MultiGauge
-      startBlock: 10993329
+      abi: MultiGaugeAbi
     mapping:
+      file: ./src/gauge.ts
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - GaugeEntity
       abis:
-        - name: MultiGauge
+        - name: MultiGaugeAbi
           file: ./abis/MultiGauge.json
       eventHandlers:
         - event: BalanceDecreased(indexed address,indexed address,uint256)
@@ -195,23 +197,21 @@ dataSources:
           handler: handleWithdraw
         - event: Upgraded(indexed address)
           handler: handleUpgraded
-      file: ./src/gauge.ts
 
-  - kind: ethereum/contract
-    name: TetuVoter
+  - name: TetuVoterTemplate
+    kind: ethereum/contract
     network: fuji
     source:
-      address: "0x91aB05f1da222A74CeaCCD895FEe011749ce0C1C"
-      abi: TetuVoter
-      startBlock: 10993329
+      abi: TetuVoterAbi
     mapping:
+      file: ./src/tetu-voter.ts
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - TetuVoterEntity
       abis:
-        - name: TetuVoter
+        - name: TetuVoterAbi
           file: ./abis/TetuVoter.json
       eventHandlers:
         - event: Abstained(uint256,int256)
@@ -240,23 +240,21 @@ dataSources:
           handler: handleWithdraw
         - event: Upgraded(indexed address)
           handler: handleUpgraded
-      file: ./src/tetu-voter.ts
 
-  - kind: ethereum/contract
-    name: VeDistributor
+  - name: VeDistributorTemplate
+    kind: ethereum/contract
     network: fuji
     source:
-      address: "0xcEd6998485B1cc3f47Bbc80f7456cdB9B02bf8e1"
-      abi: VeDistributor
-      startBlock: 10993329
+      abi: VeDistributorAbi
     mapping:
+      file: ./src/ve-dist.ts
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - VeDistEntity
       abis:
-        - name: VeDistributor
+        - name: VeDistributorAbi
           file: ./abis/VeDistributor.json
       eventHandlers:
         - event: CheckpointToken(uint256,uint256)
@@ -269,23 +267,21 @@ dataSources:
           handler: handleRevisionIncreased
         - event: Upgraded(indexed address)
           handler: handleUpgraded
-      file: ./src/ve-dist.ts
 
-  - kind: ethereum/contract
-    name: VeTetu
+  - name: VeTetuTemplate
+    kind: ethereum/contract
     network: fuji
     source:
-      address: "0xd8FB34AEb9CEbb0A72d46A078978c9918b133579"
-      abi: VeTetu
-      startBlock: 10993329
+      abi: VeTetuAbi
     mapping:
+      file: ./src/ve.ts
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - VeTetuEntity
       abis:
-        - name: VeTetu
+        - name: VeTetuAbi
           file: ./abis/VeTetu.json
       eventHandlers:
         - event: Approval(indexed address,indexed address,indexed uint256)
@@ -308,50 +304,66 @@ dataSources:
           handler: handleWithdraw
         - event: Upgraded(indexed address)
           handler: handleUpgraded
-      file: ./src/ve.ts
-  - kind: ethereum/contract
-    name: VaultFactory
+
+  - name: ForwarderTemplate
+    kind: ethereum/contract
     network: fuji
     source:
-      address: "0xD35951C225A5B691462ff82B549e94AAF7dD1fbd"
-      abi: VaultFactory
-      startBlock: 10907395
+      abi: ForwarderAbi
     mapping:
+      file: ./src/forwarder.ts
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - VaultFactoryEntity
+        - ForwarderEntity
       abis:
-        - name: VaultFactory
-          file: ./abis/VaultFactory.json
-        - name: Vault
-          file: ./abis/TetuVaultV2.json
-        - name: Controller
-          file: ./abis/ControllerV2.json
-        - name: Proxy
-          file: ./abis/Proxy.json
-        - name: Liquidator
-          file: ./abis/TetuLiquidator.json
-        - name: StrategySplitter
-          file: ./abis/StrategySplitterV2.json
+        - name: ForwarderAbi
+          file: ./abis/ForwarderV3.json
       eventHandlers:
-        - event: VaultDeployed(address,address,string,string,address,uint256,address,address,address,address,address)
-          handler: handleVaultDeployed
-        - event: VaultImplChanged(address)
-          handler: handleVaultImplChanged
-        - event: VaultInsuranceImplChanged(address)
-          handler: handleVaultInsuranceImplChanged
-        - event: SplitterImplChanged(address)
-          handler: handleSplitterImplChanged
-      file: ./src/vault-factory.ts
+        - event: ContractInitialized(address,uint256,uint256)
+          handler: handleContractInitialized
+        - event: Distributed(address,address,uint256,uint256,uint256,uint256,uint256,uint256)
+          handler: handleDistributed
+        - event: GaugeRatioChanged(uint256,uint256)
+          handler: handleGaugeRatioChanged
+        - event: InvestFundRatioChanged(uint256,uint256)
+          handler: handleInvestFundRatioChanged
+        - event: RevisionIncreased(uint256,address)
+          handler: handleRevisionIncreased
+        - event: SlippageChanged(address,uint256)
+          handler: handleSlippageChanged
+        - event: TetuThresholdChanged(uint256,uint256)
+          handler: handleTetuThresholdChanged
+        - event: Upgraded(indexed address)
+          handler: handleUpgraded
 
-templates:
-  - name: Vault
+  - name: InvestFundTemplate
     kind: ethereum/contract
     network: fuji
     source:
-      abi: Vault
+      abi: InvestFundAbi
+    mapping:
+      file: ./src/forwarder.ts
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - InvestFundEntity
+      abis:
+        - name: InvestFundAbi
+          file: ./abis/InvestFundV2.json
+      eventHandlers:
+        - event: FundDeposit(indexed address,uint256)
+          handler: handleFundDeposit
+        - event: FundWithdrawn(indexed address,uint256)
+          handler: handleFundWithdrawn
+
+  - name: VaultTemplate
+    kind: ethereum/contract
+    network: fuji
+    source:
+      abi: VaultAbi
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -363,13 +375,13 @@ templates:
         - VaultApproveEntity
         - UserVault
       abis:
-        - name: Vault
+        - name: VaultAbi
           file: ./abis/TetuVaultV2.json
-        - name: Insurance
+        - name: InsuranceAbi
           file: ./abis/VaultInsurance.json
-        - name: Controller
+        - name: ControllerAbi
           file: ./abis/ControllerV2.json
-        - name: Liquidator
+        - name: LiquidatorAbi
           file: ./abis/TetuLiquidator.json
       eventHandlers:
         - event: Approval(indexed address,indexed address,uint256)
@@ -397,11 +409,11 @@ templates:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
 
-  - name: StrategySplitter
+  - name: StrategySplitterTemplate
     kind: ethereum/contract
     network: fuji
     source:
-      abi: StrategySplitter
+      abi: StrategySplitterAbi
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -410,17 +422,17 @@ templates:
       entities:
         - SplitterEntity
       abis:
-        - name: StrategySplitter
+        - name: StrategySplitterAbi
           file: ./abis/StrategySplitterV2.json
-        - name: Vault
+        - name: VaultAbi
           file: ./abis/TetuVaultV2.json
-        - name: Controller
+        - name: ControllerAbi
           file: ./abis/ControllerV2.json
-        - name: Liquidator
+        - name: LiquidatorAbi
           file: ./abis/TetuLiquidator.json
-        - name: Strategy
+        - name: StrategyAbi
           file: ./abis/StrategyBaseV2.json
-        - name: Proxy
+        - name: ProxyAbi
           file: ./abis/Proxy.json
       eventHandlers:
         - event: ContinueInvesting(address,uint256,address)
@@ -454,11 +466,11 @@ templates:
         - event: WithdrawFromStrategy(address)
           handler: handleWithdrawFromStrategy
 
-  - name: Strategy
+  - name: StrategyTemplate
     kind: ethereum/contract
     network: fuji
     source:
-      abi: Strategy
+      abi: StrategyAbi
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -467,27 +479,19 @@ templates:
       entities:
         - StrategyEntity
       abis:
-        - name: Strategy
+        - name: StrategyAbi
           file: ./abis/StrategyBaseV2.json
       eventHandlers:
         - event: Upgraded(indexed address)
           handler: handleUpgraded
         - event: CompoundRatioChanged(uint256,uint256)
           handler: handleCompoundRatioChanged
-        - event: DepositToPool(uint256)
-          handler: handleDepositToPool
         - event: EmergencyExit(address,uint256)
           handler: handleEmergencyExit
-        - event: InvestAll(uint256)
-          handler: handleInvestAll
         - event: RevisionIncreased(uint256,address)
           handler: handleRevisionIncreased
-        - event: WithdrawAllFromPool(uint256)
-          handler: handleWithdrawAllFromPool
         - event: WithdrawAllToSplitter(uint256)
           handler: handleWithdrawAllToSplitter
-        - event: WithdrawFromPool(uint256)
-          handler: handleWithdrawFromPool
         - event: WithdrawToSplitter(uint256,uint256,uint256)
           handler: handleWithdrawToSplitter
 

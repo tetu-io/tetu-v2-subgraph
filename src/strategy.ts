@@ -1,21 +1,19 @@
 // noinspection JSUnusedGlobalSymbols
 
 import {
-  Claimed,
   CompoundRatioChanged,
-  ContractInitialized,
   DepositToPool,
   EmergencyExit,
   InvestAll,
-  ManualClaim,
-  RevisionIncreased, Strategy,
+  RevisionIncreased,
+  StrategyAbi,
   Upgraded,
   WithdrawAllFromPool,
   WithdrawAllToSplitter,
   WithdrawFromPool,
   WithdrawToSplitter
-} from "./types/templates/Strategy/Strategy";
-import {SplitterEntity, StrategyEntity, StrategyHistory} from "./types/schema";
+} from "./types/templates/StrategyTemplate/StrategyAbi";
+import {StrategyEntity, StrategyHistory} from "./types/schema";
 import {Address, BigInt} from "@graphprotocol/graph-ts";
 
 // ***************************************************
@@ -32,7 +30,7 @@ export function handleUpgraded(event: Upgraded): void {
 
 export function handleCompoundRatioChanged(event: CompoundRatioChanged): void {
   const strategy = StrategyEntity.load(event.address.toHexString()) as StrategyEntity;
-  const strategyCtr = Strategy.bind(event.address);
+  const strategyCtr = StrategyAbi.bind(event.address);
   const compoundDenominator = strategyCtr.COMPOUND_DENOMINATOR();
   strategy.compoundRatio = event.params.newValue.toBigDecimal().div(compoundDenominator.toBigDecimal());
   strategy.save()
@@ -48,20 +46,8 @@ export function handleRevisionIncreased(event: RevisionIncreased): void {
 //                    ACTIONS
 // ***************************************************
 
-export function handleDepositToPool(event: DepositToPool): void {
-  // updateBalances(event.address.toHexString(), event.block.timestamp.toI32());
-}
-
 export function handleEmergencyExit(event: EmergencyExit): void {
   updateBalances(event.address.toHexString(), event.block.timestamp.toI32());
-}
-
-export function handleInvestAll(event: InvestAll): void {
-  // updateBalances(event.address.toHexString(), event.block.timestamp.toI32());
-}
-
-export function handleWithdrawAllFromPool(event: WithdrawAllFromPool): void {
-  // updateBalances(event.address.toHexString(), event.block.timestamp.toI32());
 }
 
 export function handleWithdrawAllToSplitter(
@@ -70,20 +56,17 @@ export function handleWithdrawAllToSplitter(
   updateBalances(event.address.toHexString(), event.block.timestamp.toI32());
 }
 
-export function handleWithdrawFromPool(event: WithdrawFromPool): void {
-  // updateBalances(event.address.toHexString(), event.block.timestamp.toI32());
-}
-
 export function handleWithdrawToSplitter(event: WithdrawToSplitter): void {
   updateBalances(event.address.toHexString(), event.block.timestamp.toI32());
 }
 
 function updateBalances(
   address: string,
+  // @ts-ignore
   time: i32
 ): void {
   const strategy = StrategyEntity.load(address) as StrategyEntity;
-  const strategyCtr = Strategy.bind(Address.fromString(address));
+  const strategyCtr = StrategyAbi.bind(Address.fromString(address));
   strategy.tvl = strategyCtr.totalAssets().toBigDecimal();
   saveStrategyHistory(strategy, time);
   strategy.save();

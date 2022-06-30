@@ -12,7 +12,7 @@ import {
   VeTokenLocked,
   VeTokenUnlocked,
   Withdraw
-} from "./types/MultiGauge/MultiGauge";
+} from "./types/templates/MultiGaugeTemplate/MultiGaugeAbi";
 
 
 export function handleBalanceDecreased(event: BalanceDecreased): void {

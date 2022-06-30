@@ -14,7 +14,7 @@ import {
   Voted,
   Whitelisted,
   Withdraw
-} from "./types/TetuVoter/TetuVoter";
+} from "./types/templates/TetuVoterTemplate/TetuVoterAbi";
 
 export function handleAbstained(event: Abstained): void {
 }

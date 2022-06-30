@@ -10,7 +10,7 @@ import {
   Initialized,
   NotifyReward,
   RevisionIncreased
-} from "./types/MultiBribe/MultiBribe";
+} from "./types/templates/MultiBribeTemplate/MultiBribeAbi";
 
 export function handleBalanceDecreased(event: BalanceDecreased): void {
 }

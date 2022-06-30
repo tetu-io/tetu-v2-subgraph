@@ -402,8 +402,26 @@ type InvestFundEntity @entity {
 
     controller: ControllerEntity!
 
-    tetuAmount: BigDecimal!
-    usdcAmount: BigDecimal!
+    balances: [InvestFundBalance!]! @derivedFrom(field: "fund")
+}
+
+type InvestFundBalance @entity {
+    id: ID!
+
+    fund: InvestFundEntity!
+
+    token: String!
+    amount: BigDecimal!
+    history: [InvestFundBalanceHistory!]! @derivedFrom(field: "fundBalance")
+}
+
+type InvestFundBalanceHistory @entity {
+    id: ID!
+
+    fundBalance: InvestFundBalance!
+
+    time: Int!
+    amount: BigDecimal!
 }
 
 type VeDistEntity @entity {

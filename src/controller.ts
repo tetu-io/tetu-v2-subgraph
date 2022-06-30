@@ -5,7 +5,7 @@ import {
   AddressChangeAnnounced,
   AddressChanged,
   ContractInitialized,
-  Controller,
+  ControllerAbi,
   OperatorAdded,
   OperatorRemoved,
   ProxyAnnounceRemoved,
@@ -15,23 +15,29 @@ import {
   RevisionIncreased,
   Upgraded,
   VaultRemoved
-} from "./types/Controller/Controller";
+} from "./types/ControllerData/ControllerAbi";
 import {
   AddressChangeAnnounceEntity,
   ControllerEntity,
+  ForwarderEntity,
+  InvestFundEntity,
   ProxyUpgradeAnnounceEntity,
   VaultEntity
 } from "./types/schema";
 import {ADDRESS_ZERO} from "./constants";
-import {BigInt, store} from "@graphprotocol/graph-ts";
-import {Proxy} from "./types/Controller/Proxy";
+import {Address, BigInt, store} from "@graphprotocol/graph-ts";
+import {ProxyAbi} from "./types/ControllerData/ProxyAbi";
+import {ForwarderTemplate, InvestFundTemplate} from "./types/templates";
+import {formatUnits} from "./helpers";
+import {InvestFundAbi} from "./types/ControllerData/InvestFundAbi";
+import {ForwarderAbi} from "./types/ControllerData/ForwarderAbi";
 
 export function handleContractInitialized(event: ContractInitialized): void {
   let controller = ControllerEntity.load(event.params.controller.toHexString())
 
   if (!controller) {
-    const controllerCtr = Controller.bind(event.params.controller);
-    const proxy = Proxy.bind(event.params.controller)
+    const controllerCtr = ControllerAbi.bind(event.params.controller);
+    const proxy = ProxyAbi.bind(event.params.controller)
     controller = new ControllerEntity(event.params.controller.toHexString());
     controller.version = controllerCtr.CONTROLLER_VERSION();
     controller.revision = 0;
@@ -76,7 +82,7 @@ export function handleUpgraded(event: Upgraded): void {
 }
 
 export function handleAddressChangeAnnounced(event: AddressChangeAnnounced): void {
-  const controllerCtr = Controller.bind(event.address);
+  const controllerCtr = ControllerAbi.bind(event.address);
   const id = mapAnnounceType(event.params._type)
   let announce = AddressChangeAnnounceEntity.load(id)
   if (!announce) {
@@ -105,20 +111,73 @@ export function handleAddressChanged(event: AddressChanged): void {
   if (BigInt.fromI32(2).equals(event.params._type)) controller.tetuVoter = event.params.newAddress.toHexString() // TETU_VOTER
   if (BigInt.fromI32(3).equals(event.params._type)) controller.vaultController = event.params.newAddress.toHexString() // VAULT_CONTROLLER
   if (BigInt.fromI32(4).equals(event.params._type)) controller.liquidator = event.params.newAddress.toHexString() // LIQUIDATOR
-  if (BigInt.fromI32(5).equals(event.params._type)) controller.forwarder = event.params.newAddress.toHexString() // FORWARDER
-  if (BigInt.fromI32(6).equals(event.params._type)) controller.investFund = event.params.newAddress.toHexString() // INVEST_FUND
+  // FORWARDER
+  if (BigInt.fromI32(5).equals(event.params._type)) {
+    controller.forwarder = event.params.newAddress.toHexString();
+    createForwarder(event.params.newAddress.toHexString())
+
+  }
+  // INVEST_FUND
+  if (BigInt.fromI32(6).equals(event.params._type)) {
+    controller.investFund = event.params.newAddress.toHexString();
+    createInvestFund(event.params.newAddress.toHexString());
+  }
   if (BigInt.fromI32(7).equals(event.params._type)) controller.veDistributor = event.params.newAddress.toHexString() // VE_DIST
   if (BigInt.fromI32(8).equals(event.params._type)) controller.platformVoter = event.params.newAddress.toHexString() // PLATFORM_VOTER
   controller.save();
 }
 
-function handleAddressAnnounceRemove(event: AddressAnnounceRemove): void {
+function createInvestFund(address: string): void {
+  let fund = InvestFundEntity.load(address);
+  if (!fund) {
+    fund = new InvestFundEntity(address);
+    const fundCtr = InvestFundAbi.bind(Address.fromString(address));
+    const proxy = ProxyAbi.bind(Address.fromString(address));
+
+    fund.version = fundCtr.INVEST_FUND_VERSION();
+    fund.revision = fundCtr.revision().toI32();
+    fund.createdTs = fundCtr.created().toI32();
+    fund.createdBlock = fundCtr.createdBlock().toI32();
+    fund.implementations = [proxy.implementation().toHexString()];
+    fund.controller = fundCtr.controller().toHexString();
+
+    InvestFundTemplate.create(Address.fromString(address));
+    fund.save();
+  }
+}
+
+function createForwarder(address: string): void {
+  let forwarder = ForwarderEntity.load(address);
+  if (!forwarder) {
+    forwarder = new ForwarderEntity(address);
+    const forwarderCtr = ForwarderAbi.bind(Address.fromString(address));
+    const proxy = ProxyAbi.bind(Address.fromString(address));
+
+    const denominator = forwarderCtr.RATIO_DENOMINATOR().toBigDecimal();
+
+    forwarder.version = forwarderCtr.FORWARDER_VERSION();
+    forwarder.revision = forwarderCtr.revision().toI32();
+    forwarder.createdTs = forwarderCtr.created().toI32();
+    forwarder.createdBlock = forwarderCtr.createdBlock().toI32();
+    forwarder.implementations = [proxy.implementation().toHexString()];
+    forwarder.tetu = forwarderCtr.tetu().toHexString();
+    forwarder.tetuThreshold = formatUnits(forwarderCtr.tetuThreshold(), BigInt.fromI32(18));
+    forwarder.toInvestFundRatio = forwarderCtr.toInvestFundRatio().toBigDecimal().div(denominator);
+    forwarder.toGaugesRatio = forwarderCtr.toGaugesRatio().toBigDecimal().div(denominator);
+    forwarder.controller = forwarderCtr.controller().toHexString();
+
+    ForwarderTemplate.create(Address.fromString(address));
+    forwarder.save();
+  }
+}
+
+export function handleAddressAnnounceRemove(event: AddressAnnounceRemove): void {
   const id = mapAnnounceType(event.params._type)
   store.remove('AddressChangeAnnounceEntity', id);
 }
 
 export function handleProxyUpgradeAnnounced(event: ProxyUpgradeAnnounced): void {
-  const controllerCtr = Controller.bind(event.address);
+  const controllerCtr = ControllerAbi.bind(event.address);
   const id = event.params.proxy.toHexString()
   let announce = ProxyUpgradeAnnounceEntity.load(id)
   if (!announce) {
@@ -149,7 +208,7 @@ export function handleRegisterVault(event: RegisterVault): void {
   }
 
   const vault = VaultEntity.load(event.params.vault.toHexString());
-  if(!!vault) {
+  if (!!vault) {
     vault.isControllerWhitelisted = true
     vault.save()
   }
@@ -165,7 +224,7 @@ export function handleVaultRemoved(event: VaultRemoved): void {
   }
 
   const vault = VaultEntity.load(event.params.vault.toHexString());
-  if(!!vault) {
+  if (!!vault) {
     vault.isControllerWhitelisted = false
     vault.save()
   }

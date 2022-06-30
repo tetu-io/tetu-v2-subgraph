@@ -7,7 +7,7 @@ import {
   RevisionIncreased,
   Voted,
   VoteReset
-} from "./types/PlatformVoter/PlatformVoter";
+} from "./types/templates/PlatformVoterTemplate/PlatformVoterAbi";
 
 
 export function handleAttributeChanged(event: AttributeChanged): void {

@@ -6,7 +6,7 @@ import {
   ContractInitialized,
   Initialized,
   RevisionIncreased
-} from "./types/VeDistributor/VeDistributor";
+} from "./types/templates/VeDistributorTemplate/VeDistributorAbi";
 
 
 export function handleCheckpointToken(event: CheckpointToken): void {

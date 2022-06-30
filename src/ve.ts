@@ -11,7 +11,7 @@ import {
   Supply,
   Transfer,
   Withdraw
-} from "./types/VeTetu/VeTetu";
+} from "./types/templates/VeTetuTemplate/VeTetuAbi";
 
 export function handleApproval(event: Approval): void {
 }
