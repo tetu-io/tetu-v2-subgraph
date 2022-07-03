@@ -166,6 +166,10 @@ function createForwarder(address: string): void {
     forwarder.toGaugesRatio = forwarderCtr.toGaugesRatio().toBigDecimal().times(BigDecimal.fromString('100')).div(denominator);
     forwarder.controller = forwarderCtr.controller().toHexString();
 
+    forwarder.toInvestFundTotal = BigDecimal.fromString('0');
+    forwarder.toGaugesTotal = BigDecimal.fromString('0');
+    forwarder.toVeTetuTotal = BigDecimal.fromString('0');
+
     ForwarderTemplate.create(Address.fromString(address));
     forwarder.save();
   }

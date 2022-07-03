@@ -320,9 +320,13 @@ templates:
       abis:
         - name: ForwarderAbi
           file: ./abis/ForwarderV3.json
+        - name: VaultAbi
+          file: ./abis/TetuVaultV2.json
+        - name: ControllerAbi
+          file: ./abis/ControllerV2.json
+        - name: InvestFundAbi
+          file: ./abis/InvestFundV2.json
       eventHandlers:
-        - event: ContractInitialized(address,uint256,uint256)
-          handler: handleContractInitialized
         - event: Distributed(address,address,uint256,uint256,uint256,uint256,uint256,uint256)
           handler: handleDistributed
         - event: GaugeRatioChanged(uint256,uint256)
@@ -353,6 +357,8 @@ templates:
       abis:
         - name: InvestFundAbi
           file: ./abis/InvestFundV2.json
+        - name: VaultAbi
+          file: ./abis/TetuVaultV2.json
       eventHandlers:
         - event: FundDeposit(indexed address,uint256)
           handler: handleFundDeposit

@@ -398,6 +398,36 @@ type ForwarderEntity @entity {
     tetuThreshold: BigDecimal!
     toInvestFundRatio: BigDecimal!
     toGaugesRatio: BigDecimal!
+
+    toInvestFundTotal: BigDecimal!
+    toGaugesTotal: BigDecimal!
+    toVeTetuTotal: BigDecimal!
+
+    slippages: [ForwarderSlippage!]! @derivedFrom(field: "forwarder")
+
+    distributions: [ForwarderDistribution!]! @derivedFrom(field: "forwarder")
+}
+
+type ForwarderSlippage @entity {
+    id: ID!
+    forwarder: ForwarderEntity!
+    value: BigDecimal!
+}
+
+type ForwarderDistribution @entity {
+    id: ID!
+
+    forwarder: ForwarderEntity!
+
+    time: Int!
+    sender: String!
+    token: String!
+    balance: BigDecimal!
+    tetuValue: BigDecimal!
+    tetuBalance: BigDecimal!
+    toInvestFund: BigDecimal!
+    toGauges: BigDecimal!
+    toVeTetu: BigDecimal!
 }
 
 type InvestFundEntity @entity {

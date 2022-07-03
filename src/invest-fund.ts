@@ -3,33 +3,34 @@
 import {FundDeposit, FundWithdrawn} from "./types/templates/InvestFundTemplate/InvestFundAbi";
 import {InvestFundBalance, InvestFundBalanceHistory, InvestFundEntity} from "./types/schema";
 import {BigInt} from "@graphprotocol/graph-ts";
+import {VaultAbi} from "./types/templates/InvestFundTemplate/VaultAbi";
+import { formatUnits } from "./helpers";
 
 export function handleFundDeposit(event: FundDeposit): void {
-
+  const tokenCtr = VaultAbi.bind(event.params.token);
   const balance = loadBalance(event.address.toHexString(), event.params.token.toHexString());
 
-  balance.amount = balance.amount.plus(event.params.amount.toBigDecimal())
+  balance.amount = balance.amount.plus(formatUnits(event.params.amount, BigInt.fromI32(tokenCtr.decimals())))
 
   saveBalanceHistory(balance, event.block.timestamp.toI32());
   balance.save();
 }
 
 export function handleFundWithdrawn(event: FundWithdrawn): void {
+  const tokenCtr = VaultAbi.bind(event.params.token);
   const balance = loadBalance(event.address.toHexString(), event.params.token.toHexString());
 
-  balance.amount = balance.amount.minus(event.params.amount.toBigDecimal())
+  balance.amount = balance.amount.minus(formatUnits(event.params.amount, BigInt.fromI32(tokenCtr.decimals())))
 
   saveBalanceHistory(balance, event.block.timestamp.toI32());
   balance.save();
 }
 
 function loadBalance(fundAdr: string, tokenAdr: string): InvestFundBalance {
-  const fund = InvestFundEntity.load(fundAdr) as InvestFundEntity;
-
   let balance = InvestFundBalance.load(tokenAdr);
   if (!balance) {
     balance = new InvestFundBalance(tokenAdr);
-    balance.fund = fund.id;
+    balance.fund = fundAdr;
   }
   return balance;
 }
