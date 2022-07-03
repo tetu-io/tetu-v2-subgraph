@@ -12,8 +12,8 @@ import {
 } from "./types/templates/ForwarderTemplate/ForwarderAbi";
 import {
   ForwarderDistribution,
-  ForwarderEntity,
-  ForwarderSlippage, InvestFundBalance, InvestFundBalanceHistory,
+  ForwarderEntity, ForwarderTokenInfo,
+  InvestFundBalance, InvestFundBalanceHistory,
   InvestFundEntity, TetuVoterEntity, TetuVoterRewardHistory, VeDistBalance, VeDistEntity
 } from "./types/schema";
 import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
@@ -50,13 +50,10 @@ export function handleRevisionIncreased(event: RevisionIncreased): void {
 }
 
 export function handleSlippageChanged(event: SlippageChanged): void {
-  let slippage = ForwarderSlippage.load(event.params.token.toHexString());
-  if (!slippage) {
-    slippage = new ForwarderSlippage(event.params.token.toHexString());
-  }
-  slippage.value = event.params.value.toBigDecimal();
-  slippage.forwarder = event.address.toHexString();
-  slippage.save();
+  let tokenInfo = getOrCreateForwarderTokenInfo(event.params.token.toHexString(), event.address.toHexString());
+  tokenInfo.slippage = event.params.value.toBigDecimal();
+  tokenInfo.lastUpdate = event.block.timestamp.toI32();
+  tokenInfo.save();
 }
 
 export function handleTetuThresholdChanged(event: TetuThresholdChanged): void {
@@ -76,18 +73,25 @@ export function handleDistributed(event: Distributed): void {
   const controllerCtr = ControllerAbi.bind(forwarderCtr.controller());
   const tokenCtr = VaultAbi.bind(event.params.token);
   const tetuAdr = forwarderCtr.tetu();
+  const tokenDecimals = BigInt.fromI32(tokenCtr.decimals());
 
   distribution.forwarder = event.address.toHexString();
   distribution.time = event.block.timestamp.toI32();
   distribution.sender = event.params.sender.toHexString()
   distribution.token = event.params.token.toHexString()
-  distribution.balance = formatUnits(event.params.balance, BigInt.fromI32(tokenCtr.decimals()));
+  distribution.balance = formatUnits(event.params.balance, tokenDecimals);
   distribution.tetuValue = formatUnits(event.params.tetuValue, BigInt.fromI32(18));
   distribution.tetuBalance = formatUnits(event.params.tetuBalance, BigInt.fromI32(18));
   distribution.toInvestFund = formatUnits(event.params.toInvestFund, BigInt.fromI32(18));
   distribution.toGauges = formatUnits(event.params.toGauges, BigInt.fromI32(18));
   distribution.toVeTetu = formatUnits(event.params.toVeTetu, BigInt.fromI32(18));
   distribution.save();
+
+  // *** TOKEN BALANCE
+  let tokenInfo = getOrCreateForwarderTokenInfo(event.params.token.toHexString(), event.address.toHexString());
+  tokenInfo.balance = formatUnits(tokenCtr.balanceOf(event.address), tokenDecimals);
+  tokenInfo.lastUpdate = event.block.timestamp.toI32();
+  tokenInfo.save();
 
   // *** FORWARDER TOTALS
   const forwarder = ForwarderEntity.load(event.address.toHexString()) as ForwarderEntity;
@@ -133,6 +137,7 @@ function loadInvestFundBalance(fundAdr: string, tokenAdr: string): InvestFundBal
   if (!balance) {
     balance = new InvestFundBalance(tokenAdr);
     balance.fund = fund.id;
+    balance.amount = BigDecimal.fromString('0');
   }
   return balance;
 }
@@ -147,3 +152,14 @@ function saveInvestFundBalanceHistory(balance: InvestFundBalance, time: BigInt):
   h.save();
 }
 
+function getOrCreateForwarderTokenInfo(address: string, forwarder: string): ForwarderTokenInfo {
+  let tokenInfo = ForwarderTokenInfo.load(address);
+  if (!tokenInfo) {
+    tokenInfo = new ForwarderTokenInfo(address);
+    tokenInfo.forwarder = forwarder;
+    tokenInfo.slippage = BigDecimal.fromString('0');
+    tokenInfo.lastUpdate = 0;
+    tokenInfo.balance = BigDecimal.fromString('0');
+  }
+  return tokenInfo;
+}

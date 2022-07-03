@@ -2,19 +2,19 @@
 
 import {
   CompoundRatioChanged,
-  DepositToPool,
   EmergencyExit,
-  InvestAll,
   RevisionIncreased,
+  SentToForwarder,
   StrategyAbi,
   Upgraded,
-  WithdrawAllFromPool,
   WithdrawAllToSplitter,
-  WithdrawFromPool,
   WithdrawToSplitter
 } from "./types/templates/StrategyTemplate/StrategyAbi";
-import {StrategyEntity, StrategyHistory} from "./types/schema";
-import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
+import {ForwarderTokenInfo, StrategyEntity, StrategyHistory} from "./types/schema";
+import {Address, BigDecimal, BigInt, log} from "@graphprotocol/graph-ts";
+import {formatUnits} from "./helpers";
+import {VaultAbi} from "./types/templates/StrategyTemplate/VaultAbi";
+import {ForwarderAbi} from "./types/templates/StrategyTemplate/ForwarderAbi";
 
 // ***************************************************
 //                 STATE CHANGES
@@ -59,6 +59,26 @@ export function handleWithdrawAllToSplitter(
 export function handleWithdrawToSplitter(event: WithdrawToSplitter): void {
   updateBalances(event.address.toHexString(), event.block.timestamp.toI32());
 }
+
+export function handleSentToForwarder(event: SentToForwarder): void {
+  let info = ForwarderTokenInfo.load(event.params.token.toHexString());
+  if (!info) {
+    info = new ForwarderTokenInfo(event.params.token.toHexString());
+    const forwarderCtr = ForwarderAbi.bind(event.params.forwarder);
+
+    info.forwarder = event.params.forwarder.toHexString();
+    info.slippage = forwarderCtr.DEFAULT_SLIPPAGE().toBigDecimal().div(BigDecimal.fromString('1000'));
+    info.balance = BigDecimal.fromString('0');
+  }
+  const tokenCtr = VaultAbi.bind(event.params.token);
+  info.balance = info.balance.plus(formatUnits(event.params.amount, BigInt.fromI32(tokenCtr.decimals())));
+  info.lastUpdate = event.block.timestamp.toI32();
+  info.save();
+}
+
+// ***************************************************
+//                    HELPERS
+// ***************************************************
 
 function updateBalances(
   address: string,

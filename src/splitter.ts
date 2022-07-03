@@ -22,6 +22,8 @@ import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {StrategyAbi} from "./types/templates/StrategyTemplate/StrategyAbi";
 import {ProxyAbi} from "./types/templates/StrategySplitterTemplate/ProxyAbi";
 import {ADDRESS_ZERO} from "./constants";
+import {VaultAbi} from "./types/templates/StrategySplitterTemplate/VaultAbi";
+import {formatUnits} from "./helpers";
 
 // ***************************************************
 //             ADD/REMOVE STRATEGIES
@@ -132,12 +134,14 @@ export function handleRevisionIncreased(event: RevisionIncreased): void {
 export function handleHardWork(event: HardWork): void {
   const splitter = SplitterEntity.load(event.address.toHexString()) as SplitterEntity;
   const strategy = getOrCreateStrategy(event.params.strategy.toHexString());
+  const splitterCtr = StrategySplitterAbi.bind(event.address);
+  const aprDenominator = splitterCtr.APR_DENOMINATOR();
 
-  const earned = event.params.earned.toBigDecimal();
-  const lost = event.params.lost.toBigDecimal();
-  const tvl = event.params.tvl.toBigDecimal();
-  const apr = event.params.apr.toBigDecimal();
-  const avgApr = event.params.avgApr.toBigDecimal();
+  const earned = formatUnits(event.params.earned, BigInt.fromI32(strategy.assetDecimals));
+  const lost = formatUnits(event.params.lost, BigInt.fromI32(strategy.assetDecimals));
+  const tvl = formatUnits(event.params.tvl, BigInt.fromI32(strategy.assetDecimals));
+  const apr = event.params.apr.toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator.toBigDecimal());
+  const avgApr = event.params.avgApr.toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator.toBigDecimal());
 
   splitter.profit = splitter.profit.plus(earned);
   splitter.loss = splitter.loss.plus(lost);
@@ -176,6 +180,8 @@ function getOrCreateStrategy(address: string): StrategyEntity {
     const strategyCtr = StrategyAbi.bind(Address.fromString(address));
     const splitterAdr = strategyCtr.splitter();
     const splitterCtr = StrategySplitterAbi.bind(splitterAdr);
+    const vaultAdr = splitterCtr.vault();
+    const vaultCtr = VaultAbi.bind(vaultAdr);
     const proxy = ProxyAbi.bind(Address.fromString(address))
     const compoundDenominator = strategyCtr.COMPOUND_DENOMINATOR();
     const aprDenominator = splitterCtr.APR_DENOMINATOR();
@@ -187,11 +193,12 @@ function getOrCreateStrategy(address: string): StrategyEntity {
     strategy.implementations = [proxy.implementation().toHexString()];
     strategy.splitter = splitterAdr.toHexString();
     strategy.asset = strategyCtr.asset().toHexString();
+    strategy.assetDecimals = vaultCtr.decimals();
     strategy.compoundRatio = strategyCtr.compoundRatio().toBigDecimal().times(BigDecimal.fromString('100')).div(compoundDenominator.toBigDecimal());
     strategy.paused = splitterCtr.pausedStrategies(Address.fromString(address));
     strategy.apr = splitterCtr.strategiesAPR(Address.fromString(address)).toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator.toBigDecimal());
     strategy.averageApr = splitterCtr.averageApr(Address.fromString(address)).toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator.toBigDecimal());
-    strategy.lastHardWork = 0;
+    strategy.lastHardWork = splitterCtr.lastHardWorks(Address.fromString(address)).toI32();
     strategy.tvl = strategyCtr.totalAssets().toBigDecimal();
     strategy.profit = BigDecimal.fromString('0');
     strategy.loss = BigDecimal.fromString('0');
@@ -228,7 +235,7 @@ export function updateTvl(
 ): void {
   const strategy = getOrCreateStrategy(strategyAdr);
   const strategyCtr = StrategyAbi.bind(Address.fromString(strategyAdr));
-  strategy.tvl = strategyCtr.totalAssets().toBigDecimal();
+  strategy.tvl = formatUnits(strategyCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals));
   saveStrategyHistory(strategy, time);
   strategy.save();
 }

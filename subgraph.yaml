@@ -6,9 +6,9 @@ dataSources:
     kind: ethereum/contract
     network: fuji
     source:
-      address: "0xff24f83b3B8891c8eEdB2dCB6b5915AE5a92dc2F"
+      address: "0xA609fA657A9cfbD658be45dcbe31cc477F2d6d18"
       abi: ControllerAbi
-      startBlock: 11113655
+      startBlock: 11208650
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -69,9 +69,9 @@ dataSources:
     kind: ethereum/contract
     network: fuji
     source:
-      address: "0x9aD77Bf475cf9c2df8198Bce7AB5B26d309f5526"
+      address: "0x1606Cee37b0171fbCa4FB1982Dc51f9763ca0863"
       abi: VaultFactoryAbi
-      startBlock: 11114354
+      startBlock: 11208650
     mapping:
       file: ./src/vault-factory.ts
       kind: ethereum/events
@@ -446,6 +446,8 @@ templates:
           file: ./abis/StrategyBaseV2.json
         - name: ProxyAbi
           file: ./abis/Proxy.json
+        - name: ForwarderAbi
+          file: ./abis/ForwarderV3.json
       eventHandlers:
         - event: ContinueInvesting(address,uint256,address)
           handler: handleContinueInvesting
@@ -493,6 +495,10 @@ templates:
       abis:
         - name: StrategyAbi
           file: ./abis/StrategyBaseV2.json
+        - name: VaultAbi
+          file: ./abis/TetuVaultV2.json
+        - name: ForwarderAbi
+          file: ./abis/ForwarderV3.json
       eventHandlers:
         - event: Upgraded(indexed address)
           handler: handleUpgraded
@@ -506,6 +512,8 @@ templates:
           handler: handleWithdrawAllToSplitter
         - event: WithdrawToSplitter(uint256,uint256,uint256)
           handler: handleWithdrawToSplitter
+        - event: SentToForwarder(address,address,uint256)
+          handler: handleSentToForwarder
 
 
 

@@ -240,6 +240,7 @@ type StrategyEntity @entity {
 
     #attributes
     asset: String!
+    assetDecimals: Int!
     compoundRatio: BigDecimal!
     paused: Boolean!
     lastHardWork: Int!
@@ -411,15 +412,18 @@ type ForwarderEntity @entity {
     toGaugesTotal: BigDecimal!
     toVeTetuTotal: BigDecimal!
 
-    slippages: [ForwarderSlippage!]! @derivedFrom(field: "forwarder")
+    tokenInfo: [ForwarderTokenInfo!]! @derivedFrom(field: "forwarder")
 
     distributions: [ForwarderDistribution!]! @derivedFrom(field: "forwarder")
 }
 
-type ForwarderSlippage @entity {
+type ForwarderTokenInfo @entity {
     id: ID!
     forwarder: ForwarderEntity!
-    value: BigDecimal!
+
+    slippage: BigDecimal!
+    balance: BigDecimal!
+    lastUpdate: Int!
 }
 
 type ForwarderDistribution @entity {
