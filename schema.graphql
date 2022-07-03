@@ -14,7 +14,6 @@ type ControllerEntity @entity {
 
     # dependencies
     tetuVoter: TetuVoterEntity!
-    vaultController: VaultControllerEntity!
     liquidator: LiquidatorEntity!
     forwarder: ForwarderEntity!
     investFund: InvestFundEntity!
@@ -339,9 +338,18 @@ type TetuVoterEntity @entity {
 
     #attributes
     vaultVotes: [VaultVoteEntity!]! @derivedFrom(field: "tetuVoter")
-    rewardsTotalAmount: BigDecimal!
+    rewardsBalance: BigDecimal!
 
     users: [UserTetuVote!]! @derivedFrom(field: "tetuVoter")
+}
+
+type TetuVoterRewardHistory @entity {
+    id: ID!
+
+    voter: TetuVoterEntity!
+
+    time: Int!
+    balance: BigDecimal!
 }
 
 type UserTetuVote @entity {
@@ -481,7 +489,19 @@ type VeDistEntity @entity {
     activePeriod: Int!
     timeCursor: Int!
     tokenLastBalance: BigDecimal!
-    lastTokenTime: BigDecimal!
+    tokenBalance: BigDecimal!
+    lastTokenTime: Int!
+
+    balanceHistory: [VeDistBalance!]!  @derivedFrom(field: "veDist")
+}
+
+type VeDistBalance @entity {
+    id: ID!
+
+    veDist: VeDistEntity!
+
+    time: Int!
+    balance: BigDecimal!
 }
 
 type PlatformVoterEntity @entity {

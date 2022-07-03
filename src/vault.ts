@@ -276,16 +276,16 @@ export function handleMaxWithdrawChanged(event: MaxWithdrawChanged): void {
   vault.save();
 }
 
-
-export function handleSplitterChanged(event: SplitterChanged): void {
-  createSplitter(event.params.newValue.toHexString())
-  const vault = VaultEntity.load(event.address.toHexString());
-  if (!vault) {
-    return;
-  }
-  vault.splitter = event.params.newValue.toHexString();
-  vault.save();
-}
+// it will not be changed
+// export function handleSplitterChanged(event: SplitterChanged): void {
+//   createSplitter(event.params.newValue.toHexString())
+//   const vault = VaultEntity.load(event.address.toHexString());
+//   if (!vault) {
+//     return;
+//   }
+//   vault.splitter = event.params.newValue.toHexString();
+//   vault.save();
+// }
 
 
 function updateVaultAttributes(

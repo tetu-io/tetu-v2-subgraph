@@ -28,6 +28,14 @@ dataSources:
           file: ./abis/InvestFundV2.json
         - name: ForwarderAbi
           file: ./abis/ForwarderV3.json
+        - name: VaultAbi
+          file: ./abis/TetuVaultV2.json
+        - name: TetuVoterAbi
+          file: ./abis/TetuVoter.json
+        - name: PlatformVoterAbi
+          file: ./abis/PlatformVoter.json
+        - name: VeDistributorAbi
+          file: ./abis/VeDistributor.json
       eventHandlers:
         - event: AddressChangeAnnounced(uint256,address)
           handler: handleAddressChangeAnnounced
@@ -410,8 +418,6 @@ templates:
           handler: handleMaxWithdrawChanged
         - event: RevisionIncreased(uint256,address)
           handler: handleRevisionIncreased
-        - event: SplitterChanged(address,address)
-          handler: handleSplitterChanged
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
 

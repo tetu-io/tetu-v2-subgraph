@@ -14,7 +14,7 @@ import {
   ForwarderDistribution,
   ForwarderEntity,
   ForwarderSlippage, InvestFundBalance, InvestFundBalanceHistory,
-  InvestFundEntity
+  InvestFundEntity, TetuVoterEntity, TetuVoterRewardHistory, VeDistBalance, VeDistEntity
 } from "./types/schema";
 import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {ForwarderAbi} from "./types/ControllerData/ForwarderAbi";
@@ -87,6 +87,7 @@ export function handleDistributed(event: Distributed): void {
   distribution.toInvestFund = formatUnits(event.params.toInvestFund, BigInt.fromI32(18));
   distribution.toGauges = formatUnits(event.params.toGauges, BigInt.fromI32(18));
   distribution.toVeTetu = formatUnits(event.params.toVeTetu, BigInt.fromI32(18));
+  distribution.save();
 
   // *** FORWARDER TOTALS
   const forwarder = ForwarderEntity.load(event.address.toHexString()) as ForwarderEntity;
@@ -104,13 +105,25 @@ export function handleDistributed(event: Distributed): void {
 
   // *** VE DIST BALANCE CHANGE
   const veDistAdr = controllerCtr.veDistributor();
-  // todo
+  const veDist = VeDistEntity.load(veDistAdr.toHexString()) as VeDistEntity;
+  veDist.tokenBalance = veDist.tokenBalance.plus(distribution.toVeTetu);
+  const veDistBalance = new VeDistBalance(event.transaction.hash.toHexString() + "_" + event.logIndex.toString());
+  veDistBalance.veDist = veDist.id;
+  veDistBalance.time = event.block.timestamp.toI32();
+  veDistBalance.balance = veDist.tokenBalance;
+  veDistBalance.save();
+  veDist.save();
 
   // *** TETU VOTER BALANCE CHANGE
   const tetuVoterAdr = controllerCtr.voter();
-  // todo
-
-  distribution.save();
+  const tetuVoter = TetuVoterEntity.load(tetuVoterAdr.toHexString()) as TetuVoterEntity;
+  tetuVoter.rewardsBalance = tetuVoter.rewardsBalance.plus(distribution.toGauges);
+  const voterHistory = new TetuVoterRewardHistory(event.transaction.hash.toHexString() + "_" + event.logIndex.toString());
+  voterHistory.voter = tetuVoter.id;
+  voterHistory.time = event.block.timestamp.toI32();
+  voterHistory.balance = tetuVoter.rewardsBalance;
+  voterHistory.save();
+  tetuVoter.save();
 }
 
 function loadInvestFundBalance(fundAdr: string, tokenAdr: string): InvestFundBalance {
