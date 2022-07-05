@@ -291,21 +291,17 @@ templates:
       abis:
         - name: VeTetuAbi
           file: ./abis/VeTetu.json
+        - name: ProxyAbi
+          file: ./abis/Proxy.json
+        - name: VaultAbi
+          file: ./abis/TetuVaultV2.json
       eventHandlers:
-        - event: Approval(indexed address,indexed address,indexed uint256)
-          handler: handleApproval
-        - event: ApprovalForAll(indexed address,indexed address,bool)
-          handler: handleApprovalForAll
-        - event: ContractInitialized(address,uint256,uint256)
-          handler: handleContractInitialized
         - event: Deposit(indexed address,indexed address,uint256,uint256,indexed uint256,uint8,uint256)
           handler: handleDeposit
         - event: PawnshopWhitelisted(address)
           handler: handlePawnshopWhitelisted
         - event: RevisionIncreased(uint256,address)
           handler: handleRevisionIncreased
-        - event: Supply(indexed address,uint256,uint256)
-          handler: handleSupply
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
         - event: Withdraw(indexed address,indexed address,uint256,uint256,uint256)

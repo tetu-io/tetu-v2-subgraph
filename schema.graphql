@@ -546,11 +546,11 @@ type VeTetuEntity @entity {
     createdBlock: Int!
     implementations: [String!]!
 
-    tokens: [VeTetuTokenEntity!]! @derivedFrom(field: "ve")
     count: Int!
-    users: [VeUserEntity!]! @derivedFrom(field: "ve")
     epoch: Int!
     allowedPawnshops: [String!]!
+    tokens: [VeTetuTokenEntity!]! @derivedFrom(field: "ve")
+    users: [VeUserEntity!]! @derivedFrom(field: "ve")
 }
 
 type VeUserEntity @entity {
@@ -559,17 +559,31 @@ type VeUserEntity @entity {
     ve: VeTetuEntity!
     user: UserEntity!
 
-    locked: [VeUserTokenEntity!]! @derivedFrom(field: "veUser")
+    veId: Int!
+
     derivedAmount: BigDecimal!
     lockedEnd: Int!
     attachments: Int!
     voted: Int!
+
+    locked: [VeUserTokenEntity!]! @derivedFrom(field: "veUser")
 }
 
 type VeUserTokenEntity @entity {
     id: ID!
 
     veUser: VeUserEntity!
+    token: String!
+    amount: BigDecimal!
+    history: [VeUserTokenHistory!]! @derivedFrom(field: "veUserToken")
+}
+
+type VeUserTokenHistory @entity {
+    id: ID!
+
+    veUserToken: VeUserTokenEntity!
+
+    time: Int!
     token: String!
     amount: BigDecimal!
 }
