@@ -8,6 +8,7 @@ import {
   VaultInsuranceImplChanged
 } from "./types/VaultFactoryData/VaultFactoryAbi";
 import {
+  GaugeEntity,
   InsuranceEntity,
   SplitterEntity,
   VaultEntity,
@@ -20,7 +21,7 @@ import {VaultAbi} from "./types/VaultFactoryData/VaultAbi";
 import {ControllerAbi} from "./types/VaultFactoryData/ControllerAbi";
 import {LiquidatorAbi} from "./types/VaultFactoryData/LiquidatorAbi";
 import {ProxyAbi} from "./types/VaultFactoryData/ProxyAbi";
-import {StrategySplitterTemplate, VaultTemplate} from './types/templates'
+import {MultiGaugeTemplate, StrategySplitterTemplate, VaultTemplate} from './types/templates'
 import {getUSDC} from "./constants";
 import {StrategySplitterAbi} from "./types/VaultFactoryData/StrategySplitterAbi";
 
@@ -180,6 +181,18 @@ export function createInsurance(
   }
 
   return insurance;
+}
+
+function createGauge(address: string): void {
+  let gauge = GaugeEntity.load(address);
+  if(!gauge) {
+    gauge = new GaugeEntity(address);
+
+
+
+    MultiGaugeTemplate.create(Address.fromString(address));
+    gauge.save();
+  }
 }
 
 export function tryGetUsdPrice(

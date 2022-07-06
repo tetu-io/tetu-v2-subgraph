@@ -109,6 +109,8 @@ type VaultEntity @entity {
 
     users: [UserVault!]! @derivedFrom(field: "vault")
 
+    gauges: [GaugeVaultEntity!]! @derivedFrom(field: "vault")
+
     vote: VaultVoteEntity!
 
     isControllerWhitelisted: Boolean!
@@ -283,16 +285,99 @@ type GaugeEntity @entity {
     #attributes
     operator: String!
     defaultRewardToken: String!
-    stakingTokens: [String!]!
-    userGauges: [UserGauge!]! @derivedFrom(field: "gauge")
 
+    vaults: [GaugeVaultEntity!]! @derivedFrom(field: "gauge")
+}
+
+type GaugeVaultEntity @entity {
+    id: ID!
+
+    gauge: GaugeEntity!
+    vault: VaultEntity!
+
+    totalSupply: BigDecimal!
+    totalDerivedSupply: BigDecimal!
+    assetPrice: BigDecimal!
+    stakingTokenPrice: BigDecimal!
+
+    rewards: [GaugeVaultReward!]! @derivedFrom(field: "gaugeVault")
+    users: [UserGauge!]! @derivedFrom(field: "gaugeVault")
+}
+
+type GaugeVaultReward @entity {
+    id: ID!
+
+    gaugeVault: GaugeVaultEntity!
+    rewardToken: String!
+
+    apr: BigDecimal!
+    rewardRate: BigDecimal!
+    periodFinish: Int!
+    rewardTokenPrice: BigDecimal!
+
+    history: [GaugeVaultRewardHistory!]! @derivedFrom(field: "gaugeVaultReward")
+}
+
+type GaugeVaultRewardHistory @entity {
+    id: ID!
+
+    gaugeVaultReward: GaugeVaultReward!
+
+    time: Int!
+    totalSupply: BigDecimal!
+    totalDerivedSupply: BigDecimal!
+    assetPrice: BigDecimal!
+    stakingTokenPrice: BigDecimal!
+    rewardTokenPrice: BigDecimal!
+    apr: BigDecimal!
+    rewardRate: BigDecimal!
+    periodFinish: Int!
 }
 
 type UserGauge @entity {
     "Mapping entity for connection gauge and user entities"
     id: ID!
-    gauge: GaugeEntity!
+
+    gaugeVault: GaugeVaultEntity!
     user: UserEntity!
+
+    stakedBalance: BigDecimal!
+    stakedBalanceUSD: BigDecimal!
+    stakedDerivedBalance: BigDecimal!
+
+    rewards: [UserGaugeReward!]! @derivedFrom(field: "userGauge")
+
+    #boost
+
+    veUser: VeUserEntity
+}
+
+type UserGaugeReward @entity {
+    id: ID!
+
+    userGauge: UserGauge!
+    token: String!
+
+    earnedTotal: BigDecimal!
+    earnedTotalUSD: BigDecimal!
+    apr: BigDecimal!
+    lastEarnedUpdate: Int!
+
+    history: [UserGaugeRewardHistory!]! @derivedFrom(field: "userGaugeReward")
+}
+
+type UserGaugeRewardHistory @entity {
+    id: ID!
+
+    userGaugeReward: UserGaugeReward!
+
+    time: Int!
+    stakedBalance: BigDecimal!
+    stakedBalanceUSD: BigDecimal!
+    claimed: BigDecimal!
+    earnedTotal: BigDecimal!
+    earnedTotalUSD: BigDecimal!
+    apr: BigDecimal!
 }
 
 type BribeEntity @entity {
@@ -567,6 +652,8 @@ type VeUserEntity @entity {
     voted: Int!
 
     locked: [VeUserTokenEntity!]! @derivedFrom(field: "veUser")
+
+    boostedGauges: [UserGauge!]! @derivedFrom(field: "veUser")
 }
 
 type VeUserTokenEntity @entity {

@@ -21,7 +21,7 @@ import {
 } from "./types/schema";
 import {Address, BigDecimal, BigInt, ByteArray, crypto} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/templates/VeTetuTemplate/ProxyAbi";
-import {formatUnits, parseUnits} from "./helpers";
+import {formatUnits, generateVeUserId, parseUnits} from "./helpers";
 import {ADDRESS_ZERO} from "./constants";
 import {VaultAbi} from "./types/templates/VeTetuTemplate/VaultAbi";
 
@@ -227,7 +227,7 @@ function updateVeTokensInfo(ve: string): void {
 }
 
 function getOrCreateVeUser(veId: BigInt, userAdr: string, veAdr: string): VeUserEntity {
-  const veUserId = crypto.keccak256(ByteArray.fromUTF8(veId.toString() + userAdr + veAdr)).toHexString();
+  const veUserId = generateVeUserId(veId.toString(), userAdr, veAdr);
   let veUser = VeUserEntity.load(veUserId);
   if (!veUser) {
     veUser = new VeUserEntity(veUserId);
@@ -249,3 +249,5 @@ function getOrCreateVeUser(veId: BigInt, userAdr: string, veAdr: string): VeUser
   }
   return veUser;
 }
+
+

@@ -118,6 +118,10 @@ templates:
       abis:
         - name: PlatformVoterAbi
           file: ./abis/PlatformVoter.json
+        - name: VaultAbi
+          file: ./abis/TetuVaultV2.json
+        - name: ProxyAbi
+          file: ./abis/Proxy.json
       eventHandlers:
         - event: AttributeChanged(uint256,uint256)
           handler: handleAttributeChanged
@@ -147,6 +151,10 @@ templates:
       abis:
         - name: MultiBribeAbi
           file: ./abis/MultiBribe.json
+        - name: VaultAbi
+          file: ./abis/TetuVaultV2.json
+        - name: ProxyAbi
+          file: ./abis/Proxy.json
       eventHandlers:
         - event: BalanceDecreased(indexed address,indexed address,uint256)
           handler: handleBalanceDecreased
@@ -182,15 +190,17 @@ templates:
       abis:
         - name: MultiGaugeAbi
           file: ./abis/MultiGauge.json
+        - name: VaultAbi
+          file: ./abis/TetuVaultV2.json
+        - name: ProxyAbi
+          file: ./abis/Proxy.json
+        - name: LiquidatorAbi
+          file: ./abis/TetuLiquidator.json
+        - name: ControllerAbi
+          file: ./abis/ControllerV2.json
       eventHandlers:
-        - event: BalanceDecreased(indexed address,indexed address,uint256)
-          handler: handleBalanceDecreased
-        - event: BalanceIncreased(indexed address,indexed address,uint256)
-          handler: handleBalanceIncreased
         - event: ClaimRewards(indexed address,address,indexed address,uint256,address)
           handler: handleClaimRewards
-        - event: ContractInitialized(address,uint256,uint256)
-          handler: handleContractInitialized
         - event: Deposit(indexed address,indexed address,uint256)
           handler: handleDeposit
         - event: NotifyReward(indexed address,address,indexed address,uint256)
@@ -205,6 +215,8 @@ templates:
           handler: handleWithdraw
         - event: Upgraded(indexed address)
           handler: handleUpgraded
+        - event: AddStakingToken(address)
+          handler: handleAddStakingToken
 
   - name: TetuVoterTemplate
     kind: ethereum/contract
@@ -221,6 +233,10 @@ templates:
       abis:
         - name: TetuVoterAbi
           file: ./abis/TetuVoter.json
+        - name: VaultAbi
+          file: ./abis/TetuVaultV2.json
+        - name: ProxyAbi
+          file: ./abis/Proxy.json
       eventHandlers:
         - event: Abstained(uint256,int256)
           handler: handleAbstained
@@ -264,6 +280,10 @@ templates:
       abis:
         - name: VeDistributorAbi
           file: ./abis/VeDistributor.json
+        - name: VaultAbi
+          file: ./abis/TetuVaultV2.json
+        - name: ProxyAbi
+          file: ./abis/Proxy.json
       eventHandlers:
         - event: CheckpointToken(uint256,uint256)
           handler: handleCheckpointToken

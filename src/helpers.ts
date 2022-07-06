@@ -1,4 +1,4 @@
-import {BigDecimal, BigInt} from '@graphprotocol/graph-ts'
+import {BigDecimal, BigInt, ByteArray, crypto} from '@graphprotocol/graph-ts'
 import {ONE_BI, ZERO_BI} from "./constants";
 
 
@@ -22,3 +22,10 @@ export function parseUnits(amount: BigDecimal, decimals: BigInt): BigInt {
   return BigInt.fromString(amount.times(exponentToBigDecimal(decimals)).toString())
 }
 
+export function generateVeUserId(veId: string, userAdr: string, veAdr: string): string {
+  return crypto.keccak256(ByteArray.fromUTF8(veId + userAdr + veAdr)).toHexString();
+}
+
+export function generateGaugeVaultId(vaultAdr: string, gaugeAdr: string): string {
+  return crypto.keccak256(ByteArray.fromUTF8(vaultAdr + gaugeAdr)).toHexString();
+}
