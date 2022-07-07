@@ -92,6 +92,10 @@ dataSources:
           file: ./abis/TetuLiquidator.json
         - name: StrategySplitterAbi
           file: ./abis/StrategySplitterV2.json
+        - name: MultiBribeAbi
+          file: ./abis/MultiBribe.json
+        - name: MultiGaugeAbi
+          file: ./abis/MultiGauge.json
       eventHandlers:
         - event: VaultDeployed(address,address,string,string,address,uint256,address,address,address,address,address)
           handler: handleVaultDeployed
@@ -238,30 +242,16 @@ templates:
         - name: ProxyAbi
           file: ./abis/Proxy.json
       eventHandlers:
-        - event: Abstained(uint256,int256)
+        - event: Abstained(uint256,int256,address)
           handler: handleAbstained
-        - event: Attach(indexed address,indexed address,indexed address,uint256)
-          handler: handleAttach
-        - event: ContractInitialized(address,uint256,uint256)
-          handler: handleContractInitialized
-        - event: Deposit(indexed address,indexed address,uint256,uint256)
-          handler: handleDeposit
-        - event: Detach(indexed address,indexed address,indexed address,uint256)
-          handler: handleDetach
         - event: DistributeReward(indexed address,indexed address,uint256)
           handler: handleDistributeReward
-        - event: GaugeCreated(indexed address,address,indexed address,indexed address)
-          handler: handleGaugeCreated
         - event: NotifyReward(indexed address,uint256)
           handler: handleNotifyReward
         - event: RevisionIncreased(uint256,address)
           handler: handleRevisionIncreased
-        - event: Voted(indexed address,uint256,int256)
+        - event: Voted(indexed address,uint256,int256,address,int256,int256)
           handler: handleVoted
-        - event: Whitelisted(indexed address,indexed address)
-          handler: handleWhitelisted
-        - event: Withdraw(indexed address,indexed address,uint256,uint256)
-          handler: handleWithdraw
         - event: Upgraded(indexed address)
           handler: handleUpgraded
 

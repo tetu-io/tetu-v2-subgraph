@@ -26,7 +26,7 @@ import {
   VaultAbi,
 } from "./types/templates/VaultTemplate/VaultAbi";
 import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
-import {formatUnits, parseUnits} from "./helpers";
+import {calculateApr, formatUnits, parseUnits} from "./helpers";
 import {createSplitter} from "./vault-factory";
 import {ADDRESS_ZERO, DAY, getUSDC} from "./constants";
 import {ControllerAbi} from "./types/templates/VaultTemplate/ControllerAbi";
@@ -105,9 +105,7 @@ function updateUser(
 
     const profitEntity = new UserCompoundProfit(crypto.keccak256(ByteArray.fromUTF8(user.id + timestamp.toHexString())).toHexString());
 
-    // apr
-    const time = timestamp.toBigDecimal().minus(BigInt.fromI32(lastUpdateOld).toBigDecimal());
-    const apr = profit.div(balanceBeforeTransfer).div(time.div(DAY)).times(BigDecimal.fromString('36500'));
+    const apr = calculateApr(BigInt.fromI32(lastUpdateOld), timestamp, profit, balanceBeforeTransfer);
 
     profitEntity.userVault = user.id;
 
@@ -344,10 +342,10 @@ function getOrCreateVaultUser(
   vaultAdr: string,
   userAdr: string,
 ): UserVault {
-  const userId = crypto.keccak256(ByteArray.fromUTF8(userAdr + "_" + vaultAdr)).toHexString();
-  let vaultUser = UserVault.load(userId);
+  const vaultUserId = crypto.keccak256(ByteArray.fromUTF8(userAdr + "_" + vaultAdr)).toHexString();
+  let vaultUser = UserVault.load(vaultUserId);
   if (!vaultUser) {
-    vaultUser = new UserVault(userId);
+    vaultUser = new UserVault(vaultUserId);
 
     vaultUser.vault = vaultAdr;
     vaultUser.user = userAdr;
@@ -360,7 +358,7 @@ function getOrCreateVaultUser(
     vaultUser.acProfitCount = 0;
     vaultUser.acAprSum = BigDecimal.fromString('0');
 
-    let user = UserEntity.load(userId);
+    let user = UserEntity.load(userAdr);
     if (!user) {
       user = new UserEntity(userAdr);
       user.save();

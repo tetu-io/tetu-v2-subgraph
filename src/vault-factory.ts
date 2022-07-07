@@ -24,6 +24,7 @@ import {ProxyAbi} from "./types/VaultFactoryData/ProxyAbi";
 import {MultiGaugeTemplate, StrategySplitterTemplate, VaultTemplate} from './types/templates'
 import {getUSDC} from "./constants";
 import {StrategySplitterAbi} from "./types/VaultFactoryData/StrategySplitterAbi";
+import {MultiGaugeAbi} from "./types/VaultFactoryData/MultiGaugeAbi";
 
 export function handleVaultDeployed(event: VaultDeployed): void {
   const factory = createOrGetFactory(event.address.toHexString())
@@ -84,6 +85,8 @@ export function handleVaultDeployed(event: VaultDeployed): void {
     vote.votePercent = BigDecimal.fromString('0');
     vote.voteAmount = BigDecimal.fromString('0');
     vote.expectReward = BigDecimal.fromString('0');
+    vote.rewardTokenPrice = BigDecimal.fromString('0');
+    vote.expectApr = BigDecimal.fromString('0');
     vote.save();
   }
   vault.vote = event.params.vaultProxy.toHexString();
@@ -103,6 +106,7 @@ export function handleVaultDeployed(event: VaultDeployed): void {
   factory.vaultsCount = factory.vaultsCount + 1;
 
   VaultTemplate.create(event.params.vaultProxy);
+  createGauge(vault.gauge);
 
   factory.save();
   vault.save();
@@ -185,10 +189,19 @@ export function createInsurance(
 
 function createGauge(address: string): void {
   let gauge = GaugeEntity.load(address);
-  if(!gauge) {
+  if (!gauge) {
     gauge = new GaugeEntity(address);
+    const gaugeCtr = MultiGaugeAbi.bind(Address.fromString(address));
+    const proxy = ProxyAbi.bind(Address.fromString(address))
 
-
+    gauge.version = gaugeCtr.MULTI_GAUGE_VERSION();
+    gauge.revision = gaugeCtr.revision().toI32();
+    gauge.createdTs = gaugeCtr.created().toI32()
+    gauge.createdBlock = gaugeCtr.createdBlock().toI32()
+    gauge.implementations = [proxy.implementation().toHexString()]
+    gauge.ve = gaugeCtr.ve().toHexString();
+    gauge.operator = gaugeCtr.operator().toHexString();
+    gauge.defaultRewardToken = gaugeCtr.defaultRewardToken().toHexString()
 
     MultiGaugeTemplate.create(Address.fromString(address));
     gauge.save();

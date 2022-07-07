@@ -1,5 +1,6 @@
 import {BigDecimal, BigInt, ByteArray, crypto} from '@graphprotocol/graph-ts'
-import {ONE_BI, ZERO_BI} from "./constants";
+import {DAY, ONE_BI, ZERO_BI} from "./constants";
+import {TetuVoterUserVote, VaultVoteEntity} from "./types/schema";
 
 
 export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
@@ -22,10 +23,36 @@ export function parseUnits(amount: BigDecimal, decimals: BigInt): BigInt {
   return BigInt.fromString(amount.times(exponentToBigDecimal(decimals)).toString())
 }
 
+export function calculateApr(
+  timeStart: BigInt,
+  timeEnd: BigInt,
+  profitUSD: BigDecimal,
+  supplyUSD: BigDecimal,
+): BigDecimal {
+  const period = timeEnd.minus(timeStart).toBigDecimal();
+  return profitUSD.div(supplyUSD).div(period.div(DAY)).times(BigDecimal.fromString('36500'));
+}
+
+// ********************************************************
+//                 ID GENERATION
+// ********************************************************
+
 export function generateVeUserId(veId: string, userAdr: string, veAdr: string): string {
   return crypto.keccak256(ByteArray.fromUTF8(veId + userAdr + veAdr)).toHexString();
 }
 
 export function generateGaugeVaultId(vaultAdr: string, gaugeAdr: string): string {
   return crypto.keccak256(ByteArray.fromUTF8(vaultAdr + gaugeAdr)).toHexString();
+}
+
+export function generateTetuVoterUserId(veId: string, voterAdr: string): string {
+  return crypto.keccak256(ByteArray.fromUTF8(veId + voterAdr)).toHexString();
+}
+
+export function generateTetuVoterUserVoteId(voterUserId: string, vaultVoteId: string): string {
+  return crypto.keccak256(ByteArray.fromUTF8(voterUserId + vaultVoteId)).toHexString();
+}
+
+export function generateVaultVoteEntityId(tetuVoterId: string, vaultAdr: string): string {
+  return crypto.keccak256(ByteArray.fromUTF8(tetuVoterId + vaultAdr)).toHexString();
 }

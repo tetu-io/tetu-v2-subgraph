@@ -13,22 +13,15 @@
         "internalType": "int256",
         "name": "weight",
         "type": "int256"
-      }
-    ],
-    "name": "Abstained",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
+      },
       {
-        "indexed": true,
+        "indexed": false,
         "internalType": "address",
-        "name": "implementation",
+        "name": "vault",
         "type": "address"
       }
     ],
-    "name": "Upgraded",
+    "name": "Abstained",
     "type": "event"
   },
   {
@@ -43,7 +36,7 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "gauge",
+        "name": "sender",
         "type": "address"
       },
       {
@@ -93,44 +86,13 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "lp",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "gauge",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "Deposit",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
         "name": "owner",
         "type": "address"
       },
       {
         "indexed": true,
         "internalType": "address",
-        "name": "gauge",
+        "name": "sender",
         "type": "address"
       },
       {
@@ -161,7 +123,7 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "gauge",
+        "name": "vault",
         "type": "address"
       },
       {
@@ -172,37 +134,6 @@
       }
     ],
     "name": "DistributeReward",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "gauge",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "creator",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "bribe",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "pool",
-        "type": "address"
-      }
-    ],
-    "name": "GaugeCreated",
     "type": "event"
   },
   {
@@ -276,59 +207,27 @@
         "internalType": "int256",
         "name": "weight",
         "type": "int256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "vault",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "int256",
+        "name": "userWeight",
+        "type": "int256"
+      },
+      {
+        "indexed": false,
+        "internalType": "int256",
+        "name": "vePower",
+        "type": "int256"
       }
     ],
     "name": "Voted",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "whitelister",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
-      }
-    ],
-    "name": "Whitelisted",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "lp",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "gauge",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "Withdraw",
     "type": "event"
   },
   {
@@ -986,6 +885,25 @@
     "inputs": [
       {
         "internalType": "uint256",
+        "name": "veId",
+        "type": "uint256"
+      }
+    ],
+    "name": "votedVaultsLength",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
         "name": "",
         "type": "uint256"
       },
@@ -1024,5 +942,18 @@
     ],
     "stateMutability": "view",
     "type": "function"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "implementation",
+        "type": "address"
+      }
+    ],
+    "name": "Upgraded",
+    "type": "event"
   }
 ]

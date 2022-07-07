@@ -27,7 +27,12 @@ import {
 import {ADDRESS_ZERO} from "./constants";
 import {Address, BigDecimal, BigInt, store} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/ControllerData/ProxyAbi";
-import {ForwarderTemplate, InvestFundTemplate} from "./types/templates";
+import {
+  ForwarderTemplate,
+  InvestFundTemplate,
+  PlatformVoterTemplate,
+  TetuVoterTemplate, VeDistributorTemplate
+} from "./types/templates";
 import {formatUnits} from "./helpers";
 import {InvestFundAbi} from "./types/ControllerData/InvestFundAbi";
 import {ForwarderAbi} from "./types/ControllerData/ForwarderAbi";
@@ -170,7 +175,9 @@ function createTetuVoter(address: string): void {
     voter.bribe = voterCtr.bribe().toHexString();
     voter.token = voterCtr.token().toHexString();
     voter.rewardsBalance = formatUnits(tokenCtr.balanceOf(Address.fromString(address)), BigInt.fromI32(18));
+    voter.votersCount = 0;
 
+    TetuVoterTemplate.create(Address.fromString(address));
     voter.save();
   }
 }
@@ -190,6 +197,7 @@ function createPlatformVoter(address: string): void {
     voter.controller = voterCtr.controller().toHexString();
     voter.ve = voterCtr.ve().toHexString();
 
+    PlatformVoterTemplate.create(Address.fromString(address));
     voter.save();
   }
 }
@@ -235,6 +243,7 @@ function createVeDist(address: string): void {
     veDist.tokenBalance = formatUnits(VaultAbi.bind(Address.fromString(veDist.rewardToken)).balanceOf(Address.fromString(address)), BigInt.fromI32(18));
     veDist.lastTokenTime = veDistCtr.lastTokenTime().toI32();
 
+    VeDistributorTemplate.create(Address.fromString(address));
     veDist.save();
   }
 }
