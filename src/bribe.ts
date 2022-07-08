@@ -25,7 +25,7 @@ import {
   calculateApr,
   generateVeBribeId,
   generateBribeVaultId,
-  generateBribeVaultRewardId, generateVeBribeRewardId, formatUnits
+  generateBribeVaultRewardId, generateVeBribeRewardId, formatUnits, generateVeUserId
 } from "./helpers";
 import {tryGetUsdPrice} from "./vault-factory";
 import {ADDRESS_ZERO} from "./constants";
@@ -139,7 +139,7 @@ function updateAll(
   // update user info if possible
   if (veId.gt(BigInt.fromI32(0))) {
     // user info
-    const veBribe = getOrCreateVeBribe(bribeVault.id, veId);
+    const veBribe = getOrCreateVeBribe(bribeVault.id, veId, bribe.ve);
     veBribe.stakedBalance = veBribe.stakedBalance.plus(totalSupplyChangeBD);
     veBribe.stakedBalanceUSD = veBribe.stakedBalance.times(bribeVault.stakingTokenPrice);
 
@@ -294,14 +294,14 @@ function saveRewardHistory(
   }
 }
 
-function getOrCreateVeBribe(bribeVaultId: string, veId: BigInt): VeBribe {
+function getOrCreateVeBribe(bribeVaultId: string, veId: BigInt, veAdr: string): VeBribe {
   const userId = generateVeBribeId(bribeVaultId, veId);
   let user = VeBribe.load(userId);
   if (!user) {
     user = new VeBribe(userId);
 
     user.bribeVault = bribeVaultId
-    user.ve = veId.toString()
+    user.ve = generateVeUserId(veId.toString(), veAdr);
     user.stakedBalance = BigDecimal.fromString('0')
   }
 

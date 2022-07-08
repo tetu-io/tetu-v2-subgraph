@@ -94,7 +94,7 @@ export function handleNotifyReward(event: NotifyReward): void {
 export function handleVeTokenLocked(event: VeTokenLocked): void {
   const gaugeCtr = MultiGaugeAbi.bind(event.address);
   const ve = gaugeCtr.ve();
-  const userId = generateVeUserId(event.params.tokenId.toString(), event.params.account.toHexString(), ve.toHexString());
+  const userId = generateVeUserId(event.params.tokenId.toString(), ve.toHexString());
   const gaugeVaultId = generateGaugeVaultId(event.params.stakingToken.toHexString(), event.address.toHexString())
   const user = getOrCreateGaugeUser(gaugeVaultId, event.params.account.toHexString());
   user.veUser = userId;

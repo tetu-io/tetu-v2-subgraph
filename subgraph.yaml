@@ -96,6 +96,8 @@ dataSources:
           file: ./abis/MultiBribe.json
         - name: MultiGaugeAbi
           file: ./abis/MultiGauge.json
+        - name: VeTetuAbi
+          file: ./abis/VeTetu.json
       eventHandlers:
         - event: VaultDeployed(address,address,string,string,address,uint256,address,address,address,address,address)
           handler: handleVaultDeployed
@@ -270,13 +272,13 @@ templates:
           file: ./abis/TetuVaultV2.json
         - name: ProxyAbi
           file: ./abis/Proxy.json
+        - name: LiquidatorAbi
+          file: ./abis/TetuLiquidator.json
       eventHandlers:
         - event: CheckpointToken(uint256,uint256)
           handler: handleCheckpointToken
         - event: Claimed(uint256,uint256,uint256,uint256)
           handler: handleClaimed
-        - event: ContractInitialized(address,uint256,uint256)
-          handler: handleContractInitialized
         - event: RevisionIncreased(uint256,address)
           handler: handleRevisionIncreased
         - event: Upgraded(indexed address)

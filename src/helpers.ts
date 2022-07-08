@@ -1,5 +1,5 @@
 import {BigDecimal, BigInt, ByteArray, crypto} from '@graphprotocol/graph-ts'
-import {DAY, ONE_BI, ZERO_BI} from "./constants";
+import {DAY, ONE_BI, ZERO_BD, ZERO_BI} from "./constants";
 
 
 export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
@@ -29,6 +29,9 @@ export function calculateApr(
   supplyUSD: BigDecimal,
 ): BigDecimal {
   const period = timeEnd.minus(timeStart).toBigDecimal();
+  if (period.equals(ZERO_BD) || supplyUSD.equals(ZERO_BD)) {
+    return ZERO_BD;
+  }
   return profitUSD.div(supplyUSD).div(period.div(DAY)).times(BigDecimal.fromString('36500'));
 }
 
@@ -36,8 +39,8 @@ export function calculateApr(
 //                 ID GENERATION
 // ********************************************************
 
-export function generateVeUserId(veId: string, userAdr: string, veAdr: string): string {
-  return crypto.keccak256(ByteArray.fromUTF8(veId + userAdr + veAdr)).toHexString();
+export function generateVeUserId(veId: string, veAdr: string): string {
+  return crypto.keccak256(ByteArray.fromUTF8(veId + veAdr)).toHexString();
 }
 
 export function generateGaugeVaultId(vaultAdr: string, gaugeAdr: string): string {

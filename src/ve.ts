@@ -13,17 +13,19 @@ import {
   Withdraw
 } from "./types/templates/VeTetuTemplate/VeTetuAbi";
 import {
+  ControllerEntity,
   UserEntity,
   VeTetuEntity, VeTetuTokenEntity,
   VeUserEntity,
   VeUserTokenEntity,
   VeUserTokenHistory
 } from "./types/schema";
-import {Address, BigDecimal, BigInt, ByteArray, crypto} from "@graphprotocol/graph-ts";
+import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/templates/VeTetuTemplate/ProxyAbi";
 import {formatUnits, generateVeUserId, parseUnits} from "./helpers";
-import {ADDRESS_ZERO} from "./constants";
+import {ADDRESS_ZERO, getUSDC} from "./constants";
 import {VaultAbi} from "./types/templates/VeTetuTemplate/VaultAbi";
+import {LiquidatorAbi} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";
 
 // ***************************************************
 //                   DEPOSIT/WITHDRAW
@@ -126,22 +128,31 @@ function updateUser(
   time: BigInt,
   token: string
 ): void {
+  const ve = getOrCreateVe(veAdr);
+  const controller = ControllerEntity.load(ve.controller) as ControllerEntity;
   const veCtr = VeTetuAbi.bind(Address.fromString(veAdr));
   const user = getOrCreateVeUser(veId, userAdr, veAdr);
-  const tokenCtr = VaultAbi.bind(Address.fromString(token));
-  const tokenDecimals = BigInt.fromI32(tokenCtr.decimals());
+  const tokenEntity = getOrCreateVeToken(user.id, veAdr, token);
+  const decimals = BigInt.fromI32(tokenEntity.decimals)
 
-  user.derivedAmount = formatUnits(veCtr.lockedDerivedAmount(veId), BigInt.fromI32(18));
+  user.derivedAmount = formatUnits(veCtr.lockedDerivedAmount(veId), decimals);
   user.lockedEnd = veCtr.lockedEnd(veId).toI32();
 
-  const tokenEntity = getOrCreateVeToken(user.id, veAdr, token);
-  tokenEntity.amount = formatUnits(veCtr.lockedAmounts(veId, Address.fromString(token)), tokenDecimals);
+
+  tokenEntity.amount = formatUnits(veCtr.lockedAmounts(veId, Address.fromString(token)), decimals);
+  const tokenPrice = tryGetUsdPrice(controller.liquidator, token, decimals);
+  ve.lockedAmountUSD = ve.lockedAmountUSD.minus(user.lockedAmountUSD);
+  user.lockedAmountUSD = user.lockedAmountUSD.minus(tokenEntity.amountUSD);
+  tokenEntity.amountUSD = tokenEntity.amount.times(tokenPrice);
+  user.lockedAmountUSD = user.lockedAmountUSD.plus(tokenEntity.amountUSD);
+  ve.lockedAmountUSD = ve.lockedAmountUSD.plus(user.lockedAmountUSD);
+
   saveTokenHistory(tokenEntity, time);
 
   tokenEntity.save();
   user.save();
 
-  const ve = getOrCreateVe(veAdr);
+
   ve.count = veCtr.tokenId().toI32();
   ve.save();
 }
@@ -159,6 +170,7 @@ function saveTokenHistory(token: VeUserTokenEntity, time: BigInt): void {
   history.time = time.toI32();
   history.token = token.token;
   history.amount = token.amount;
+  history.amountUSD = token.amountUSD;
 
   history.save();
 }
@@ -172,9 +184,12 @@ function getOrCreateVeToken(
   let tokenEntity = VeUserTokenEntity.load(tokenId);
   if (!tokenEntity) {
     tokenEntity = new VeUserTokenEntity(tokenId);
+    const tokenCtr = VaultAbi.bind(Address.fromString(token));
     tokenEntity.veUser = veUserId;
     tokenEntity.token = token;
+    tokenEntity.decimals = tokenCtr.decimals();
     tokenEntity.amount = BigDecimal.fromString('0');
+    tokenEntity.amountUSD = BigDecimal.fromString('0');
   }
 
   return tokenEntity;
@@ -227,7 +242,7 @@ function updateVeTokensInfo(ve: string): void {
 }
 
 function getOrCreateVeUser(veId: BigInt, userAdr: string, veAdr: string): VeUserEntity {
-  const veUserId = generateVeUserId(veId.toString(), userAdr, veAdr);
+  const veUserId = generateVeUserId(veId.toString(), veAdr);
   let veUser = VeUserEntity.load(veUserId);
   if (!veUser) {
     veUser = new VeUserEntity(veUserId);
@@ -241,6 +256,12 @@ function getOrCreateVeUser(veId: BigInt, userAdr: string, veAdr: string): VeUser
     veUser.attachments = veCtr.attachments(veId).toI32();
     veUser.voted = veCtr.voted(veId).toI32();
 
+
+    veUser.veDistRewardsTotal = BigDecimal.fromString('0');
+    veUser.veDistLastClaim = 0;
+    veUser.lockedAmountUSD = BigDecimal.fromString('0');
+    veUser.veDistLastApr = BigDecimal.fromString('0');
+
     let user = UserEntity.load(userAdr);
     if (!user) {
       user = new UserEntity(userAdr);
@@ -250,4 +271,24 @@ function getOrCreateVeUser(veId: BigInt, userAdr: string, veAdr: string): VeUser
   return veUser;
 }
 
+function tryGetUsdPrice(
+  liquidatorAdr: string,
+  asset: string,
+  decimals: BigInt
+): BigDecimal {
+  if (getUSDC().equals(Address.fromString(asset))) {
+    return BigDecimal.fromString('1');
+  }
+  const liquidator = LiquidatorAbi.bind(Address.fromString(liquidatorAdr))
+  const p = liquidator.try_getPrice(
+    Address.fromString(asset),
+    getUSDC(),
+    parseUnits(BigDecimal.fromString('1'), decimals)
+  );
+  if (!p.reverted) {
+    return formatUnits(p.value, decimals);
+  }
+  log.error("=== FAILED GET PRICE === liquidator: {} asset: {}", [liquidatorAdr, asset]);
+  return BigDecimal.fromString('0')
+}
 

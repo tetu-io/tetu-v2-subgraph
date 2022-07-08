@@ -24,7 +24,7 @@ import {
   ProxyUpgradeAnnounceEntity, TetuVoterEntity,
   VaultEntity, VeDistEntity
 } from "./types/schema";
-import {ADDRESS_ZERO} from "./constants";
+import {ADDRESS_ZERO, WEEK} from "./constants";
 import {Address, BigDecimal, BigInt, store} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/ControllerData/ProxyAbi";
 import {
@@ -227,6 +227,9 @@ function createVeDist(address: string): void {
     veDist = new VeDistEntity(address);
     const veDistCtr = VeDistributorAbi.bind(Address.fromString(address));
     const proxy = ProxyAbi.bind(Address.fromString(address));
+    const tokenAdr = veDistCtr.rewardToken();
+    const tokenCtr = VaultAbi.bind(tokenAdr);
+    const tokenDecimals = BigInt.fromI32(tokenCtr.decimals());
 
     veDist.version = veDistCtr.VE_DIST_VERSION();
     veDist.revision = veDistCtr.revision().toI32();
@@ -236,12 +239,17 @@ function createVeDist(address: string): void {
     veDist.controller = veDistCtr.controller().toHexString();
 
     veDist.ve = veDistCtr.ve().toHexString();
-    veDist.rewardToken = veDistCtr.rewardToken().toHexString();
+    veDist.rewardToken = tokenAdr.toHexString();
     veDist.activePeriod = veDistCtr.activePeriod().toI32();
     veDist.timeCursor = veDistCtr.timeCursor().toI32();
-    veDist.tokenLastBalance = formatUnits(veDistCtr.tokenLastBalance(), BigInt.fromI32(18));
-    veDist.tokenBalance = formatUnits(VaultAbi.bind(Address.fromString(veDist.rewardToken)).balanceOf(Address.fromString(address)), BigInt.fromI32(18));
+    veDist.tokenLastBalance = formatUnits(veDistCtr.tokenLastBalance(), tokenDecimals);
+    veDist.tokenBalance = formatUnits(tokenCtr.balanceOf(Address.fromString(address)), tokenDecimals);
     veDist.lastTokenTime = veDistCtr.lastTokenTime().toI32();
+    const thisWeek = BigInt.fromI32(veDist.lastTokenTime).div(BigInt.fromString(WEEK.toString())).times(BigInt.fromString(WEEK.toString()));
+    veDist.tokensPerWeek = formatUnits(veDistCtr.tokensPerWeek(thisWeek), tokenDecimals);
+    veDist.apr = BigDecimal.fromString('0');
+
+    veDist.decimals = tokenDecimals.toI32();
 
     VeDistributorTemplate.create(Address.fromString(address));
     veDist.save();

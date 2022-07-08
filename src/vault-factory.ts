@@ -13,7 +13,7 @@ import {
   SplitterEntity,
   VaultEntity,
   VaultFactoryEntity,
-  VaultVoteEntity
+  VaultVoteEntity, VeTetuEntity
 } from "./types/schema";
 import {Address, BigDecimal, BigInt, log} from "@graphprotocol/graph-ts";
 import {formatUnits, parseUnits} from "./helpers";
@@ -21,10 +21,16 @@ import {VaultAbi} from "./types/VaultFactoryData/VaultAbi";
 import {ControllerAbi} from "./types/VaultFactoryData/ControllerAbi";
 import {LiquidatorAbi} from "./types/VaultFactoryData/LiquidatorAbi";
 import {ProxyAbi} from "./types/VaultFactoryData/ProxyAbi";
-import {MultiGaugeTemplate, StrategySplitterTemplate, VaultTemplate} from './types/templates'
+import {
+  MultiGaugeTemplate,
+  StrategySplitterTemplate,
+  VaultTemplate,
+  VeTetuTemplate
+} from './types/templates'
 import {getUSDC} from "./constants";
 import {StrategySplitterAbi} from "./types/VaultFactoryData/StrategySplitterAbi";
 import {MultiGaugeAbi} from "./types/VaultFactoryData/MultiGaugeAbi";
+import {VeTetuAbi} from "./types/VaultFactoryData/VeTetuAbi";
 
 export function handleVaultDeployed(event: VaultDeployed): void {
   const factory = createOrGetFactory(event.address.toHexString())
@@ -106,7 +112,8 @@ export function handleVaultDeployed(event: VaultDeployed): void {
   factory.vaultsCount = factory.vaultsCount + 1;
 
   VaultTemplate.create(event.params.vaultProxy);
-  createGauge(vault.gauge);
+  const gauge = getOrCreateGauge(vault.gauge);
+  createVe(gauge.ve)
 
   factory.save();
   vault.save();
@@ -187,7 +194,7 @@ export function createInsurance(
   return insurance;
 }
 
-function createGauge(address: string): void {
+function getOrCreateGauge(address: string): GaugeEntity {
   let gauge = GaugeEntity.load(address);
   if (!gauge) {
     gauge = new GaugeEntity(address);
@@ -206,6 +213,30 @@ function createGauge(address: string): void {
 
     MultiGaugeTemplate.create(Address.fromString(address));
     gauge.save();
+  }
+  return gauge;
+}
+
+function createVe(veAdr: string): void {
+  let ve = VeTetuEntity.load(veAdr);
+  if (!ve) {
+    ve = new VeTetuEntity(veAdr);
+    const veCtr = VeTetuAbi.bind(Address.fromString(veAdr));
+    const proxy = ProxyAbi.bind(Address.fromString(veAdr))
+
+    ve.version = veCtr.VE_VERSION();
+    ve.revision = veCtr.revision().toI32()
+    ve.createdTs = veCtr.created().toI32()
+    ve.createdBlock = veCtr.createdBlock().toI32()
+    ve.implementations = [proxy.implementation().toHexString()]
+    ve.controller = veCtr.controller().toHexString()
+    ve.count = veCtr.tokenId().toI32();
+    ve.epoch = veCtr.epoch().toI32();
+    ve.allowedPawnshops = []
+    ve.lockedAmountUSD = BigDecimal.fromString('0');
+
+    VeTetuTemplate.create(Address.fromString(veAdr));
+    ve.save();
   }
 }
 

@@ -725,11 +725,15 @@ type VeDistEntity @entity {
     rewardToken: String!
     controller: ControllerEntity!
 
+    decimals: Int!
+
     #attributes
     activePeriod: Int!
     timeCursor: Int!
     tokenLastBalance: BigDecimal!
     tokenBalance: BigDecimal!
+    tokensPerWeek: BigDecimal!
+    apr: BigDecimal!
     lastTokenTime: Int!
 
     balanceHistory: [VeDistBalance!]!  @derivedFrom(field: "veDist")
@@ -790,9 +794,12 @@ type VeTetuEntity @entity {
     createdBlock: Int!
     implementations: [String!]!
 
+    controller: ControllerEntity!
+
     count: Int!
     epoch: Int!
     allowedPawnshops: [String!]!
+    lockedAmountUSD: BigDecimal!
     tokens: [VeTetuTokenEntity!]! @derivedFrom(field: "ve")
     users: [VeUserEntity!]! @derivedFrom(field: "ve")
 }
@@ -810,11 +817,27 @@ type VeUserEntity @entity {
     attachments: Int!
     voted: Int!
 
+    veDistRewardsTotal: BigDecimal!
+    veDistLastClaim: Int!
+    lockedAmountUSD: BigDecimal!
+    veDistLastApr: BigDecimal!
+
+    veDistRewardsHistory: [VeUserVeDistRewardHistory!]! @derivedFrom(field: "veUser")
     locked: [VeUserTokenEntity!]! @derivedFrom(field: "veUser")
-
     boostedGauges: [UserGauge!]! @derivedFrom(field: "veUser")
-
     bribes: [VeBribe!]! @derivedFrom(field: "ve")
+}
+
+type VeUserVeDistRewardHistory @entity(immutable: true) {
+    id: ID!
+
+    veUser: VeUserEntity!
+
+    time: Int!
+    claimed: BigDecimal!
+    claimedUSD: BigDecimal!
+    lockedAmountUSD: BigDecimal!
+    apr: BigDecimal!
 }
 
 type VeUserTokenEntity @entity {
@@ -822,7 +845,9 @@ type VeUserTokenEntity @entity {
 
     veUser: VeUserEntity!
     token: String!
+    decimals: Int!
     amount: BigDecimal!
+    amountUSD: BigDecimal!
     history: [VeUserTokenHistory!]! @derivedFrom(field: "veUserToken")
 }
 
@@ -834,6 +859,7 @@ type VeUserTokenHistory @entity(immutable: true) {
     time: Int!
     token: String!
     amount: BigDecimal!
+    amountUSD: BigDecimal!
 }
 
 type VeTetuTokenEntity @entity {
