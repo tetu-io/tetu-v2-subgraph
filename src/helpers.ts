@@ -1,6 +1,5 @@
 import {BigDecimal, BigInt, ByteArray, crypto} from '@graphprotocol/graph-ts'
 import {DAY, ONE_BI, ZERO_BI} from "./constants";
-import {TetuVoterUserVote, VaultVoteEntity} from "./types/schema";
 
 
 export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
@@ -55,4 +54,20 @@ export function generateTetuVoterUserVoteId(voterUserId: string, vaultVoteId: st
 
 export function generateVaultVoteEntityId(tetuVoterId: string, vaultAdr: string): string {
   return crypto.keccak256(ByteArray.fromUTF8(tetuVoterId + vaultAdr)).toHexString();
+}
+
+export function generateBribeVaultId(vaultAdr: string, bribeAdr: string): string {
+  return crypto.keccak256(ByteArray.fromUTF8(vaultAdr + bribeAdr)).toHexString();
+}
+
+export function generateBribeVaultRewardId(bribeVaultId: string, rewardTokenAdr: string): string {
+  return crypto.keccak256(ByteArray.fromUTF8(bribeVaultId + rewardTokenAdr)).toHexString();
+}
+
+export function generateVeBribeId(bribeVaultId: string, veId: BigInt): string {
+  return crypto.keccak256(ByteArray.fromUTF8(bribeVaultId + veId.toString())).toHexString();
+}
+
+export function generateVeBribeRewardId(veBribeId: string, rewardTokenAdr: string): string {
+  return crypto.keccak256(ByteArray.fromUTF8(veBribeId + rewardTokenAdr)).toHexString();
 }

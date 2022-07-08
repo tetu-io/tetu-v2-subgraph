@@ -200,6 +200,7 @@ function createGauge(address: string): void {
     gauge.createdBlock = gaugeCtr.createdBlock().toI32()
     gauge.implementations = [proxy.implementation().toHexString()]
     gauge.ve = gaugeCtr.ve().toHexString();
+    gauge.controller = gaugeCtr.controller().toHexString();
     gauge.operator = gaugeCtr.operator().toHexString();
     gauge.defaultRewardToken = gaugeCtr.defaultRewardToken().toHexString()
 

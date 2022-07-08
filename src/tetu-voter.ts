@@ -11,6 +11,7 @@ import {
   Voted
 } from "./types/templates/TetuVoterTemplate/TetuVoterAbi";
 import {
+  BribeEntity,
   ControllerEntity,
   GaugeVaultEntity,
   TetuVoterEntity,
@@ -36,6 +37,8 @@ import {
 import {ADDRESS_ZERO, getUSDC, REWARD_TOKEN_DECIMALS} from "./constants";
 import {LiquidatorAbi} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";
 import {VeTetuAbi} from "./types/templates/VeTetuTemplate/VeTetuAbi";
+import {MultiBribeTemplate} from "./types/templates";
+import {MultiBribeAbi} from "./types/templates/TetuVoterTemplate/MultiBribeAbi";
 
 // ***************************************************
 //                ATTACH/DETACH/VOTE
@@ -174,6 +177,8 @@ function getOrCreateTetuVoter(voterAdr: string): TetuVoterEntity {
 
     voter.rewardsBalance = formatUnits(tokenCtr.balanceOf(Address.fromString(voterAdr)), REWARD_TOKEN_DECIMALS);
     voter.votersCount = 0;
+
+    createBribe(voter.bribe);
   }
   return voter;
 }
@@ -311,6 +316,31 @@ function getOrCreateGaugeVault(vaultAdr: string, gaugeAdr: string): GaugeVaultEn
 
   }
   return vault;
+}
+
+function createBribe(bribeAdr: string): void {
+  let bribe = BribeEntity.load(bribeAdr);
+
+  if (!bribe) {
+    bribe = new BribeEntity(bribeAdr);
+    const bribeCtr = MultiBribeAbi.bind(Address.fromString(bribeAdr));
+    const proxy = ProxyAbi.bind(Address.fromString(bribeAdr))
+
+    bribe.version = bribeCtr.MULTI_BRIBE_VERSION();
+    bribe.revision = bribeCtr.revision().toI32();
+    bribe.createdTs = bribeCtr.created().toI32()
+    bribe.createdBlock = bribeCtr.createdBlock().toI32()
+    bribe.implementations = [proxy.implementation().toHexString()]
+
+    bribe.ve = bribeCtr.ve().toHexString();
+    bribe.controller = bribeCtr.controller().toHexString();
+
+    bribe.operator = bribeCtr.operator().toHexString();
+    bribe.defaultRewardToken = bribeCtr.defaultRewardToken().toHexString()
+
+    MultiBribeTemplate.create(Address.fromString(bribeAdr));
+    bribe.save();
+  }
 }
 
 function tryGetUsdPrice(

@@ -23,7 +23,13 @@ import {
 } from "./types/schema";
 import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/templates/MultiGaugeTemplate/ProxyAbi";
-import {formatUnits, generateGaugeVaultId, generateVeUserId, parseUnits} from "./helpers";
+import {
+  calculateApr,
+  formatUnits,
+  generateGaugeVaultId,
+  generateVeUserId,
+  parseUnits
+} from "./helpers";
 import {VaultAbi} from "./types/templates/MultiGaugeTemplate/VaultAbi";
 import {ControllerAbi} from "./types/templates/MultiGaugeTemplate/ControllerAbi";
 import {LiquidatorAbi} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";
@@ -236,9 +242,14 @@ function getOrCreateGaugeVault(vaultAdr: string, gaugeAdr: string): GaugeVaultEn
   let vault = GaugeVaultEntity.load(gaugeVaultId);
   if (!vault) {
     vault = new GaugeVaultEntity(gaugeVaultId);
+    const vaultCtr = VaultAbi.bind(Address.fromString(vaultAdr))
 
     vault.gauge = gaugeAdr;
     vault.vault = vaultAdr;
+
+    vault.asset = vaultCtr.asset().toHexString()
+    vault.decimals = vaultCtr.decimals()
+
     vault.totalSupply = BigDecimal.fromString('0');
     vault.totalDerivedSupply = BigDecimal.fromString('0');
     vault.assetPrice = BigDecimal.fromString('0');
@@ -259,6 +270,7 @@ function getOrCreateReward(gaugeVaultId: string, rewardTokenAdr: string): GaugeV
     reward.apr = BigDecimal.fromString('0')
     reward.rewardRate = BigDecimal.fromString('0')
     reward.periodFinish = 0;
+    reward.rewardTokenPrice = BigDecimal.fromString('0');
   }
 
   return reward;
@@ -278,9 +290,7 @@ function updateRewardInfoAndSave(
   reward.rewardRate = gaugeCtr.rewardRate(Address.fromString(vaultAdr), Address.fromString(reward.rewardToken)).toBigDecimal()
   reward.periodFinish = gaugeCtr.periodFinish(Address.fromString(vaultAdr), Address.fromString(reward.rewardToken)).toI32()
 
-  const periodDays = BigInt.fromI32(reward.periodFinish).toBigDecimal().minus(now.toBigDecimal()).div(BigDecimal.fromString('86400'));
-
-  reward.apr = reward.rewardRate.times(totalSupply).times(rewardTokenPrice).div(totalSupplyUSD).div(periodDays).times(BigDecimal.fromString('36500'));
+  reward.apr = calculateApr(BigInt.fromI32(reward.periodFinish), now, reward.rewardRate.times(totalSupply).times(rewardTokenPrice), totalSupplyUSD);
   reward.rewardTokenPrice = rewardTokenPrice;
 
   reward.save();

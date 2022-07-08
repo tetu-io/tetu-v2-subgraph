@@ -305,6 +305,7 @@ type GaugeEntity @entity {
 
     # dependencies
     ve: VeTetuEntity!
+    controller: ControllerEntity!
 
     #attributes
     operator: String!
@@ -318,6 +319,9 @@ type GaugeVaultEntity @entity {
 
     gauge: GaugeEntity!
     vault: VaultEntity!
+
+    asset: String!
+    decimals: Int!
 
     totalSupply: BigDecimal!
     totalDerivedSupply: BigDecimal!
@@ -333,6 +337,7 @@ type GaugeVaultReward @entity {
 
     gaugeVault: GaugeVaultEntity!
     rewardToken: String!
+    decimals: Int!
 
     apr: BigDecimal!
     rewardRate: BigDecimal!
@@ -419,19 +424,101 @@ type BribeEntity @entity {
 
     # dependencies
     ve: VeTetuEntity!
+    controller: ControllerEntity!
 
     #attributes
     operator: String!
     defaultRewardToken: String!
-    stakingTokens: [String!]!
-    userBribes: [UserBribe!]! @derivedFrom(field: "bribe")
+
+    vaults: [BribeVaultEntity!]! @derivedFrom(field: "bribe")
 }
 
-type UserBribe @entity {
-    "Mapping entity for connection bribe and user entities"
+type BribeVaultEntity @entity {
     id: ID!
+
     bribe: BribeEntity!
-    user: UserEntity!
+    vault: VaultEntity!
+
+    asset: String!
+    decimals: Int!
+
+    totalSupply: BigDecimal!
+    assetPrice: BigDecimal!
+    stakingTokenPrice: BigDecimal!
+
+    rewards: [BribeVaultReward!]! @derivedFrom(field: "bribeVault")
+    users: [VeBribe!]! @derivedFrom(field: "bribeVault")
+}
+
+type BribeVaultReward @entity {
+    id: ID!
+
+    bribeVault: BribeVaultEntity!
+    rewardToken: String!
+    decimals: Int!
+
+    apr: BigDecimal!
+    rewardRate: BigDecimal!
+    periodFinish: Int!
+    rewardTokenPrice: BigDecimal!
+
+    history: [BribeVaultRewardHistory!]! @derivedFrom(field: "bribeVaultReward")
+}
+
+type BribeVaultRewardHistory @entity(immutable: true) {
+    id: ID!
+
+    bribeVaultReward: BribeVaultReward!
+
+    time: Int!
+    totalSupply: BigDecimal!
+    assetPrice: BigDecimal!
+    stakingTokenPrice: BigDecimal!
+    rewardTokenPrice: BigDecimal!
+    apr: BigDecimal!
+    rewardRate: BigDecimal!
+    periodFinish: Int!
+}
+
+type VeBribe @entity {
+    "Mapping entity for connection bribe and ve entities"
+    id: ID!
+
+    bribeVault: BribeVaultEntity!
+    ve: VeUserEntity!
+
+    stakedBalance: BigDecimal!
+    stakedBalanceUSD: BigDecimal!
+
+    rewards: [VeBribeReward!]! @derivedFrom(field: "veBribe")
+}
+
+type VeBribeReward @entity {
+    id: ID!
+
+    veBribe: VeBribe!
+    token: String!
+
+    earnedTotal: BigDecimal!
+    earnedTotalUSD: BigDecimal!
+    apr: BigDecimal!
+    lastEarnedUpdate: Int!
+
+    history: [VeBribeRewardHistory!]! @derivedFrom(field: "veBribeReward")
+}
+
+type VeBribeRewardHistory @entity(immutable: true) {
+    id: ID!
+
+    veBribeReward: VeBribeReward!
+
+    time: Int!
+    stakedBalance: BigDecimal!
+    stakedBalanceUSD: BigDecimal!
+    claimed: BigDecimal!
+    earnedTotal: BigDecimal!
+    earnedTotalUSD: BigDecimal!
+    apr: BigDecimal!
 }
 
 ###############################################
@@ -726,6 +813,8 @@ type VeUserEntity @entity {
     locked: [VeUserTokenEntity!]! @derivedFrom(field: "veUser")
 
     boostedGauges: [UserGauge!]! @derivedFrom(field: "veUser")
+
+    bribes: [VeBribe!]! @derivedFrom(field: "ve")
 }
 
 type VeUserTokenEntity @entity {
@@ -767,7 +856,6 @@ type UserEntity @entity {
 
     vaults: [UserVault!]! @derivedFrom(field: "user")
     gauges: [UserGauge!]! @derivedFrom(field: "user")
-    bribes: [UserBribe!]! @derivedFrom(field: "user")
     tetuVotes: [TetuVoterUser!]! @derivedFrom(field: "user")
     platformVotes: [PlatformVoteEntity!]! @derivedFrom(field: "user")
     ve: [VeUserEntity!]! @derivedFrom(field: "user")
