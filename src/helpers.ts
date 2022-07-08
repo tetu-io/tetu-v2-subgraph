@@ -1,5 +1,6 @@
 import {BigDecimal, BigInt, ByteArray, crypto} from '@graphprotocol/graph-ts'
 import {DAY, ONE_BI, ZERO_BD, ZERO_BI} from "./constants";
+import {PlatformVoteEntity} from "./types/schema";
 
 
 export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
@@ -73,4 +74,8 @@ export function generateVeBribeId(bribeVaultId: string, veId: BigInt): string {
 
 export function generateVeBribeRewardId(veBribeId: string, rewardTokenAdr: string): string {
   return crypto.keccak256(ByteArray.fromUTF8(veBribeId + rewardTokenAdr)).toHexString();
+}
+
+export function generatePlatformVoteEntityId(voterAdr: string, veId: BigInt, voteType: string, target: string): string {
+  return crypto.keccak256(ByteArray.fromUTF8(voterAdr + veId.toString() + voteType + target)).toHexString();
 }

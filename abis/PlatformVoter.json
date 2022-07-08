@@ -670,5 +670,37 @@
     ],
     "stateMutability": "view",
     "type": "function"
+  },
+  {
+    "anonymous": false,
+    "inputs":
+    [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "_type",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newValue",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "target",
+        "type": "address"
+      }
+    ],
+    "name": "VoteRemoved",
+    "type": "event"
   }
 ]

@@ -129,10 +129,6 @@ templates:
         - name: ProxyAbi
           file: ./abis/Proxy.json
       eventHandlers:
-        - event: AttributeChanged(uint256,uint256)
-          handler: handleAttributeChanged
-        - event: ContractInitialized(address,uint256,uint256)
-          handler: handleContractInitialized
         - event: RevisionIncreased(uint256,address)
           handler: handleRevisionIncreased
         - event: VoteReset(uint256,uint256,address,uint256,uint256,uint256)
@@ -141,6 +137,8 @@ templates:
           handler: handleVoted
         - event: Upgraded(indexed address)
           handler: handleUpgraded
+        - event: VoteRemoved(uint256,uint256,uint256,address)
+          handler: handleVoteRemoved
 
   - name: MultiBribeTemplate
     kind: ethereum/contract
