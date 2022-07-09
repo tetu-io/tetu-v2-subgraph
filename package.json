@@ -5,6 +5,7 @@
   "scripts": {
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
+    "test": "graph test",
     "deploy-stage": "graph deploy --node https://api.thegraph.com/deploy/ belbix/tetuv2staging",
     "deploy": "graph deploy --node https://api.thegraph.com/deploy/ tetu-io/tetu-v2",
     "create-local": "graph create --node http://localhost:8020/ tetu-io/tetu-v2",

@@ -24,8 +24,8 @@ import {
   ProxyUpgradeAnnounceEntity, TetuVoterEntity,
   VaultEntity, VeDistEntity
 } from "./types/schema";
-import {ADDRESS_ZERO, WEEK} from "./constants";
-import {Address, BigDecimal, BigInt, store} from "@graphprotocol/graph-ts";
+import {ADDRESS_ZERO, CONTROLLER_TIME_LOCK, RATIO_DENOMINATOR, WEEK} from "./constants";
+import {Address, BigDecimal, BigInt, log, store} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/ControllerData/ProxyAbi";
 import {
   ForwarderTemplate,
@@ -42,31 +42,29 @@ import {VeDistributorAbi} from "./types/ControllerData/VeDistributorAbi";
 import {PlatformVoterAbi} from "./types/ControllerData/PlatformVoterAbi";
 
 export function handleContractInitialized(event: ContractInitialized): void {
-  let controller = ControllerEntity.load(event.params.controller.toHexString())
+  const controller = new ControllerEntity(event.params.controller.toHexString());
+  const controllerCtr = ControllerAbi.bind(event.params.controller);
+  const proxy = ProxyAbi.bind(event.params.controller)
 
-  if (!controller) {
-    const controllerCtr = ControllerAbi.bind(event.params.controller);
-    const proxy = ProxyAbi.bind(event.params.controller)
-    controller = new ControllerEntity(event.params.controller.toHexString());
-    controller.version = controllerCtr.CONTROLLER_VERSION();
-    controller.revision = 0;
-    controller.createdTs = event.params.ts.toI32();
-    controller.createdBlock = event.params.block.toI32();
-    controller.implementations = [proxy.implementation().toHexString()];
+  controller.version = controllerCtr.CONTROLLER_VERSION();
+  controller.revision = 0;
+  controller.createdTs = event.params.ts.toI32();
+  controller.createdBlock = event.params.block.toI32();
+  controller.implementations = [proxy.implementation().toHexString()];
 
-    controller.tetuVoter = ADDRESS_ZERO;
-    controller.liquidator = ADDRESS_ZERO;
-    controller.forwarder = ADDRESS_ZERO;
-    controller.investFund = ADDRESS_ZERO;
-    controller.veDistributor = ADDRESS_ZERO;
-    controller.platformVoter = ADDRESS_ZERO;
+  controller.tetuVoter = ADDRESS_ZERO;
+  controller.liquidator = ADDRESS_ZERO;
+  controller.forwarder = ADDRESS_ZERO;
+  controller.investFund = ADDRESS_ZERO;
+  controller.veDistributor = ADDRESS_ZERO;
+  controller.platformVoter = ADDRESS_ZERO;
 
-    const gov = controllerCtr.governance().toHexString();
-    controller.governance = gov;
-    controller.whitelistedVaults = 0;
-    controller.operators = [gov];
-    controller.save()
-  }
+  const gov = controllerCtr.governance().toHexString();
+  controller.governance = gov;
+  controller.whitelistedVaults = 0;
+  controller.operators = [gov];
+  controller.save()
+
 }
 
 export function handleRevisionIncreased(event: RevisionIncreased): void {
@@ -90,7 +88,6 @@ export function handleUpgraded(event: Upgraded): void {
 }
 
 export function handleAddressChangeAnnounced(event: AddressChangeAnnounced): void {
-  const controllerCtr = ControllerAbi.bind(event.address);
   const id = mapAnnounceType(event.params._type)
   let announce = AddressChangeAnnounceEntity.load(id)
   if (!announce) {
@@ -101,7 +98,7 @@ export function handleAddressChangeAnnounced(event: AddressChangeAnnounced): voi
   announce.aType = mapAnnounceType(event.params._type);
   announce.idType = event.params._type.toI32()
   announce.newAddress = event.params.value.toHexString();
-  announce.timeLockAt = event.block.timestamp.plus(controllerCtr.TIME_LOCK()).toI32()
+  announce.timeLockAt = event.block.timestamp.plus(CONTROLLER_TIME_LOCK).toI32()
   announce.save()
 
 }
@@ -263,7 +260,7 @@ function createForwarder(address: string): void {
     const forwarderCtr = ForwarderAbi.bind(Address.fromString(address));
     const proxy = ProxyAbi.bind(Address.fromString(address));
 
-    const denominator = forwarderCtr.RATIO_DENOMINATOR().toBigDecimal();
+    const denominator = RATIO_DENOMINATOR.toBigDecimal();
 
     forwarder.version = forwarderCtr.FORWARDER_VERSION();
     forwarder.revision = forwarderCtr.revision().toI32();
@@ -291,7 +288,6 @@ export function handleAddressAnnounceRemove(event: AddressAnnounceRemove): void 
 }
 
 export function handleProxyUpgradeAnnounced(event: ProxyUpgradeAnnounced): void {
-  const controllerCtr = ControllerAbi.bind(event.address);
   const id = event.params.proxy.toHexString()
   let announce = ProxyUpgradeAnnounceEntity.load(id)
   if (!announce) {
@@ -301,7 +297,7 @@ export function handleProxyUpgradeAnnounced(event: ProxyUpgradeAnnounced): void 
   announce.controller = event.address.toHexString();
   announce.proxy = event.params.proxy.toHexString()
   announce.implementation = event.params.implementation.toHexString()
-  announce.timeLockAt = event.block.timestamp.plus(controllerCtr.TIME_LOCK()).toI32()
+  announce.timeLockAt = event.block.timestamp.plus(CONTROLLER_TIME_LOCK).toI32()
   announce.save()
 }
 
@@ -316,10 +312,7 @@ export function handleProxyAnnounceRemoved(event: ProxyAnnounceRemoved): void {
 }
 
 export function handleRegisterVault(event: RegisterVault): void {
-  let controller = ControllerEntity.load(event.address.toHexString())
-  if (!controller) {
-    return;
-  }
+  const controller = ControllerEntity.load(event.address.toHexString()) as ControllerEntity
 
   const vault = VaultEntity.load(event.params.vault.toHexString());
   if (!!vault) {
@@ -332,10 +325,7 @@ export function handleRegisterVault(event: RegisterVault): void {
 }
 
 export function handleVaultRemoved(event: VaultRemoved): void {
-  const controller = ControllerEntity.load(event.address.toHexString())
-  if (!controller) {
-    return;
-  }
+  const controller = ControllerEntity.load(event.address.toHexString()) as ControllerEntity
 
   const vault = VaultEntity.load(event.params.vault.toHexString());
   if (!!vault) {
@@ -347,7 +337,7 @@ export function handleVaultRemoved(event: VaultRemoved): void {
   controller.save()
 }
 
-export function handleOperatorAdded(event: OperatorRemoved): void {
+export function handleOperatorAdded(event: OperatorAdded): void {
   let controller = ControllerEntity.load(event.address.toHexString())
   if (!controller) {
     return;
@@ -358,19 +348,23 @@ export function handleOperatorAdded(event: OperatorRemoved): void {
   controller.save()
 }
 
-export function handleOperatorRemoved(event: OperatorAdded): void {
-  let controller = ControllerEntity.load(event.address.toHexString())
-  if (!controller) {
-    return;
+export function handleOperatorRemoved(event: OperatorRemoved): void {
+  const controller = ControllerEntity.load(event.address.toHexString()) as ControllerEntity;
+  const operators = controller.operators;
+  let id = -1;
+  for(let i = 0; i < operators.length; i++) {
+    if(Address.fromString(operators[i]).equals(event.params.operator)) {
+      id = i;
+    }
   }
-  const id = controller.operators.indexOf(event.params.operator.toHexString());
-  controller.operators[id] = controller.operators[controller.operators.length - 1];
-  controller.operators.pop();
+  operators[id] = controller.operators[controller.operators.length - 1];
+  operators.pop();
+  controller.operators = operators;
   controller.save()
 }
 
 
-function mapAnnounceType(idx: BigInt): string {
+export function mapAnnounceType(idx: BigInt): string {
   if (BigInt.fromI32(0).equals(idx)) return 'UNKNOWN'
   if (BigInt.fromI32(1).equals(idx)) return 'GOVERNANCE'
   if (BigInt.fromI32(2).equals(idx)) return 'TETU_VOTER'

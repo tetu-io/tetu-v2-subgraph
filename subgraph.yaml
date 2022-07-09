@@ -17,6 +17,7 @@ dataSources:
         - ControllerEntity
         - AddressChangeAnnounceEntity
         - ProxyUpgradeAnnounceEntity
+        - TetuVoterEntity
       abis:
         - name: ControllerAbi
           file: ./abis/ControllerV2.json
