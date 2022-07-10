@@ -75,7 +75,7 @@ afterEach(() => {
   clearStore();
 })
 
-describe("Controller tests", () => {
+describe("Controller_tests", () => {
   test("handleContractInitialized test", () => {
     const event = eventContractInitialized(ADDRESS_MOCK1, BigInt.fromI32(1), BigInt.fromI32(2));
 

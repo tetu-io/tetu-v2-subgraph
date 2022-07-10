@@ -13,6 +13,8 @@ export let RATIO_DENOMINATOR = BigInt.fromI32(100_000)
 export function getUSDC(): Address {
   if (dataSource.network() == 'fuji') {
     return Address.fromString("0x0C27719A3EdC8F3F1E530213c33548456f379892");
+  } else if (dataSource.network() == 'mainnet') {
+    return Address.fromString("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
   }
   log.critical("WRONG_NETWORK {}", [dataSource.network()]);
   return Address.fromString(ADDRESS_ZERO)

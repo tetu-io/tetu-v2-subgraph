@@ -19,7 +19,7 @@ import {
   GaugeVaultRewardHistory,
   UserGauge,
   UserGaugeReward,
-  UserGaugeRewardHistory
+  UserGaugeRewardHistory, VaultEntity
 } from "./types/schema";
 import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/templates/MultiGaugeTemplate/ProxyAbi";
@@ -114,8 +114,14 @@ export function handleVeTokenUnlocked(event: VeTokenUnlocked): void {
 
 
 export function handleAddStakingToken(event: AddStakingToken): void {
-  const vault = getOrCreateGaugeVault(event.params.token.toHexString(), event.address.toHexString());
-  vault.save();
+  const gaugeVault = getOrCreateGaugeVault(event.params.token.toHexString(), event.address.toHexString());
+  gaugeVault.save();
+
+  const vault = VaultEntity.load(event.params.token.toHexString());
+  if (!!vault) {
+    vault.isGaugeWhitelisted = true;
+    vault.save();
+  }
 }
 
 export function handleRevisionIncreased(event: RevisionIncreased): void {

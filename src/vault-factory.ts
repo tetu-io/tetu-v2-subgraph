@@ -27,7 +27,7 @@ import {
   VaultTemplate,
   VeTetuTemplate
 } from './types/templates'
-import {getUSDC} from "./constants";
+import {getUSDC, RATIO_DENOMINATOR, ZERO_BD} from "./constants";
 import {StrategySplitterAbi} from "./types/VaultFactoryData/StrategySplitterAbi";
 import {MultiGaugeAbi} from "./types/VaultFactoryData/MultiGaugeAbi";
 import {VeTetuAbi} from "./types/VaultFactoryData/VeTetuAbi";
@@ -39,12 +39,10 @@ export function handleVaultDeployed(event: VaultDeployed): void {
   const vaultCtr = VaultAbi.bind(event.params.vaultProxy)
   const controllerAdr = vaultCtr.controller();
   const controllerCtr = ControllerAbi.bind(controllerAdr)
-  const assetCtr = VaultAbi.bind(event.params.asset);
 
   const decimals = BigInt.fromI32(vaultCtr.decimals());
 
-  const feeDenominator = vaultCtr.FEE_DENOMINATOR()
-  const totalAssets = formatUnits(vaultCtr.totalAssets(), decimals);
+  const ratioDenominator = RATIO_DENOMINATOR
 
   createSplitter(event.params.splitterProxy.toHexString());
   vault.splitter = event.params.splitterProxy.toHexString();
@@ -68,19 +66,19 @@ export function handleVaultDeployed(event: VaultDeployed): void {
   vault.decimals = decimals.toI32();
   vault.name = event.params.name;
   vault.symbol = event.params.symbol;
-  vault.buffer = event.params.buffer.toBigDecimal().times(BigDecimal.fromString('100')).div(vaultCtr.BUFFER_DENOMINATOR().toBigDecimal());
+  vault.buffer = event.params.buffer.toBigDecimal().times(BigDecimal.fromString('100')).div(ratioDenominator.toBigDecimal());
   vault.maxWithdrawAssets = formatUnits(vaultCtr.maxWithdrawAssets(), decimals);
   vault.maxRedeemShares = formatUnits(vaultCtr.maxRedeemShares(), decimals);
   vault.maxDepositAssets = formatUnits(vaultCtr.maxDepositAssets(), decimals);
   vault.maxMintShares = formatUnits(vaultCtr.maxMintShares(), decimals);
-  vault.depositFee = vaultCtr.depositFee().toBigDecimal().times(BigDecimal.fromString('100')).div(feeDenominator.toBigDecimal());
-  vault.withdrawFee = vaultCtr.withdrawFee().toBigDecimal().times(BigDecimal.fromString('100')).div(feeDenominator.toBigDecimal());
+  vault.depositFee = vaultCtr.depositFee().toBigDecimal().times(BigDecimal.fromString('100')).div(ratioDenominator.toBigDecimal());
+  vault.withdrawFee = vaultCtr.withdrawFee().toBigDecimal().times(BigDecimal.fromString('100')).div(ratioDenominator.toBigDecimal());
   vault.doHardWorkOnInvest = vaultCtr.doHardWorkOnInvest();
-  vault.totalAssets = totalAssets;
-  vault.vaultAssets = formatUnits(assetCtr.balanceOf(event.params.vaultProxy), decimals);
-  vault.splitterAssets = formatUnits(vaultCtr.splitterAssets(), decimals);
-  vault.sharePrice = formatUnits(vaultCtr.sharePrice(), decimals);
-  vault.totalSupply = formatUnits(vaultCtr.totalSupply(), decimals);
+  vault.totalAssets = ZERO_BD;
+  vault.vaultAssets = ZERO_BD;
+  vault.splitterAssets = ZERO_BD;
+  vault.sharePrice = BigDecimal.fromString('1');
+  vault.totalSupply = ZERO_BD;
   vault.usersCount = 0;
 
   let vote = VaultVoteEntity.load(event.params.vaultProxy.toHexString());
@@ -95,16 +93,14 @@ export function handleVaultDeployed(event: VaultDeployed): void {
     vote.expectApr = BigDecimal.fromString('0');
     vote.save();
   }
-  vault.vote = event.params.vaultProxy.toHexString();
 
-  const assetPrice = tryGetUsdPrice(
+  vault.assetPrice = tryGetUsdPrice(
     controllerCtr.liquidator().toHexString(),
     event.params.asset.toHexString(),
     decimals
   );
 
-  vault.assetPrice = assetPrice
-  vault.totalAssetsUSD = totalAssets.times(assetPrice)
+  vault.totalAssetsUSD = ZERO_BD
 
   vault.isControllerWhitelisted = false;
   vault.isGaugeWhitelisted = false;
@@ -169,6 +165,7 @@ export function createSplitter(address: string): SplitterEntity {
     splitter.scheduledStrategies = []
     splitter.profit = BigDecimal.fromString('0');
     splitter.loss = BigDecimal.fromString('0');
+    splitter.controller = splitterCtr.controller().toHexString();
 
     StrategySplitterTemplate.create(Address.fromString(address));
     splitter.save();
