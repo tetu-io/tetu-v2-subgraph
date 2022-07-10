@@ -12,35 +12,16 @@ jobs:
   tests:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:latest
-        env:
-          POSTGRES_DB: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-        ports:
-          - 5432:5432
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
-      - uses: actions/checkout@v2
-      - uses: borales/actions-yarn@v3.0.0
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Run docker
+        uses: addnab/docker-run-action@v3
         with:
-          cmd: install
-      - uses: borales/actions-yarn@v3.0.0
-        with:
-          cmd: codegen
-      - uses: borales/actions-yarn@v3.0.0
-        with:
-          cmd: build
-      - uses: borales/actions-yarn@v3.0.0
-        with:
-          cmd: test
-        env:
-          NODE_OPTIONS: --max_old_space_size=4096
+          registry: gcr.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          image: belbix/subgraph:matchstick
+          options: -it --rm --mount type=bind,source={{ github.workspace }},target=/matchstick
