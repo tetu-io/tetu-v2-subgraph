@@ -25,3 +25,4 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           image: belbix/subgraph:matchstick
           options: -t --rm --mount type=bind,source=${{ github.workspace }},target=/matchstick
+          run: graph test
