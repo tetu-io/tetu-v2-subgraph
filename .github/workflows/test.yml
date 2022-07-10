@@ -24,4 +24,4 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           image: belbix/subgraph:matchstick
-          options: -it --rm --mount type=bind,source={{ github.workspace }},target=/matchstick
+          options: -it --rm --mount type=bind,source=${{ github.workspace }},target=/matchstick
