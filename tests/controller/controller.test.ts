@@ -90,7 +90,7 @@ describe("Controller tests", () => {
 
     const controller = ControllerEntity.load(ADDRESS_MOCK1) as ControllerEntity;
 
-    assert.equals(ethereum.Value.fromString(controller.version), ethereum.Value.fromString("111"))
+    assert.equals(ethereum.Value.fromString(controller.version), ethereum.Value.fromString("11"))
     assert.equals(ethereum.Value.fromI32(controller.revision), ethereum.Value.fromI32(0))
     assert.equals(ethereum.Value.fromI32(controller.createdTs), ethereum.Value.fromI32(1))
     assert.equals(ethereum.Value.fromI32(controller.createdBlock), ethereum.Value.fromI32(2))
