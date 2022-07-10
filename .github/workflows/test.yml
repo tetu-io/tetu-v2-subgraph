@@ -17,6 +17,21 @@ jobs:
         name: Checkout
         uses: actions/checkout@v2
       -
+        name: Install dependencies
+        uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: install
+      -
+        name: Generate subgraph types
+        uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: codegen
+      -
+        name: Build subgraph
+        uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: build
+      -
         name: Run docker
         uses: addnab/docker-run-action@v3
         with:
