@@ -97,6 +97,10 @@ export function vaultDeployedWithDefaults(): void {
   checkVe();
 }
 
+export function createVaultFactory(): void {
+
+}
+
 // **********************************************************
 //                   EVENTS
 // **********************************************************
@@ -152,7 +156,7 @@ export function eventVaultDeployedWithDefaults(): VaultDeployed {
 //                   MOCK FUNCTIONS
 // **********************************************************
 
-function mockVaultFactoryFunctions(): void {
+export function mockVaultFactoryFunctions(): void {
   createMockedFunction(Address.fromString(VAULT_FACTORY_ADR), "controller", "controller():(address)").returns([ethereum.Value.fromAddress(Address.fromString(CONTROLLER_ADDRESS))])
   createMockedFunction(Address.fromString(VAULT_FACTORY_ADR), "vaultImpl", "vaultImpl():(address)").returns([ethereum.Value.fromAddress(Address.fromString(VAULT_LOGIC_ADR))])
   createMockedFunction(Address.fromString(VAULT_FACTORY_ADR), "vaultInsuranceImpl", "vaultInsuranceImpl():(address)").returns([ethereum.Value.fromAddress(Address.fromString(INSURANCE_ADR))])
