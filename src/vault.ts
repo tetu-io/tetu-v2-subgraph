@@ -32,6 +32,10 @@ import {ADDRESS_ZERO, DAY, getUSDC} from "./constants";
 import {ControllerAbi} from "./types/templates/VaultTemplate/ControllerAbi";
 import {LiquidatorAbi} from "./types/templates/VaultTemplate/LiquidatorAbi";
 
+// *****************************************
+//            MAIN LOGIC
+// *****************************************
+
 export function handleTransfer(event: Transfer): void {
   const vault = updateVaultAttributes(
     event.address.toHexString(),
@@ -72,68 +76,6 @@ export function handleTransfer(event: Transfer): void {
   vault.save();
 }
 
-function updateUser(
-  vaultAdr: string,
-  userAdr: string,
-  decimals: BigInt,
-  timestamp: BigInt,
-  vault: VaultEntity,
-  vaultCtr: VaultAbi,
-  // @ts-ignore
-  increase: i32,
-  sharesTransferred: BigDecimal
-): void {
-  const user = getOrCreateVaultUser(vaultAdr, userAdr);
-  if (user.balanceShares.le(BigDecimal.fromString('0'))) {
-    vault.usersCount = vault.usersCount + increase;
-  }
-  const balanceShares = formatUnits(vaultCtr.balanceOf(Address.fromString(userAdr)), decimals);
-  const balanceAssets = balanceShares.times(vault.sharePrice);
-
-  //calculate profit
-  const lastUpdateOld = user.lastUpdate;
-  if (lastUpdateOld != 0) {
-    const balanceAssetsOld = user.balanceAssets;
-    const assetTransferred = sharesTransferred.times(vault.sharePrice);
-    const balanceBeforeTransfer = increase > 0 ?
-      balanceAssets.minus(assetTransferred)
-      : balanceAssets.plus(assetTransferred);
-    const profit = balanceBeforeTransfer.minus(balanceAssetsOld);
-
-    user.compoundProfitTotal = user.compoundProfitTotal.plus(profit);
-
-
-    const profitEntity = new UserCompoundProfit(crypto.keccak256(ByteArray.fromUTF8(user.id + timestamp.toHexString())).toHexString());
-
-    const apr = calculateApr(BigInt.fromI32(lastUpdateOld), timestamp, profit, balanceBeforeTransfer);
-
-    profitEntity.userVault = user.id;
-
-    profitEntity.profit = profit;
-    profitEntity.time = timestamp.toI32();
-    profitEntity.balanceShares = balanceShares;
-    profitEntity.balanceAssets = balanceAssets;
-    profitEntity.balanceAssetsUsd = balanceAssets.times(vault.assetPrice)
-    profitEntity.profit = profit;
-    profitEntity.apr = apr;
-
-    user.compoundProfitTotal = user.compoundProfitTotal.plus(profit);
-    user.acProfitCount = user.acProfitCount + 1;
-    user.acAprSum = user.acAprSum.plus(apr);
-
-    profitEntity.averageApr = user.acAprSum.div(BigInt.fromI32(user.acProfitCount).toBigDecimal())
-
-    profitEntity.save();
-  }
-
-
-  user.balanceShares = balanceShares;
-  user.balanceAssets = balanceAssets;
-  user.balanceAssetsUsd = user.balanceAssets.times(vault.assetPrice);
-  user.lastUpdate = timestamp.toI32()
-  user.save();
-}
-
 export function handleApproval(event: Approval): void {
   const vault = VaultEntity.load(event.address.toHexString());
   if (!vault) {
@@ -168,15 +110,6 @@ export function handleFeeTransfer(event: FeeTransfer): void {
   insurance.balance = insurance.balance.plus(formatUnits(event.params.amount, BigInt.fromI32(vault.decimals)));
   saveInsuranceBalance(insurance, event.block.timestamp);
   insurance.save();
-}
-
-function saveInsuranceBalance(insurance: InsuranceEntity, time: BigInt): void {
-  const h = new InsuranceBalance(insurance.id + "_" + time.toString());
-  h.insurance = insurance.id;
-  h.time = time.toI32();
-  h.balance = insurance.balance;
-  h.covered = insurance.covered;
-  h.save();
 }
 
 export function handleLossCovered(event: LossCovered): void {
@@ -274,17 +207,80 @@ export function handleMaxWithdrawChanged(event: MaxWithdrawChanged): void {
   vault.save();
 }
 
-// it will not be changed
-// export function handleSplitterChanged(event: SplitterChanged): void {
-//   createSplitter(event.params.newValue.toHexString())
-//   const vault = VaultEntity.load(event.address.toHexString());
-//   if (!vault) {
-//     return;
-//   }
-//   vault.splitter = event.params.newValue.toHexString();
-//   vault.save();
-// }
+// *****************************************
+//                 HELPERS
+// *****************************************
 
+function saveInsuranceBalance(insurance: InsuranceEntity, time: BigInt): void {
+  const h = new InsuranceBalance(insurance.id + "_" + time.toString());
+  h.insurance = insurance.id;
+  h.time = time.toI32();
+  h.balance = insurance.balance;
+  h.covered = insurance.covered;
+  h.save();
+}
+
+function updateUser(
+  vaultAdr: string,
+  userAdr: string,
+  decimals: BigInt,
+  timestamp: BigInt,
+  vault: VaultEntity,
+  vaultCtr: VaultAbi,
+  // @ts-ignore
+  increase: i32,
+  sharesTransferred: BigDecimal
+): void {
+  const user = getOrCreateVaultUser(vaultAdr, userAdr);
+  if (user.balanceShares.le(BigDecimal.fromString('0'))) {
+    vault.usersCount = vault.usersCount + increase;
+  }
+  const balanceShares = formatUnits(vaultCtr.balanceOf(Address.fromString(userAdr)), decimals);
+  const balanceAssets = balanceShares.times(vault.sharePrice);
+
+  //calculate profit
+  const lastUpdateOld = user.lastUpdate;
+  if (lastUpdateOld != 0) {
+    const balanceAssetsOld = user.balanceAssets;
+    const assetTransferred = sharesTransferred.times(vault.sharePrice);
+    const balanceBeforeTransfer = increase > 0 ?
+      balanceAssets.minus(assetTransferred)
+      : balanceAssets.plus(assetTransferred);
+    const profit = balanceBeforeTransfer.minus(balanceAssetsOld);
+
+    user.compoundProfitTotal = user.compoundProfitTotal.plus(profit);
+
+
+    const profitEntity = new UserCompoundProfit(crypto.keccak256(ByteArray.fromUTF8(user.id + timestamp.toHexString())).toHexString());
+
+    const apr = calculateApr(BigInt.fromI32(lastUpdateOld), timestamp, profit, balanceBeforeTransfer);
+
+    profitEntity.userVault = user.id;
+
+    profitEntity.profit = profit;
+    profitEntity.time = timestamp.toI32();
+    profitEntity.balanceShares = balanceShares;
+    profitEntity.balanceAssets = balanceAssets;
+    profitEntity.balanceAssetsUsd = balanceAssets.times(vault.assetPrice)
+    profitEntity.profit = profit;
+    profitEntity.apr = apr;
+
+    user.compoundProfitTotal = user.compoundProfitTotal.plus(profit);
+    user.acProfitCount = user.acProfitCount + 1;
+    user.acAprSum = user.acAprSum.plus(apr);
+
+    profitEntity.averageApr = user.acAprSum.div(BigInt.fromI32(user.acProfitCount).toBigDecimal())
+
+    profitEntity.save();
+  }
+
+
+  user.balanceShares = balanceShares;
+  user.balanceAssets = balanceAssets;
+  user.balanceAssetsUsd = user.balanceAssets.times(vault.assetPrice);
+  user.lastUpdate = timestamp.toI32()
+  user.save();
+}
 
 function updateVaultAttributes(
   address: string,
@@ -303,7 +299,7 @@ function updateVaultAttributes(
   const controllerAdr = vaultCtr.controller();
   const controllerCtr = ControllerAbi.bind(controllerAdr)
 
-  const decimals = BigInt.fromI32(vaultCtr.decimals());
+  const decimals = BigInt.fromI32(vault.decimals);
   const totalAssets = formatUnits(vaultCtr.totalAssets(), decimals);
 
   vault.totalAssets = totalAssets
