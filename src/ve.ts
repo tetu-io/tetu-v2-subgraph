@@ -5,7 +5,7 @@ import {
   ApprovalForAll,
   ContractInitialized,
   Deposit,
-  Initialized,
+  Initialized, Merged,
   PawnshopWhitelisted,
   RevisionIncreased,
   Supply,
@@ -45,6 +45,17 @@ export function handleDeposit(event: Deposit): void {
 export function handleWithdraw(event: Withdraw): void {
   updateUser(
     event.params.tokenId,
+    event.address.toHexString(),
+    event.params.provider.toHexString(),
+    event.block.timestamp,
+    event.params.stakingToken.toHexString()
+  );
+  updateVeTokensInfo(event.address.toHexString());
+}
+
+export function handleMerged(event: Merged): void {
+  updateUser(
+    event.params.from,
     event.address.toHexString(),
     event.params.provider.toHexString(),
     event.block.timestamp,

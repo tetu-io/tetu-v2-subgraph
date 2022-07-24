@@ -315,6 +315,8 @@ templates:
           handler: handleWithdraw
         - event: Upgraded(indexed address)
           handler: handleUpgraded
+        - event: Merged(indexed address,indexed address,uint256,uint256)
+          handler: handleMerged
 
   - name: ForwarderTemplate
     kind: ethereum/contract
