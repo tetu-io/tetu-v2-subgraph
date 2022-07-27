@@ -10,7 +10,7 @@ import {
 import {
   GaugeEntity,
   InsuranceEntity,
-  SplitterEntity,
+  SplitterEntity, TokenEntity,
   VaultEntity,
   VaultFactoryEntity,
   VaultVoteEntity, VeTetuEntity
@@ -80,6 +80,8 @@ export function handleVaultDeployed(event: VaultDeployed): void {
   vault.sharePrice = BigDecimal.fromString('1');
   vault.totalSupply = ZERO_BD;
   vault.usersCount = 0;
+
+  createToken(vault.asset);
 
   let vote = VaultVoteEntity.load(event.params.vaultProxy.toHexString());
   if (!vote) {
@@ -234,6 +236,20 @@ function createVe(veAdr: string): void {
 
     VeTetuTemplate.create(Address.fromString(veAdr));
     ve.save();
+  }
+}
+
+function createToken(tokenAdr: string): void {
+  let token = TokenEntity.load(tokenAdr);
+  if(!token) {
+    token = new TokenEntity(tokenAdr);
+    const tokenCtr = VaultAbi.bind(Address.fromString(tokenAdr));
+
+    token.symbol = tokenCtr.symbol();
+    token.name = tokenCtr.name();
+    token.decimals = tokenCtr.decimals();
+
+    token.save();
   }
 }
 

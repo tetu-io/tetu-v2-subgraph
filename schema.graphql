@@ -54,6 +54,21 @@ type ProxyUpgradeAnnounceEntity @entity {
 }
 
 ###############################################
+#                    TOKENS
+###############################################
+
+type TokenEntity @entity(immutable: true) {
+    "Any token used on the platform"
+    id: ID!
+
+    symbol: String!
+    name: String!
+    decimals: Int!
+
+    vaults: [VaultEntity!]! @derivedFrom(field: "asset")
+}
+
+###############################################
 #                    VAULT FACTORY
 ###############################################
 
@@ -94,7 +109,7 @@ type VaultEntity @entity {
     factory: VaultFactoryEntity!
 
     # attributes
-    asset: String!
+    asset: TokenEntity!
     decimals: Int!
     name: String!
     symbol: String!
