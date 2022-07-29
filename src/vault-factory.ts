@@ -81,8 +81,6 @@ export function handleVaultDeployed(event: VaultDeployed): void {
   vault.totalSupply = ZERO_BD;
   vault.usersCount = 0;
 
-  createToken(vault.asset);
-
   let vote = VaultVoteEntity.load(event.params.vaultProxy.toHexString());
   if (!vote) {
     vote = new VaultVoteEntity(event.params.vaultProxy.toHexString());
@@ -239,18 +237,18 @@ function createVe(veAdr: string): void {
   }
 }
 
-function createToken(tokenAdr: string): void {
+function getOrCreateToken(tokenAdr: string): TokenEntity {
   let token = TokenEntity.load(tokenAdr);
-  if(!token) {
+  if (!token) {
     token = new TokenEntity(tokenAdr);
     const tokenCtr = VaultAbi.bind(Address.fromString(tokenAdr));
 
     token.symbol = tokenCtr.symbol();
     token.name = tokenCtr.name();
     token.decimals = tokenCtr.decimals();
-
-    token.save();
+    token.usdPrice = ZERO_BD;
   }
+  return token;
 }
 
 export function tryGetUsdPrice(
@@ -268,6 +266,9 @@ export function tryGetUsdPrice(
     parseUnits(BigDecimal.fromString('1'), decimals)
   );
   if (!p.reverted) {
+    let token = getOrCreateToken(asset);
+    token.usdPrice = formatUnits(p.value, decimals);
+    token.save();
     return formatUnits(p.value, decimals);
   }
   log.error("=== FAILED GET PRICE === liquidator: {} asset: {}", [liquidatorAdr, asset]);

@@ -13,7 +13,7 @@ import {
   Withdraw
 } from "./types/templates/VeTetuTemplate/VeTetuAbi";
 import {
-  ControllerEntity,
+  ControllerEntity, TokenEntity,
   UserEntity,
   VeTetuEntity, VeTetuTokenEntity,
   VeUserEntity,
@@ -23,7 +23,7 @@ import {
 import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/templates/VeTetuTemplate/ProxyAbi";
 import {formatUnits, generateVeUserId, parseUnits} from "./helpers";
-import {ADDRESS_ZERO, getUSDC} from "./constants";
+import {ADDRESS_ZERO, getUSDC, ZERO_BD} from "./constants";
 import {VaultAbi} from "./types/templates/VeTetuTemplate/VaultAbi";
 import {LiquidatorAbi} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";
 
@@ -282,6 +282,20 @@ function getOrCreateVeUser(veId: BigInt, userAdr: string, veAdr: string): VeUser
   return veUser;
 }
 
+function getOrCreateToken(tokenAdr: string): TokenEntity {
+  let token = TokenEntity.load(tokenAdr);
+  if (!token) {
+    token = new TokenEntity(tokenAdr);
+    const tokenCtr = VaultAbi.bind(Address.fromString(tokenAdr));
+
+    token.symbol = tokenCtr.symbol();
+    token.name = tokenCtr.name();
+    token.decimals = tokenCtr.decimals();
+    token.usdPrice = ZERO_BD;
+  }
+  return token;
+}
+
 function tryGetUsdPrice(
   liquidatorAdr: string,
   asset: string,
@@ -297,6 +311,9 @@ function tryGetUsdPrice(
     parseUnits(BigDecimal.fromString('1'), decimals)
   );
   if (!p.reverted) {
+    let token = getOrCreateToken(asset);
+    token.usdPrice = formatUnits(p.value, decimals);
+    token.save();
     return formatUnits(p.value, decimals);
   }
   log.error("=== FAILED GET PRICE === liquidator: {} asset: {}", [liquidatorAdr, asset]);

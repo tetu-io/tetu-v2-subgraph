@@ -16,7 +16,7 @@ import {
   GaugeEntity,
   GaugeVaultEntity,
   GaugeVaultReward,
-  GaugeVaultRewardHistory,
+  GaugeVaultRewardHistory, TokenEntity,
   UserGauge,
   UserGaugeReward,
   UserGaugeRewardHistory, VaultEntity
@@ -33,7 +33,7 @@ import {
 import {VaultAbi} from "./types/templates/MultiGaugeTemplate/VaultAbi";
 import {ControllerAbi} from "./types/templates/MultiGaugeTemplate/ControllerAbi";
 import {LiquidatorAbi} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";
-import {ADDRESS_ZERO, getUSDC} from "./constants";
+import {ADDRESS_ZERO, getUSDC, ZERO_BD} from "./constants";
 
 // ***************************************************
 //                     DEPOSIT/WITHDRAW
@@ -381,6 +381,20 @@ function saveUserRewardHistory(userReward: UserGaugeReward, user: UserGauge, cla
   }
 }
 
+function getOrCreateToken(tokenAdr: string): TokenEntity {
+  let token = TokenEntity.load(tokenAdr);
+  if(!token) {
+    token = new TokenEntity(tokenAdr);
+    const tokenCtr = VaultAbi.bind(Address.fromString(tokenAdr));
+
+    token.symbol = tokenCtr.symbol();
+    token.name = tokenCtr.name();
+    token.decimals = tokenCtr.decimals();
+    token.usdPrice = ZERO_BD;
+  }
+  return token;
+}
+
 function tryGetUsdPrice(
   liquidatorAdr: string,
   asset: string,
@@ -396,6 +410,9 @@ function tryGetUsdPrice(
     parseUnits(BigDecimal.fromString('1'), decimals)
   );
   if (!p.reverted) {
+    let token = getOrCreateToken(asset);
+    token.usdPrice = formatUnits(p.value, decimals);
+    token.save();
     return formatUnits(p.value, decimals);
   }
   log.error("=== FAILED GET PRICE === liquidator: {} asset: {}", [liquidatorAdr, asset]);

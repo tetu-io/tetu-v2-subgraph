@@ -65,6 +65,8 @@ type TokenEntity @entity(immutable: true) {
     name: String!
     decimals: Int!
 
+    usdPrice: BigDecimal!
+
     vaults: [VaultEntity!]! @derivedFrom(field: "asset")
 }
 
@@ -217,7 +219,7 @@ type InsuranceEntity @entity {
     vault: VaultEntity!
 
     # attributes
-    asset: String!
+    asset: TokenEntity!
 
     # stats
     balance: BigDecimal!
@@ -252,7 +254,7 @@ type SplitterEntity @entity {
     controller: ControllerEntity!
 
     #attributes
-    asset: String!
+    asset: TokenEntity!
     strategies: [StrategyEntity!]! @derivedFrom(field: "splitter")
     scheduledStrategies: [String!]!
 
@@ -277,7 +279,7 @@ type StrategyEntity @entity {
     splitter: SplitterEntity!
 
     #attributes
-    asset: String!
+    asset: TokenEntity!
     assetDecimals: Int!
     compoundRatio: BigDecimal!
     paused: Boolean!
@@ -325,7 +327,7 @@ type GaugeEntity @entity {
 
     #attributes
     operator: String!
-    defaultRewardToken: String!
+    defaultRewardToken: TokenEntity!
 
     vaults: [GaugeVaultEntity!]! @derivedFrom(field: "gauge")
 }
@@ -336,7 +338,7 @@ type GaugeVaultEntity @entity {
     gauge: GaugeEntity!
     vault: VaultEntity!
 
-    asset: String!
+    asset: TokenEntity!
     decimals: Int!
 
     totalSupply: BigDecimal!
@@ -352,7 +354,7 @@ type GaugeVaultReward @entity {
     id: ID!
 
     gaugeVault: GaugeVaultEntity!
-    rewardToken: String!
+    rewardToken: TokenEntity!
     decimals: Int!
 
     apr: BigDecimal!
@@ -401,7 +403,7 @@ type UserGaugeReward @entity {
     id: ID!
 
     userGauge: UserGauge!
-    token: String!
+    token: TokenEntity!
 
     earnedTotal: BigDecimal!
     earnedTotalUSD: BigDecimal!
@@ -444,7 +446,7 @@ type BribeEntity @entity {
 
     #attributes
     operator: String!
-    defaultRewardToken: String!
+    defaultRewardToken: TokenEntity!
 
     vaults: [BribeVaultEntity!]! @derivedFrom(field: "bribe")
 }
@@ -455,7 +457,7 @@ type BribeVaultEntity @entity {
     bribe: BribeEntity!
     vault: VaultEntity!
 
-    asset: String!
+    asset: TokenEntity!
     decimals: Int!
 
     totalSupply: BigDecimal!
@@ -470,7 +472,7 @@ type BribeVaultReward @entity {
     id: ID!
 
     bribeVault: BribeVaultEntity!
-    rewardToken: String!
+    rewardToken: TokenEntity!
     decimals: Int!
 
     apr: BigDecimal!
@@ -513,7 +515,7 @@ type VeBribeReward @entity {
     id: ID!
 
     veBribe: VeBribe!
-    token: String!
+    token: TokenEntity!
 
     earnedTotal: BigDecimal!
     earnedTotalUSD: BigDecimal!
@@ -555,7 +557,7 @@ type TetuVoterEntity @entity {
     ve: VeTetuEntity!
     gauge: GaugeEntity!
     bribe: BribeEntity!
-    token: String!
+    token: TokenEntity!
 
     #attributes
     rewardsBalance: BigDecimal!
@@ -644,7 +646,7 @@ type ForwarderEntity @entity {
     implementations: [String!]!
 
     # dependencies
-    tetu: String!
+    tetu: TokenEntity!
     controller: ControllerEntity!
 
     # attributes
@@ -677,7 +679,7 @@ type ForwarderDistribution @entity(immutable: true) {
 
     time: Int!
     sender: String!
-    token: String!
+    token: TokenEntity!
     balance: BigDecimal!
     tetuValue: BigDecimal!
     tetuBalance: BigDecimal!
@@ -738,7 +740,7 @@ type VeDistEntity @entity {
 
     #dependencies
     ve: VeTetuEntity!
-    rewardToken: String!
+    rewardToken: TokenEntity!
     controller: ControllerEntity!
 
     decimals: Int!
