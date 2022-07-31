@@ -284,6 +284,7 @@ type StrategyEntity @entity {
     compoundRatio: BigDecimal!
     paused: Boolean!
     lastHardWork: Int!
+    capacity: BigDecimal!
 
     history: [StrategyHistory!]! @derivedFrom(field: "strategy")
     tvl: BigDecimal!

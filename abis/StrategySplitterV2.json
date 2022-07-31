@@ -1044,5 +1044,24 @@
     ],
     "name": "WithdrawFromStrategy",
     "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "strategy",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "capacity",
+        "type": "uint256"
+      }
+    ],
+    "name": "SetStrategyCapacity",
+    "type": "event"
   }
 ]

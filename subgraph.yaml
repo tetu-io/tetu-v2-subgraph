@@ -484,6 +484,8 @@ templates:
           handler: handleInvested
         - event: WithdrawFromStrategy(address)
           handler: handleWithdrawFromStrategy
+        - event: SetStrategyCapacity(address,uint256)
+          handler: handleSetStrategyCapacity
 
   - name: StrategyTemplate
     kind: ethereum/contract

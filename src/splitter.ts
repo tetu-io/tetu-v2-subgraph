@@ -8,7 +8,7 @@ import {
   ManualAprChanged,
   Paused,
   Rebalance,
-  RevisionIncreased,
+  RevisionIncreased, SetStrategyCapacity,
   StrategyAdded,
   StrategyRemoved,
   StrategyScheduled,
@@ -16,12 +16,12 @@ import {
   Upgraded,
   WithdrawFromStrategy
 } from "./types/templates/StrategySplitterTemplate/StrategySplitterAbi";
-import {SplitterEntity, StrategyEntity, StrategyHistory} from "./types/schema";
+import {SplitterEntity, StrategyEntity, StrategyHistory, TokenEntity} from "./types/schema";
 import {StrategyTemplate} from './types/templates'
 import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {StrategyAbi} from "./types/templates/StrategyTemplate/StrategyAbi";
 import {ProxyAbi} from "./types/templates/StrategySplitterTemplate/ProxyAbi";
-import {ADDRESS_ZERO} from "./constants";
+import {ADDRESS_ZERO, ZERO_BD} from "./constants";
 import {VaultAbi} from "./types/templates/StrategySplitterTemplate/VaultAbi";
 import {formatUnits} from "./helpers";
 
@@ -126,6 +126,13 @@ export function handleRevisionIncreased(event: RevisionIncreased): void {
   splitter.save();
 }
 
+export function handleSetStrategyCapacity(event: SetStrategyCapacity): void {
+  const strategy = getOrCreateStrategy(event.params.strategy.toHexString());
+  const asset = getOrCreateToken(strategy.asset);
+  strategy.capacity = formatUnits(event.params.capacity, BigInt.fromI32(asset.decimals));
+  strategy.save();
+}
+
 
 // ***************************************************
 //                    HARD WORK
@@ -202,6 +209,7 @@ function getOrCreateStrategy(address: string): StrategyEntity {
     strategy.tvl = strategyCtr.totalAssets().toBigDecimal();
     strategy.profit = BigDecimal.fromString('0');
     strategy.loss = BigDecimal.fromString('0');
+    strategy.capacity = BigDecimal.fromString('0');
 
     StrategyTemplate.create(Address.fromString(address));
     strategy.save();
@@ -240,6 +248,19 @@ export function updateTvl(
   strategy.save();
 }
 
+function getOrCreateToken(tokenAdr: string): TokenEntity {
+  let token = TokenEntity.load(tokenAdr);
+  if (!token) {
+    token = new TokenEntity(tokenAdr);
+    const tokenCtr = VaultAbi.bind(Address.fromString(tokenAdr));
+
+    token.symbol = tokenCtr.symbol();
+    token.name = tokenCtr.name();
+    token.decimals = tokenCtr.decimals();
+    token.usdPrice = ZERO_BD;
+  }
+  return token;
+}
 
 
 
