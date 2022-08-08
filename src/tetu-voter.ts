@@ -32,7 +32,7 @@ import {
   generateTetuVoterUserId,
   generateTetuVoterUserVoteId,
   generateVaultVoteEntityId,
-  generateVeUserId,
+  generateVeNFTId,
   parseUnits
 } from "./helpers";
 import {ADDRESS_ZERO, getUSDC, REWARD_TOKEN_DECIMALS, ZERO_BD} from "./constants";
@@ -47,7 +47,7 @@ import {LiquidatorAbi} from "./types/templates/TetuVoterTemplate/LiquidatorAbi";
 
 export function handleVoted(event: Voted): void {
   const voter = getOrCreateTetuVoter(event.address.toHexString());
-  const voterUser = getOrCreateTetuVoterUser(event.params.tokenId, voter.id, event.params.voter.toHexString(), voter.ve);
+  const voterUser = getOrCreateTetuVoterUser(event.params.tokenId, voter.id, voter.ve);
   const vaultVote = getOrCreateVaultVoteEntity(voter, event.params.vault.toHexString());
   const userVote = getOrCreateTetuVoterUserVote(voterUser, vaultVote);
 
@@ -206,23 +206,16 @@ function saveTetuVoterRewards(voter: TetuVoterEntity, time: BigInt): void {
   }
 }
 
-function getOrCreateTetuVoterUser(veId: BigInt, voterAdr: string, userAdr: string, veAdr: string): TetuVoterUser {
+function getOrCreateTetuVoterUser(veId: BigInt, voterAdr: string, veAdr: string): TetuVoterUser {
   const userId = generateTetuVoterUserId(veId.toString(), voterAdr);
   let user = TetuVoterUser.load(userId);
   if (!user) {
     user = new TetuVoterUser(userId);
 
     user.tetuVoter = voterAdr;
-    user.user = ADDRESS_ZERO;
-    user.veUser = generateVeUserId(veId.toString(), veAdr);
+    user.veNFT = generateVeNFTId(veId.toString(), veAdr);
     user.voteTimeLockEnd = 0;
     user.power = BigDecimal.fromString('0')
-
-    user.user = userAdr;
-    if (!UserEntity.load(userAdr)) {
-      const user = new UserEntity(userAdr);
-      user.save();
-    }
   }
   return user;
 }

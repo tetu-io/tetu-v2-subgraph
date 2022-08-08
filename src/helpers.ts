@@ -40,7 +40,7 @@ export function calculateApr(
 //                 ID GENERATION
 // ********************************************************
 
-export function generateVeUserId(veId: string, veAdr: string): string {
+export function generateVeNFTId(veId: string, veAdr: string): string {
   return crypto.keccak256(ByteArray.fromUTF8(veId + veAdr)).toHexString();
 }
 

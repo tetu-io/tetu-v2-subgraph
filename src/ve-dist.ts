@@ -3,19 +3,22 @@
 import {
   CheckpointToken,
   Claimed,
-  RevisionIncreased, VeDistributorAbi
+  RevisionIncreased,
+  VeDistributorAbi
 } from "./types/templates/VeDistributorTemplate/VeDistributorAbi";
 import {Upgraded} from "./types/ControllerData/VeDistributorAbi";
 import {
-  ControllerEntity, TokenEntity,
-  VeDistEntity, VeTetuEntity,
-  VeUserEntity,
-  VeUserVeDistRewardHistory
+  ControllerEntity,
+  TokenEntity,
+  VeDistEntity,
+  VeTetuEntity,
+  VeNFTEntity,
+  VeNFTVeDistRewardHistory
 } from "./types/schema";
-import {calculateApr, formatUnits, generateVeUserId, parseUnits} from "./helpers";
+import {calculateApr, formatUnits, generateVeNFTId, parseUnits} from "./helpers";
 import {Address, BigDecimal, BigInt, log} from "@graphprotocol/graph-ts";
 import {VaultAbi} from "./types/ControllerData/VaultAbi";
-import {getUSDC, WEEK, ZERO_BD} from "./constants";
+import {ADDRESS_ZERO, getUSDC, WEEK, ZERO_BD} from "./constants";
 import {LiquidatorAbi} from "./types/templates/VeDistributorTemplate/LiquidatorAbi";
 
 // ***************************************************
@@ -35,15 +38,15 @@ export function handleClaimed(event: Claimed): void {
 
   const decimals = BigInt.fromI32(veDist.decimals);
   const controller = ControllerEntity.load(veDist.controller) as ControllerEntity;
-  const veUser = VeUserEntity.load(generateVeUserId(event.params.tokenId.toString(), veDist.ve)) as VeUserEntity;
+  const veNFT = VeNFTEntity.load(generateVeNFTId(event.params.tokenId.toString(), veDist.ve)) as VeNFTEntity;
   const claimed = formatUnits(event.params.amount, decimals);
   const rewardPrice = tryGetUsdPrice(controller.liquidator, veDist.rewardToken, decimals);
   const claimedUSD = claimed.times(rewardPrice);
-  veUser.veDistRewardsTotal = veUser.veDistRewardsTotal.plus(claimed);
-  veUser.veDistLastApr = calculateApr(BigInt.fromI32(veUser.veDistLastClaim), event.block.timestamp, claimedUSD, veUser.lockedAmountUSD);
-  veUser.veDistLastClaim = event.block.timestamp.toI32();
-  saveRewardHistory(veUser, event.block.timestamp, claimed, claimedUSD);
-  veUser.save();
+  veNFT.veDistRewardsTotal = veNFT.veDistRewardsTotal.plus(claimed);
+  veNFT.veDistLastApr = calculateApr(BigInt.fromI32(veNFT.veDistLastClaim), event.block.timestamp, claimedUSD, veNFT.lockedAmountUSD);
+  veNFT.veDistLastClaim = event.block.timestamp.toI32();
+  saveRewardHistory(veNFT, event.block.timestamp, claimed, claimedUSD);
+  veNFT.save();
 
 
   updateVeDist(veDist, rewardPrice);
@@ -96,17 +99,18 @@ function updateVeDist(veDist: VeDistEntity, rewardPrice: BigDecimal): void {
   veDist.save();
 }
 
-function saveRewardHistory(veUser: VeUserEntity, time: BigInt, claimed: BigDecimal, claimedUSD: BigDecimal): void {
-  let history = VeUserVeDistRewardHistory.load(veUser.id + "_" + time.toString());
+function saveRewardHistory(veNFT: VeNFTEntity, time: BigInt, claimed: BigDecimal, claimedUSD: BigDecimal): void {
+  let history = VeNFTVeDistRewardHistory.load(veNFT.id + "_" + time.toString());
   if (!history) {
-    history = new VeUserVeDistRewardHistory(veUser.id + "_" + time.toString());
+    history = new VeNFTVeDistRewardHistory(veNFT.id + "_" + time.toString());
 
-    history.veUser = veUser.id;
+    history.veNFT = veNFT.id;
+    history.owner = (veNFT.user || ADDRESS_ZERO) as string;
     history.time = time.toI32();
     history.claimed = claimed;
     history.claimedUSD = claimedUSD;
-    history.lockedAmountUSD = veUser.lockedAmountUSD;
-    history.apr = veUser.veDistLastApr;
+    history.lockedAmountUSD = veNFT.lockedAmountUSD;
+    history.apr = veNFT.veDistLastApr;
 
     history.save();
   }

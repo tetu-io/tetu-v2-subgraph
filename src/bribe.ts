@@ -25,7 +25,7 @@ import {
   calculateApr,
   generateVeBribeId,
   generateBribeVaultId,
-  generateBribeVaultRewardId, generateVeBribeRewardId, formatUnits, generateVeUserId
+  generateBribeVaultRewardId, generateVeBribeRewardId, formatUnits, generateVeNFTId
 } from "./helpers";
 import {tryGetUsdPrice} from "./vault-factory";
 import {ADDRESS_ZERO} from "./constants";
@@ -301,7 +301,7 @@ function getOrCreateVeBribe(bribeVaultId: string, veId: BigInt, veAdr: string): 
     user = new VeBribe(userId);
 
     user.bribeVault = bribeVaultId
-    user.ve = generateVeUserId(veId.toString(), veAdr);
+    user.veNFT = generateVeNFTId(veId.toString(), veAdr);
     user.stakedBalance = BigDecimal.fromString('0')
   }
 

@@ -397,7 +397,7 @@ type UserGauge @entity {
 
     #boost
 
-    veUser: VeUserEntity
+    veNFT: VeNFTEntity
 }
 
 type UserGaugeReward @entity {
@@ -504,7 +504,7 @@ type VeBribe @entity {
     id: ID!
 
     bribeVault: BribeVaultEntity!
-    ve: VeUserEntity!
+    veNFT: VeNFTEntity!
 
     stakedBalance: BigDecimal!
     stakedBalanceUSD: BigDecimal!
@@ -583,8 +583,7 @@ type TetuVoterUser @entity {
     id: ID!
 
     tetuVoter: TetuVoterEntity!
-    user: UserEntity!
-    veUser: VeUserEntity!
+    veNFT: VeNFTEntity!
 
     voteTimeLockEnd: Int!
     power: BigDecimal!
@@ -793,9 +792,8 @@ type PlatformVoteEntity @entity {
     id: ID!
 
     platformVoter: PlatformVoterEntity!
-    veUser: VeUserEntity!
+    veNFT: VeNFTEntity!
     voteType: Int!
-    user: UserEntity!
 
     #attributes
     desiredValue: BigDecimal!
@@ -845,14 +843,15 @@ type VeTetuEntity @entity {
     allowedPawnshops: [String!]!
     lockedAmountUSD: BigDecimal!
     tokens: [VeTetuTokenEntity!]! @derivedFrom(field: "ve")
-    users: [VeUserEntity!]! @derivedFrom(field: "ve")
+    nfts: [VeNFTEntity!]! @derivedFrom(field: "ve")
 }
 
-type VeUserEntity @entity {
+type VeNFTEntity @entity {
     id: ID!
 
     ve: VeTetuEntity!
-    user: UserEntity!
+    # we can not determinate user at deposit action
+    user: UserEntity
 
     veId: Int!
 
@@ -866,19 +865,20 @@ type VeUserEntity @entity {
     lockedAmountUSD: BigDecimal!
     veDistLastApr: BigDecimal!
 
-    veDistRewardsHistory: [VeUserVeDistRewardHistory!]! @derivedFrom(field: "veUser")
-    locked: [VeUserTokenEntity!]! @derivedFrom(field: "veUser")
-    boostedGauges: [UserGauge!]! @derivedFrom(field: "veUser")
-    bribes: [VeBribe!]! @derivedFrom(field: "ve")
+    veDistRewardsHistory: [VeNFTVeDistRewardHistory!]! @derivedFrom(field: "veNFT")
+    locked: [VeNFTTokenEntity!]! @derivedFrom(field: "veNFT")
+    boostedGauges: [UserGauge!]! @derivedFrom(field: "veNFT")
+    bribes: [VeBribe!]! @derivedFrom(field: "veNFT")
 
-    tetuVoterVotes: [TetuVoterUser!]! @derivedFrom(field: "veUser")
-    platformVoterVotes: [PlatformVoteEntity!]! @derivedFrom(field: "veUser")
+    tetuVoterVotes: [TetuVoterUser!]! @derivedFrom(field: "veNFT")
+    platformVoterVotes: [PlatformVoteEntity!]! @derivedFrom(field: "veNFT")
 }
 
-type VeUserVeDistRewardHistory @entity(immutable: true) {
+type VeNFTVeDistRewardHistory @entity(immutable: true) {
     id: ID!
 
-    veUser: VeUserEntity!
+    veNFT: VeNFTEntity!
+    owner: UserEntity!
 
     time: Int!
     claimed: BigDecimal!
@@ -887,21 +887,21 @@ type VeUserVeDistRewardHistory @entity(immutable: true) {
     apr: BigDecimal!
 }
 
-type VeUserTokenEntity @entity {
+type VeNFTTokenEntity @entity {
     id: ID!
 
-    veUser: VeUserEntity!
+    veNFT: VeNFTEntity!
     token: String!
     decimals: Int!
     amount: BigDecimal!
     amountUSD: BigDecimal!
-    history: [VeUserTokenHistory!]! @derivedFrom(field: "veUserToken")
+    history: [VeNFTTokenHistory!]! @derivedFrom(field: "veNFTToken")
 }
 
-type VeUserTokenHistory @entity(immutable: true) {
+type VeNFTTokenHistory @entity(immutable: true) {
     id: ID!
 
-    veUserToken: VeUserTokenEntity!
+    veNFTToken: VeNFTTokenEntity!
 
     time: Int!
     token: String!
@@ -929,9 +929,7 @@ type UserEntity @entity {
 
     vaults: [UserVault!]! @derivedFrom(field: "user")
     gauges: [UserGauge!]! @derivedFrom(field: "user")
-    tetuVotes: [TetuVoterUser!]! @derivedFrom(field: "user")
-    platformVotes: [PlatformVoteEntity!]! @derivedFrom(field: "user")
-    ve: [VeUserEntity!]! @derivedFrom(field: "user")
+    ve: [VeNFTEntity!]! @derivedFrom(field: "user")
 }
 
 

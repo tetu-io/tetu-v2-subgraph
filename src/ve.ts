@@ -14,16 +14,16 @@ import {
   ControllerEntity,
   TokenEntity,
   UserEntity,
+  VeNFTEntity,
+  VeNFTTokenEntity,
+  VeNFTTokenHistory,
   VeTetuEntity,
-  VeTetuTokenEntity,
-  VeUserEntity,
-  VeUserTokenEntity,
-  VeUserTokenHistory
+  VeTetuTokenEntity
 } from "./types/schema";
 import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/templates/VeTetuTemplate/ProxyAbi";
-import {formatUnits, generateVeUserId, parseUnits} from "./helpers";
-import {ADDRESS_ZERO, getUSDC, ZERO_BD} from "./constants";
+import {formatUnits, generateVeNFTId, parseUnits} from "./helpers";
+import {getUSDC, ZERO_BD} from "./constants";
 import {VaultAbi} from "./types/templates/VeTetuTemplate/VaultAbi";
 import {LiquidatorAbi} from "./types/templates/VeTetuTemplate/LiquidatorAbi";
 
@@ -35,7 +35,6 @@ export function handleDeposit(event: Deposit): void {
   updateUser(
     event.params.tokenId,
     event.address.toHexString(),
-    event.params.provider.toHexString(),
     event.block.timestamp,
     event.params.stakingToken.toHexString()
   );
@@ -46,7 +45,6 @@ export function handleWithdraw(event: Withdraw): void {
   updateUser(
     event.params.tokenId,
     event.address.toHexString(),
-    event.params.provider.toHexString(),
     event.block.timestamp,
     event.params.stakingToken.toHexString()
   );
@@ -57,7 +55,6 @@ export function handleMerged(event: Merged): void {
   updateUser(
     event.params.from,
     event.address.toHexString(),
-    event.params.provider.toHexString(),
     event.block.timestamp,
     event.params.stakingToken.toHexString()
   );
@@ -65,27 +62,13 @@ export function handleMerged(event: Merged): void {
 }
 
 export function handleTransfer(event: Transfer): void {
-  if (event.params.from.equals(Address.fromString(ADDRESS_ZERO))
-    || event.params.to.equals(Address.fromString(ADDRESS_ZERO))) {
-    // skip deposit/withdraw
-    return
-  }
-
-  const veUser = getOrCreateVeUser(
+  const veNFT = getOrCreateVeNFT(
     event.params.tokenId,
-    event.params.from.toHexString(),
     event.address.toHexString()
   );
   // change user for ve token
-  veUser.user = event.params.to.toHexString();
-  veUser.save();
-
-  // create user if not exist
-  let user = UserEntity.load(event.params.to.toHexString());
-  if (!user) {
-    user = new UserEntity(event.params.to.toHexString());
-    user.save();
-  }
+  updateVeNftUser(veNFT, event.params.to.toHexString());
+  veNFT.save();
 }
 
 
@@ -135,49 +118,48 @@ export function handleUpgraded(event: Upgraded): void {
 function updateUser(
   veId: BigInt,
   veAdr: string,
-  userAdr: string,
   time: BigInt,
   token: string
 ): void {
   const ve = getOrCreateVe(veAdr);
   const controller = ControllerEntity.load(ve.controller) as ControllerEntity;
   const veCtr = VeTetuAbi.bind(Address.fromString(veAdr));
-  const user = getOrCreateVeUser(veId, userAdr, veAdr);
-  const tokenEntity = getOrCreateVeToken(user.id, veAdr, token);
+  const veNFT = getOrCreateVeNFT(veId, veAdr);
+  const tokenEntity = getOrCreateVeToken(veNFT.id, veAdr, token);
   const decimals = BigInt.fromI32(tokenEntity.decimals)
 
-  user.derivedAmount = formatUnits(veCtr.lockedDerivedAmount(veId), decimals);
-  user.lockedEnd = veCtr.lockedEnd(veId).toI32();
+  veNFT.derivedAmount = formatUnits(veCtr.lockedDerivedAmount(veId), decimals);
+  veNFT.lockedEnd = veCtr.lockedEnd(veId).toI32();
 
 
   tokenEntity.amount = formatUnits(veCtr.lockedAmounts(veId, Address.fromString(token)), decimals);
   const tokenPrice = tryGetUsdPrice(controller.liquidator, token, decimals);
-  ve.lockedAmountUSD = ve.lockedAmountUSD.minus(user.lockedAmountUSD);
-  user.lockedAmountUSD = user.lockedAmountUSD.minus(tokenEntity.amountUSD);
+  ve.lockedAmountUSD = ve.lockedAmountUSD.minus(veNFT.lockedAmountUSD);
+  veNFT.lockedAmountUSD = veNFT.lockedAmountUSD.minus(tokenEntity.amountUSD);
   tokenEntity.amountUSD = tokenEntity.amount.times(tokenPrice);
-  user.lockedAmountUSD = user.lockedAmountUSD.plus(tokenEntity.amountUSD);
-  ve.lockedAmountUSD = ve.lockedAmountUSD.plus(user.lockedAmountUSD);
+  veNFT.lockedAmountUSD = veNFT.lockedAmountUSD.plus(tokenEntity.amountUSD);
+  ve.lockedAmountUSD = ve.lockedAmountUSD.plus(veNFT.lockedAmountUSD);
 
   saveTokenHistory(tokenEntity, time);
 
   tokenEntity.save();
-  user.save();
+  veNFT.save();
 
 
   ve.count = veCtr.tokenId().toI32();
   ve.save();
 }
 
-function saveTokenHistory(token: VeUserTokenEntity, time: BigInt): void {
-  let history = VeUserTokenHistory.load(token.id + time.toString());
+function saveTokenHistory(token: VeNFTTokenEntity, time: BigInt): void {
+  let history = VeNFTTokenHistory.load(token.id + time.toString());
   if (!history) {
-    history = new VeUserTokenHistory(token.id + time.toString());
+    history = new VeNFTTokenHistory(token.id + time.toString());
   } else {
     // already recorded in this block
     return;
   }
 
-  history.veUserToken = token.id;
+  history.veNFTToken = token.id;
   history.time = time.toI32();
   history.token = token.token;
   history.amount = token.amount;
@@ -187,16 +169,16 @@ function saveTokenHistory(token: VeUserTokenEntity, time: BigInt): void {
 }
 
 function getOrCreateVeToken(
-  veUserId: string,
+  veNFTId: string,
   veAdr: string,
   token: string
-): VeUserTokenEntity {
-  const tokenId = crypto.keccak256(ByteArray.fromUTF8(veUserId + token)).toHexString();
-  let tokenEntity = VeUserTokenEntity.load(tokenId);
+): VeNFTTokenEntity {
+  const tokenId = crypto.keccak256(ByteArray.fromUTF8(veNFTId + token)).toHexString();
+  let tokenEntity = VeNFTTokenEntity.load(tokenId);
   if (!tokenEntity) {
-    tokenEntity = new VeUserTokenEntity(tokenId);
+    tokenEntity = new VeNFTTokenEntity(tokenId);
     const tokenCtr = VaultAbi.bind(Address.fromString(token));
-    tokenEntity.veUser = veUserId;
+    tokenEntity.veNFT = veNFTId;
     tokenEntity.token = token;
     tokenEntity.decimals = tokenCtr.decimals();
     tokenEntity.amount = BigDecimal.fromString('0');
@@ -252,34 +234,37 @@ function updateVeTokensInfo(ve: string): void {
 
 }
 
-function getOrCreateVeUser(veId: BigInt, userAdr: string, veAdr: string): VeUserEntity {
-  const veUserId = generateVeUserId(veId.toString(), veAdr);
-  let veUser = VeUserEntity.load(veUserId);
-  if (!veUser) {
-    veUser = new VeUserEntity(veUserId);
+function getOrCreateVeNFT(veId: BigInt, veAdr: string): VeNFTEntity {
+  const veNftId = generateVeNFTId(veId.toString(), veAdr);
+  let veNFT = VeNFTEntity.load(veNftId);
+  if (!veNFT) {
+    veNFT = new VeNFTEntity(veNftId);
     const veCtr = VeTetuAbi.bind(Address.fromString(veAdr))
 
-    veUser.veId = veId.toI32();
-    veUser.ve = veAdr;
-    veUser.user = userAdr;
-    veUser.derivedAmount = formatUnits(veCtr.lockedDerivedAmount(veId), BigInt.fromI32(18));
-    veUser.lockedEnd = veCtr.lockedEnd(veId).toI32();
-    veUser.attachments = veCtr.attachments(veId).toI32();
-    veUser.voted = veCtr.voted(veId).toI32();
+    veNFT.veId = veId.toI32();
+    veNFT.ve = veAdr;
+    veNFT.derivedAmount = formatUnits(veCtr.lockedDerivedAmount(veId), BigInt.fromI32(18));
+    veNFT.lockedEnd = veCtr.lockedEnd(veId).toI32();
+    veNFT.attachments = veCtr.attachments(veId).toI32();
+    veNFT.voted = veCtr.voted(veId).toI32();
 
 
-    veUser.veDistRewardsTotal = BigDecimal.fromString('0');
-    veUser.veDistLastClaim = 0;
-    veUser.lockedAmountUSD = BigDecimal.fromString('0');
-    veUser.veDistLastApr = BigDecimal.fromString('0');
-
-    let user = UserEntity.load(userAdr);
-    if (!user) {
-      user = new UserEntity(userAdr);
-      user.save();
-    }
+    veNFT.veDistRewardsTotal = BigDecimal.fromString('0');
+    veNFT.veDistLastClaim = 0;
+    veNFT.lockedAmountUSD = BigDecimal.fromString('0');
+    veNFT.veDistLastApr = BigDecimal.fromString('0');
   }
-  return veUser;
+  return veNFT;
+}
+
+function updateVeNftUser(veNFT: VeNFTEntity, userAdr: string): void {
+  veNFT.user = userAdr;
+
+  let user = UserEntity.load(userAdr);
+  if (!user) {
+    user = new UserEntity(userAdr);
+    user.save();
+  }
 }
 
 function getOrCreateToken(tokenAdr: string): TokenEntity {

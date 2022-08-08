@@ -27,7 +27,7 @@ import {
   calculateApr,
   formatUnits,
   generateGaugeVaultId,
-  generateVeUserId,
+  generateVeNFTId,
   parseUnits
 } from "./helpers";
 import {VaultAbi} from "./types/templates/MultiGaugeTemplate/VaultAbi";
@@ -94,17 +94,17 @@ export function handleNotifyReward(event: NotifyReward): void {
 export function handleVeTokenLocked(event: VeTokenLocked): void {
   const gaugeCtr = MultiGaugeAbi.bind(event.address);
   const ve = gaugeCtr.ve();
-  const userId = generateVeUserId(event.params.tokenId.toString(), ve.toHexString());
+  const nftId = generateVeNFTId(event.params.tokenId.toString(), ve.toHexString());
   const gaugeVaultId = generateGaugeVaultId(event.params.stakingToken.toHexString(), event.address.toHexString())
   const user = getOrCreateGaugeUser(gaugeVaultId, event.params.account.toHexString());
-  user.veUser = userId;
+  user.veNFT = nftId;
   user.save();
 }
 
 export function handleVeTokenUnlocked(event: VeTokenUnlocked): void {
   const gaugeVaultId = generateGaugeVaultId(event.params.stakingToken.toHexString(), event.address.toHexString())
   const user = getOrCreateGaugeUser(gaugeVaultId, event.params.account.toHexString());
-  user.veUser = null;
+  user.veNFT = null;
   user.save();
 }
 

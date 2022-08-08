@@ -12,10 +12,10 @@ import {
   PlatformVoteHistory,
   PlatformVoterEntity,
   StrategyEntity,
-  VeUserEntity
+  VeNFTEntity
 } from "./types/schema";
 import {BigDecimal, BigInt, store} from "@graphprotocol/graph-ts";
-import {formatUnits, generatePlatformVoteEntityId, generateVeUserId} from "./helpers";
+import {formatUnits, generatePlatformVoteEntityId, generateVeNFTId} from "./helpers";
 
 // ***************************************************
 //                ATTACH/DETACH/VOTE
@@ -38,13 +38,11 @@ export function handleVoted(event: Voted): void {
   }
   vote = new PlatformVoteEntity(voteId);
 
-  const veUserId = generateVeUserId(event.params.tokenId.toString(), voter.ve);
-  const veUser = VeUserEntity.load(veUserId) as VeUserEntity;
+  const veNFTId = generateVeNFTId(event.params.tokenId.toString(), voter.ve);
   const decimals = BigInt.fromI32(18);
 
   vote.platformVoter = voter.id;
-  vote.veUser = veUserId;
-  vote.user = veUser.user;
+  vote.veNFT = veNFTId;
   vote.voteType = event.params._type.toI32();
 
   vote.desiredValue = formatUnits(event.params.value, BigInt.fromI32(5))
