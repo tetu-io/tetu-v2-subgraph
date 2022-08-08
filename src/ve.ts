@@ -1,21 +1,21 @@
 // noinspection JSUnusedGlobalSymbols
 
 import {
-  Approval,
-  ApprovalForAll,
-  ContractInitialized,
   Deposit,
-  Initialized, Merged,
+  Merged,
   PawnshopWhitelisted,
   RevisionIncreased,
-  Supply,
-  Transfer, Upgraded, VeTetuAbi,
+  Transfer,
+  Upgraded,
+  VeTetuAbi,
   Withdraw
 } from "./types/templates/VeTetuTemplate/VeTetuAbi";
 import {
-  ControllerEntity, TokenEntity,
+  ControllerEntity,
+  TokenEntity,
   UserEntity,
-  VeTetuEntity, VeTetuTokenEntity,
+  VeTetuEntity,
+  VeTetuTokenEntity,
   VeUserEntity,
   VeUserTokenEntity,
   VeUserTokenHistory
@@ -25,7 +25,7 @@ import {ProxyAbi} from "./types/templates/VeTetuTemplate/ProxyAbi";
 import {formatUnits, generateVeUserId, parseUnits} from "./helpers";
 import {ADDRESS_ZERO, getUSDC, ZERO_BD} from "./constants";
 import {VaultAbi} from "./types/templates/VeTetuTemplate/VaultAbi";
-import {LiquidatorAbi} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";
+import {LiquidatorAbi} from "./types/templates/VeTetuTemplate/LiquidatorAbi";
 
 // ***************************************************
 //                   DEPOSIT/WITHDRAW

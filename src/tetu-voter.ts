@@ -2,8 +2,6 @@
 
 import {
   Abstained,
-  Attach,
-  Detach,
   DistributeReward,
   NotifyReward,
   RevisionIncreased,
@@ -18,11 +16,13 @@ import {
   TetuVoterRewardHistory,
   TetuVoterUser,
   TetuVoterUserVote,
-  TetuVoterUserVoteHistory, TokenEntity, UserEntity, VaultEntity,
+  TetuVoterUserVoteHistory,
+  TokenEntity,
+  UserEntity,
   VaultVoteEntity
 } from "./types/schema";
 import {TetuVoterAbi} from "./types/ControllerData/TetuVoterAbi";
-import {Address, BigDecimal, BigInt, dataSource, log, store} from "@graphprotocol/graph-ts";
+import {Address, BigDecimal, BigInt, log, store} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/ControllerData/ProxyAbi";
 import {VaultAbi} from "./types/ControllerData/VaultAbi";
 import {
@@ -31,14 +31,15 @@ import {
   generateGaugeVaultId,
   generateTetuVoterUserId,
   generateTetuVoterUserVoteId,
-  generateVaultVoteEntityId, generateVeUserId,
+  generateVaultVoteEntityId,
+  generateVeUserId,
   parseUnits
 } from "./helpers";
 import {ADDRESS_ZERO, getUSDC, REWARD_TOKEN_DECIMALS, ZERO_BD} from "./constants";
-import {LiquidatorAbi} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";
 import {VeTetuAbi} from "./types/templates/VeTetuTemplate/VeTetuAbi";
 import {MultiBribeTemplate} from "./types/templates";
 import {MultiBribeAbi} from "./types/templates/TetuVoterTemplate/MultiBribeAbi";
+import {LiquidatorAbi} from "./types/templates/TetuVoterTemplate/LiquidatorAbi";
 
 // ***************************************************
 //                ATTACH/DETACH/VOTE
@@ -345,7 +346,7 @@ function createBribe(bribeAdr: string): void {
 
 function getOrCreateToken(tokenAdr: string): TokenEntity {
   let token = TokenEntity.load(tokenAdr);
-  if(!token) {
+  if (!token) {
     token = new TokenEntity(tokenAdr);
     const tokenCtr = VaultAbi.bind(Address.fromString(tokenAdr));
 
