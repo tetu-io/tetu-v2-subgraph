@@ -23,7 +23,7 @@ import {
 import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/templates/VeTetuTemplate/ProxyAbi";
 import {formatUnits, generateVeNFTId, parseUnits} from "./helpers";
-import {getUSDC, ZERO_BD} from "./constants";
+import {ADDRESS_ZERO, getUSDC, ZERO_BD} from "./constants";
 import {VaultAbi} from "./types/templates/VeTetuTemplate/VaultAbi";
 import {LiquidatorAbi} from "./types/templates/VeTetuTemplate/LiquidatorAbi";
 
@@ -122,29 +122,28 @@ function updateUser(
   token: string
 ): void {
   const ve = getOrCreateVe(veAdr);
-  const controller = ControllerEntity.load(ve.controller) as ControllerEntity;
   const veCtr = VeTetuAbi.bind(Address.fromString(veAdr));
   const veNFT = getOrCreateVeNFT(veId, veAdr);
-  const tokenEntity = getOrCreateVeToken(veNFT.id, veAdr, token);
-  const decimals = BigInt.fromI32(tokenEntity.decimals)
 
-  veNFT.derivedAmount = formatUnits(veCtr.lockedDerivedAmount(veId), decimals);
+  if (token != ADDRESS_ZERO) {
+    const controller = ControllerEntity.load(ve.controller) as ControllerEntity;
+    const tokenEntity = getOrCreateVeToken(veNFT.id, veAdr, token);
+    const decimals = BigInt.fromI32(tokenEntity.decimals)
+    veNFT.derivedAmount = formatUnits(veCtr.lockedDerivedAmount(veId), decimals);
+    const tokenPrice = tryGetUsdPrice(controller.liquidator, token, decimals);
+    tokenEntity.amount = formatUnits(veCtr.lockedAmounts(veId, Address.fromString(token)), decimals);
+    tokenEntity.amountUSD = tokenEntity.amount.times(tokenPrice);
+    saveTokenHistory(tokenEntity, time);
+    tokenEntity.save();
+
+    ve.lockedAmountUSD = ve.lockedAmountUSD.minus(veNFT.lockedAmountUSD);
+    veNFT.lockedAmountUSD = veNFT.lockedAmountUSD.minus(tokenEntity.amountUSD);
+    veNFT.lockedAmountUSD = veNFT.lockedAmountUSD.plus(tokenEntity.amountUSD);
+    ve.lockedAmountUSD = ve.lockedAmountUSD.plus(veNFT.lockedAmountUSD);
+  }
+
   veNFT.lockedEnd = veCtr.lockedEnd(veId).toI32();
-
-
-  tokenEntity.amount = formatUnits(veCtr.lockedAmounts(veId, Address.fromString(token)), decimals);
-  const tokenPrice = tryGetUsdPrice(controller.liquidator, token, decimals);
-  ve.lockedAmountUSD = ve.lockedAmountUSD.minus(veNFT.lockedAmountUSD);
-  veNFT.lockedAmountUSD = veNFT.lockedAmountUSD.minus(tokenEntity.amountUSD);
-  tokenEntity.amountUSD = tokenEntity.amount.times(tokenPrice);
-  veNFT.lockedAmountUSD = veNFT.lockedAmountUSD.plus(tokenEntity.amountUSD);
-  ve.lockedAmountUSD = ve.lockedAmountUSD.plus(veNFT.lockedAmountUSD);
-
-  saveTokenHistory(tokenEntity, time);
-
-  tokenEntity.save();
   veNFT.save();
-
 
   ve.count = veCtr.tokenId().toI32();
   ve.save();
