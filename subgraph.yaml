@@ -4,11 +4,11 @@ schema:
 dataSources:
   - name: ControllerData
     kind: ethereum/contract
-    network: fuji
+    network: goerli
     source:
-      address: "0xA609fA657A9cfbD658be45dcbe31cc477F2d6d18"
+      address: "0x0EFc2D2D054383462F2cD72eA2526Ef7687E1016"
       abi: ControllerAbi
-      startBlock: 11208650
+      startBlock: 7385027
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -68,11 +68,11 @@ dataSources:
 
   - name: VaultFactoryData
     kind: ethereum/contract
-    network: fuji
+    network: goerli
     source:
-      address: "0x1606Cee37b0171fbCa4FB1982Dc51f9763ca0863"
+      address: "0xCF66857b468740d6dbF9cE11929A9c03DDA12988"
       abi: VaultFactoryAbi
-      startBlock: 11208650
+      startBlock: 7387751
     mapping:
       file: ./src/vault-factory.ts
       kind: ethereum/events
@@ -112,7 +112,7 @@ dataSources:
 templates:
   - name: PlatformVoterTemplate
     kind: ethereum/contract
-    network: fuji
+    network: goerli
     source:
       abi: PlatformVoterAbi
     mapping:
@@ -143,7 +143,7 @@ templates:
 
   - name: MultiBribeTemplate
     kind: ethereum/contract
-    network: fuji
+    network: goerli
     source:
       abi: MultiBribeAbi
     mapping:
@@ -176,7 +176,7 @@ templates:
 
   - name: MultiGaugeTemplate
     kind: ethereum/contract
-    network: fuji
+    network: goerli
     source:
       abi: MultiGaugeAbi
     mapping:
@@ -219,7 +219,7 @@ templates:
 
   - name: TetuVoterTemplate
     kind: ethereum/contract
-    network: fuji
+    network: goerli
     source:
       abi: TetuVoterAbi
     mapping:
@@ -256,7 +256,7 @@ templates:
 
   - name: VeDistributorTemplate
     kind: ethereum/contract
-    network: fuji
+    network: goerli
     source:
       abi: VeDistributorAbi
     mapping:
@@ -287,7 +287,7 @@ templates:
 
   - name: VeTetuTemplate
     kind: ethereum/contract
-    network: fuji
+    network: goerli
     source:
       abi: VeTetuAbi
     mapping:
@@ -324,7 +324,7 @@ templates:
 
   - name: ForwarderTemplate
     kind: ethereum/contract
-    network: fuji
+    network: goerli
     source:
       abi: ForwarderAbi
     mapping:
@@ -361,7 +361,7 @@ templates:
 
   - name: InvestFundTemplate
     kind: ethereum/contract
-    network: fuji
+    network: goerli
     source:
       abi: InvestFundAbi
     mapping:
@@ -384,7 +384,7 @@ templates:
 
   - name: VaultTemplate
     kind: ethereum/contract
-    network: fuji
+    network: goerli
     source:
       abi: VaultAbi
     mapping:
@@ -432,7 +432,7 @@ templates:
 
   - name: StrategySplitterTemplate
     kind: ethereum/contract
-    network: fuji
+    network: goerli
     source:
       abi: StrategySplitterAbi
     mapping:
@@ -493,7 +493,7 @@ templates:
 
   - name: StrategyTemplate
     kind: ethereum/contract
-    network: fuji
+    network: goerli
     source:
       abi: StrategyAbi
     mapping:
