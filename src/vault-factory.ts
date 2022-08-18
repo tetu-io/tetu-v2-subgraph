@@ -13,9 +13,9 @@ import {
   SplitterEntity, TokenEntity,
   VaultEntity,
   VaultFactoryEntity,
-  VaultVoteEntity, VeTetuEntity
+  VaultVoteEntity, VeNFTTokenEntity, VeTetuEntity, VeTetuTokenEntity
 } from "./types/schema";
-import {Address, BigDecimal, BigInt, log} from "@graphprotocol/graph-ts";
+import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
 import {formatUnits, parseUnits} from "./helpers";
 import {VaultAbi} from "./types/VaultFactoryData/VaultAbi";
 import {ControllerAbi} from "./types/VaultFactoryData/ControllerAbi";
@@ -80,6 +80,10 @@ export function handleVaultDeployed(event: VaultDeployed): void {
   vault.sharePrice = BigDecimal.fromString('1');
   vault.totalSupply = ZERO_BD;
   vault.usersCount = 0;
+
+  // create token entity
+  const token = getOrCreateToken(event.params.asset.toHexString());
+  token.save();
 
   let vote = VaultVoteEntity.load(event.params.vaultProxy.toHexString());
   if (!vote) {
@@ -234,8 +238,21 @@ function createVe(veAdr: string): void {
 
     VeTetuTemplate.create(Address.fromString(veAdr));
     ve.save();
+
+    const tokenAdr = veCtr.tokens(BigInt.fromI32(0));
+    const tokenInfoId = crypto.keccak256(ByteArray.fromUTF8(veAdr + tokenAdr.toHexString())).toHexString();
+    let tokenInfo = VeTetuTokenEntity.load(tokenInfoId);
+    if (!tokenInfo) {
+      tokenInfo = new VeTetuTokenEntity(tokenInfoId);
+      tokenInfo.ve = veAdr;
+      tokenInfo.address = tokenAdr.toHexString();
+      tokenInfo.weight = ZERO_BD;
+      tokenInfo.supply = ZERO_BD;
+      tokenInfo.save();
+    }
   }
 }
+
 
 function getOrCreateToken(tokenAdr: string): TokenEntity {
   let token = TokenEntity.load(tokenAdr);
