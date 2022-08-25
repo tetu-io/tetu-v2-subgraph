@@ -139,6 +139,7 @@ type VaultEntity @entity {
     users: [UserVault!]! @derivedFrom(field: "vault")
 
     gauges: [GaugeVaultEntity!]! @derivedFrom(field: "vault")
+    bribes: [BribeVaultEntity!]! @derivedFrom(field: "vault")
 
     vote: VaultVoteEntity
 
@@ -479,6 +480,7 @@ type BribeVaultReward @entity {
     apr: BigDecimal!
     rewardRate: BigDecimal!
     periodFinish: Int!
+    left: BigDecimal!
     rewardTokenPrice: BigDecimal!
 
     history: [BribeVaultRewardHistory!]! @derivedFrom(field: "bribeVaultReward")

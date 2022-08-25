@@ -226,7 +226,7 @@ function updateVeTokensInfo(ve: string): void {
     const tokenDecimals = BigInt.fromI32(tokenCtr.decimals());
 
     tokenInfo.weight = veCtr.tokenWeights(token).toBigDecimal().div(weightDenominator);
-    tokenInfo.supply = formatUnits(veCtr.supply(token), tokenDecimals);
+    tokenInfo.supply = formatUnits(tokenCtr.balanceOf(Address.fromString(ve)), tokenDecimals);
 
     tokenInfo.save();
   }

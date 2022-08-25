@@ -261,8 +261,9 @@ function updateRewardInfoAndSave(
 
   reward.rewardRate = bribeCtr.rewardRate(Address.fromString(vaultAdr), Address.fromString(reward.rewardToken)).toBigDecimal()
   reward.periodFinish = bribeCtr.periodFinish(Address.fromString(vaultAdr), Address.fromString(reward.rewardToken)).toI32()
+  reward.left = reward.rewardRate.times(totalSupply).times(rewardTokenPrice);
 
-  reward.apr = calculateApr(BigInt.fromI32(reward.periodFinish), now, reward.rewardRate.times(totalSupply).times(rewardTokenPrice), totalSupplyUSD);
+  reward.apr = calculateApr(BigInt.fromI32(reward.periodFinish), now, reward.left, totalSupplyUSD);
   reward.rewardTokenPrice = rewardTokenPrice;
 
   reward.save();
