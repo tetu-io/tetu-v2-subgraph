@@ -46,16 +46,16 @@ export function handleVoted(event: Voted): void {
   vote.veNFT = veNFTId;
   vote.voteType = event.params._type.toI32();
 
-  vote.desiredValue = formatUnits(event.params.value, BigInt.fromI32(5))
+  vote.desiredValue = formatUnits(event.params.value, BigInt.fromI32(3))
   vote.target = event.params.target.toHexString();
   vote.vePower = formatUnits(event.params.veWeight, decimals);
-  vote.veWeightedValue = formatUnits(event.params.veWeightedValue, BigInt.fromI32(5))
+  vote.veWeightedValue = event.params.veWeightedValue.toBigDecimal();
   vote.totalAttributeWeight = event.params.totalAttributeWeight.toBigDecimal()
   vote.totalAttributeValue = event.params.totalAttributeValue.toBigDecimal()
-  vote.newValue = formatUnits(event.params.newValue, BigInt.fromI32(5))
-  vote.percent = vote.totalAttributeWeight.times(BigDecimal.fromString('100')).div(event.params.veWeightedValue.toBigDecimal())
+  vote.newValue = formatUnits(event.params.newValue, BigInt.fromI32(3))
+  vote.percent = vote.totalAttributeValue.times(BigDecimal.fromString('100')).div(event.params.veWeightedValue.toBigDecimal())
 
-  updateTargetAttribute(event.params._type, event.params.target.toHexString(), formatUnits(event.params.newValue, BigInt.fromI32(5)), voter);
+  updateTargetAttribute(event.params._type, event.params.target.toHexString(), formatUnits(event.params.newValue, BigInt.fromI32(3)), voter);
   saveVoteHistory(vote, event.block.timestamp);
   vote.save();
 }
@@ -68,7 +68,7 @@ export function handleVoteRemoved(event: VoteRemoved): void {
     event.params._type.toString(),
     event.params.target.toHexString()
   );
-  updateTargetAttribute(event.params._type, event.params.target.toHexString(), formatUnits(event.params.newValue, BigInt.fromI32(5)), voter);
+  updateTargetAttribute(event.params._type, event.params.target.toHexString(), formatUnits(event.params.newValue, BigInt.fromI32(3)), voter);
   store.remove('PlatformVoteEntity', voteId);
 }
 
