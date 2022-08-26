@@ -12,16 +12,25 @@ import {
 } from "./types/templates/ForwarderTemplate/ForwarderAbi";
 import {
   ForwarderDistribution,
-  ForwarderEntity, ForwarderTokenInfo,
-  InvestFundBalance, InvestFundBalanceHistory,
-  InvestFundEntity, TetuVoterEntity, TetuVoterRewardHistory, VeDistBalance, VeDistEntity
+  ForwarderEntity,
+  ForwarderTokenInfo,
+  InvestFundBalance,
+  InvestFundBalanceHistory,
+  InvestFundEntity,
+  TetuVoterEntity,
+  TetuVoterRewardHistory,
+  TokenEntity,
+  VeDistBalance,
+  VeDistEntity
 } from "./types/schema";
-import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
+import {Address, BigDecimal, BigInt, log} from "@graphprotocol/graph-ts";
 import {ForwarderAbi} from "./types/ControllerData/ForwarderAbi";
 import {ProxyAbi} from "./types/ControllerData/ProxyAbi";
-import {formatUnits} from "./helpers";
+import {formatUnits, parseUnits} from "./helpers";
 import {VaultAbi} from "./types/templates/ForwarderTemplate/VaultAbi";
 import {ControllerAbi} from "./types/templates/ForwarderTemplate/ControllerAbi";
+import {getUSDC, ZERO_BD} from "./constants";
+import {LiquidatorAbi} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";
 
 // ***************************************************
 //                 STATE CHANGES
@@ -74,6 +83,8 @@ export function handleDistributed(event: Distributed): void {
   const tokenCtr = VaultAbi.bind(event.params.token);
   const tetuAdr = forwarderCtr.tetu();
   const tokenDecimals = BigInt.fromI32(tokenCtr.decimals());
+  const liquidatorAdr = controllerCtr.liquidator().toHexString();
+  const tetuPrice = tryGetUsdPrice(liquidatorAdr, tetuAdr.toHexString(), BigInt.fromI32(18))
 
   distribution.forwarder = event.address.toHexString();
   distribution.time = event.block.timestamp.toI32();
@@ -81,6 +92,7 @@ export function handleDistributed(event: Distributed): void {
   distribution.token = event.params.token.toHexString()
   distribution.balance = formatUnits(event.params.balance, tokenDecimals);
   distribution.tetuValue = formatUnits(event.params.tetuValue, BigInt.fromI32(18));
+  distribution.usdValue = distribution.tetuValue.times(tetuPrice);
   distribution.tetuBalance = formatUnits(event.params.tetuBalance, BigInt.fromI32(18));
   distribution.toInvestFund = formatUnits(event.params.toInvestFund, BigInt.fromI32(18));
   distribution.toGauges = formatUnits(event.params.toGauges, BigInt.fromI32(18));
@@ -137,6 +149,7 @@ function loadInvestFundBalance(fundAdr: string, tokenAdr: string): InvestFundBal
   if (!balance) {
     balance = new InvestFundBalance(tokenAdr);
     balance.fund = fund.id;
+    balance.token = tokenAdr;
     balance.amount = BigDecimal.fromString('0');
   }
   return balance;
@@ -162,4 +175,42 @@ function getOrCreateForwarderTokenInfo(address: string, forwarder: string): Forw
     tokenInfo.balance = BigDecimal.fromString('0');
   }
   return tokenInfo;
+}
+
+function getOrCreateToken(tokenAdr: string): TokenEntity {
+  let token = TokenEntity.load(tokenAdr);
+  if(!token) {
+    token = new TokenEntity(tokenAdr);
+    const tokenCtr = VaultAbi.bind(Address.fromString(tokenAdr));
+
+    token.symbol = tokenCtr.symbol();
+    token.name = tokenCtr.name();
+    token.decimals = tokenCtr.decimals();
+    token.usdPrice = ZERO_BD;
+  }
+  return token;
+}
+
+function tryGetUsdPrice(
+  liquidatorAdr: string,
+  asset: string,
+  decimals: BigInt
+): BigDecimal {
+  if (getUSDC().equals(Address.fromString(asset))) {
+    return BigDecimal.fromString('1');
+  }
+  const liquidator = LiquidatorAbi.bind(Address.fromString(liquidatorAdr))
+  const p = liquidator.try_getPrice(
+    Address.fromString(asset),
+    getUSDC(),
+    parseUnits(BigDecimal.fromString('1'), decimals)
+  );
+  if (!p.reverted) {
+    let token = getOrCreateToken(asset);
+    token.usdPrice = formatUnits(p.value, decimals);
+    token.save();
+    return formatUnits(p.value, decimals);
+  }
+  log.error("=== FAILED GET PRICE === liquidator: {} asset: {}", [liquidatorAdr, asset]);
+  return BigDecimal.fromString('0')
 }

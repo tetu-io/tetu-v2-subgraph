@@ -684,6 +684,7 @@ type ForwarderDistribution @entity(immutable: true) {
     token: TokenEntity!
     balance: BigDecimal!
     tetuValue: BigDecimal!
+    usdValue: BigDecimal!
     tetuBalance: BigDecimal!
     toInvestFund: BigDecimal!
     toGauges: BigDecimal!
@@ -714,6 +715,7 @@ type InvestFundBalance @entity {
 
     fund: InvestFundEntity!
 
+    token: TokenEntity!
     amount: BigDecimal!
     history: [InvestFundBalanceHistory!]! @derivedFrom(field: "fundBalance")
 }

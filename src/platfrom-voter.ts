@@ -7,6 +7,7 @@ import {
   VoteRemoved
 } from "./types/templates/PlatformVoterTemplate/PlatformVoterAbi";
 import {
+  ControllerEntity,
   ForwarderEntity,
   PlatformVoteEntity,
   PlatformVoteHistory,
@@ -54,19 +55,20 @@ export function handleVoted(event: Voted): void {
   vote.newValue = formatUnits(event.params.newValue, BigInt.fromI32(5))
   vote.percent = vote.totalAttributeWeight.times(BigDecimal.fromString('100')).div(event.params.veWeightedValue.toBigDecimal())
 
-  updateTargetAttribute(event.params._type, event.params.target.toHexString(), formatUnits(event.params.newValue, BigInt.fromI32(5)));
+  updateTargetAttribute(event.params._type, event.params.target.toHexString(), formatUnits(event.params.newValue, BigInt.fromI32(5)), voter);
   saveVoteHistory(vote, event.block.timestamp);
   vote.save();
 }
 
 export function handleVoteRemoved(event: VoteRemoved): void {
+  const voter = getPlatformVoterEntity(event.address.toHexString())
   const voteId = generatePlatformVoteEntityId(
     event.address.toHexString(),
     event.params.tokenId,
     event.params._type.toString(),
     event.params.target.toHexString()
   );
-  updateTargetAttribute(event.params._type, event.params.target.toHexString(), formatUnits(event.params.newValue, BigInt.fromI32(5)));
+  updateTargetAttribute(event.params._type, event.params.target.toHexString(), formatUnits(event.params.newValue, BigInt.fromI32(5)), voter);
   store.remove('PlatformVoteEntity', voteId);
 }
 
@@ -113,14 +115,16 @@ function saveVoteHistory(vote: PlatformVoteEntity, time: BigInt): void {
   history.save();
 }
 
-function updateTargetAttribute(type: BigInt, target: string, newValue: BigDecimal): void {
+function updateTargetAttribute(type: BigInt, target: string, newValue: BigDecimal, voter: PlatformVoterEntity): void {
   if (type.equals(BigInt.fromI32(1))) {
-    const forwarder = ForwarderEntity.load(target) as ForwarderEntity;
+    const forwarderAdr = (ControllerEntity.load(voter.controller) as ControllerEntity).forwarder;
+    const forwarder = ForwarderEntity.load(forwarderAdr) as ForwarderEntity;
     forwarder.toInvestFundRatio = newValue;
     forwarder.save();
   }
   if (type.equals(BigInt.fromI32(2))) {
-    const forwarder = ForwarderEntity.load(target) as ForwarderEntity;
+    const forwarderAdr = (ControllerEntity.load(voter.controller) as ControllerEntity).forwarder;
+    const forwarder = ForwarderEntity.load(forwarderAdr) as ForwarderEntity;
     forwarder.toGaugesRatio = newValue;
     forwarder.save();
   }

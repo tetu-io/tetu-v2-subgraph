@@ -343,6 +343,8 @@ templates:
           file: ./abis/ControllerV2.json
         - name: InvestFundAbi
           file: ./abis/InvestFundV2.json
+        - name: LiquidatorAbi
+          file: ./abis/TetuLiquidator.json
       eventHandlers:
         - event: Distributed(address,address,uint256,uint256,uint256,uint256,uint256,uint256)
           handler: handleDistributed

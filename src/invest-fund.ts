@@ -31,6 +31,8 @@ function loadBalance(fundAdr: string, tokenAdr: string): InvestFundBalance {
   if (!balance) {
     balance = new InvestFundBalance(tokenAdr);
     balance.fund = fundAdr;
+    balance.token = tokenAdr;
+    balance.fund = fundAdr;
   }
   return balance;
 }
