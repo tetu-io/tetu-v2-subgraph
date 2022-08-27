@@ -106,6 +106,7 @@ export function handleFeeTransfer(event: FeeTransfer): void {
   }
 
   insurance.balance = insurance.balance.plus(formatUnits(event.params.amount, BigInt.fromI32(vault.decimals)));
+  insurance.balanceUsd = insurance.balance.times(vault.assetPrice);
   saveInsuranceBalance(insurance, event.block.timestamp);
   insurance.save();
 }

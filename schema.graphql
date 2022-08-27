@@ -224,6 +224,7 @@ type InsuranceEntity @entity {
 
     # stats
     balance: BigDecimal!
+    balanceUsd: BigDecimal!
     covered: BigDecimal!
 
     history: [InsuranceBalance!]! @derivedFrom(field: "insurance")
@@ -361,6 +362,7 @@ type GaugeVaultReward @entity {
 
     apr: BigDecimal!
     rewardRate: BigDecimal!
+    left: BigDecimal!
     periodFinish: Int!
     rewardTokenPrice: BigDecimal!
 
@@ -755,6 +757,7 @@ type VeDistEntity @entity {
     tokenLastBalance: BigDecimal!
     tokenBalance: BigDecimal!
     tokensPerWeek: BigDecimal!
+    left: BigDecimal!
     apr: BigDecimal!
     lastTokenTime: Int!
 

@@ -245,6 +245,7 @@ function createVeDist(address: string): void {
     const thisWeek = BigInt.fromI32(veDist.lastTokenTime).div(BigInt.fromString(WEEK.toString())).times(BigInt.fromString(WEEK.toString()));
     veDist.tokensPerWeek = formatUnits(veDistCtr.tokensPerWeek(thisWeek), tokenDecimals);
     veDist.apr = BigDecimal.fromString('0');
+    veDist.left = BigDecimal.fromString('0');
 
     veDist.decimals = tokenDecimals.toI32();
 

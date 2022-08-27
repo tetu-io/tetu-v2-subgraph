@@ -92,9 +92,10 @@ function updateVeDist(veDist: VeDistEntity, rewardPrice: BigDecimal): void {
 
   const thisWeek = BigInt.fromI32(veDist.lastTokenTime).div(BigInt.fromString(WEEK.toString())).times(BigInt.fromString(WEEK.toString()));
   veDist.tokensPerWeek = formatUnits(veDistCtr.tokensPerWeek(thisWeek), tokenDecimals);
+  veDist.left = veDist.tokensPerWeek.times(rewardPrice);
 
   const ve = VeTetuEntity.load(veDist.ve) as VeTetuEntity;
-  veDist.apr = calculateApr(BigInt.fromI32(0), BigInt.fromString(WEEK.toString()), veDist.tokensPerWeek.times(rewardPrice), ve.lockedAmountUSD);
+  veDist.apr = calculateApr(BigInt.fromI32(0), BigInt.fromString(WEEK.toString()), veDist.left, ve.lockedAmountUSD);
 
   veDist.save();
 }

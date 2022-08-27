@@ -188,6 +188,7 @@ export function createInsurance(
     insurance.vault = vault;
     insurance.asset = asset;
     insurance.balance = BigDecimal.fromString('0');
+    insurance.balanceUsd = BigDecimal.fromString('0');
     insurance.covered = BigDecimal.fromString('0');
     insurance.save();
   }

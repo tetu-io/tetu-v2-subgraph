@@ -275,6 +275,7 @@ function getOrCreateReward(gaugeVaultId: string, rewardTokenAdr: string): GaugeV
     reward.gaugeVault = gaugeVaultId;
     reward.apr = BigDecimal.fromString('0')
     reward.rewardRate = BigDecimal.fromString('0')
+    reward.left = BigDecimal.fromString('0')
     reward.periodFinish = 0;
     reward.rewardTokenPrice = BigDecimal.fromString('0');
   }
@@ -295,8 +296,9 @@ function updateRewardInfoAndSave(
 
   reward.rewardRate = gaugeCtr.rewardRate(Address.fromString(vaultAdr), Address.fromString(reward.rewardToken)).toBigDecimal()
   reward.periodFinish = gaugeCtr.periodFinish(Address.fromString(vaultAdr), Address.fromString(reward.rewardToken)).toI32()
+  reward.left = reward.rewardRate.times(totalSupply).times(rewardTokenPrice);
 
-  reward.apr = calculateApr(BigInt.fromI32(reward.periodFinish), now, reward.rewardRate.times(totalSupply).times(rewardTokenPrice), totalSupplyUSD);
+  reward.apr = calculateApr(BigInt.fromI32(reward.periodFinish), now, reward.left, totalSupplyUSD);
   reward.rewardTokenPrice = rewardTokenPrice;
 
   reward.save();
