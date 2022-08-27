@@ -44,7 +44,7 @@ export function handleTransfer(event: Transfer): void {
   if (!vault) {
     return;
   }
-  const vaultCtr = VaultAbi.bind(event.address);
+
   const decimals = BigInt.fromI32(vault.decimals);
 
   if (event.params.from.notEqual(Address.fromString(ADDRESS_ZERO))) {
@@ -54,8 +54,7 @@ export function handleTransfer(event: Transfer): void {
       decimals,
       event.block.timestamp,
       vault,
-      vaultCtr,
-      -1,
+      false,
       formatUnits(event.params.value, decimals)
     );
   }
@@ -67,8 +66,7 @@ export function handleTransfer(event: Transfer): void {
       decimals,
       event.block.timestamp,
       vault,
-      vaultCtr,
-      1,
+      true,
       formatUnits(event.params.value, decimals)
     );
   }
@@ -226,14 +224,15 @@ function updateUser(
   decimals: BigInt,
   timestamp: BigInt,
   vault: VaultEntity,
-  vaultCtr: VaultAbi,
   // @ts-ignore
-  increase: i32,
+  increase: boolean,
   sharesTransferred: BigDecimal
 ): void {
+  const vaultCtr = VaultAbi.bind(Address.fromString(vault.id));
   const user = getOrCreateVaultUser(vaultAdr, userAdr);
-  if (user.balanceShares.le(BigDecimal.fromString('0'))) {
-    vault.usersCount = vault.usersCount + increase;
+  // if user did not have a balance and received the token, need to add vault user
+  if (user.balanceShares.le(BigDecimal.fromString('0')) && increase) {
+    vault.usersCount++;
   }
   const balanceShares = formatUnits(vaultCtr.balanceOf(Address.fromString(userAdr)), decimals);
   const balanceAssets = balanceShares.times(vault.sharePrice);
@@ -243,7 +242,7 @@ function updateUser(
   if (lastUpdateOld != 0) {
     const balanceAssetsOld = user.balanceAssets;
     const assetTransferred = sharesTransferred.times(vault.sharePrice);
-    const balanceBeforeTransfer = increase > 0 ?
+    const balanceBeforeTransfer = increase ?
       balanceAssets.minus(assetTransferred)
       : balanceAssets.plus(assetTransferred);
     const profit = balanceBeforeTransfer.minus(balanceAssetsOld);
@@ -280,6 +279,11 @@ function updateUser(
   user.balanceAssetsUsd = user.balanceAssets.times(vault.assetPrice);
   user.lastUpdate = timestamp.toI32()
   user.save();
+
+  // if user do not have a balance after transfer and transferred the token, need to remove vault user
+  if (user.balanceShares.le(BigDecimal.fromString('0')) && !increase) {
+    vault.usersCount--;
+  }
 }
 
 function updateVaultAttributes(
@@ -367,7 +371,7 @@ function getOrCreateVaultUser(
 
 function getOrCreateToken(tokenAdr: string): TokenEntity {
   let token = TokenEntity.load(tokenAdr);
-  if(!token) {
+  if (!token) {
     token = new TokenEntity(tokenAdr);
     const tokenCtr = VaultAbi.bind(Address.fromString(tokenAdr));
 
