@@ -1,4 +1,5 @@
 import {BigInt, ByteArray, crypto} from '@graphprotocol/graph-ts'
+import {VeTetuTokenEntity} from "../types/schema";
 
 export function generateVeNFTId(veId: string, veAdr: string): string {
   return crypto.keccak256(ByteArray.fromUTF8(veId + veAdr)).toHexString();
@@ -38,4 +39,8 @@ export function generateVeBribeRewardId(veBribeId: string, rewardTokenAdr: strin
 
 export function generatePlatformVoteEntityId(voterAdr: string, veId: BigInt, voteType: string, target: string): string {
   return crypto.keccak256(ByteArray.fromUTF8(voterAdr + veId.toString() + voteType + target)).toHexString();
+}
+
+export function generateVeTetuTokenEntityId(veAdr: string, tokenAdr: string): string {
+  return crypto.keccak256(ByteArray.fromUTF8(veAdr + tokenAdr)).toHexString();
 }

@@ -23,14 +23,9 @@ import {TetuVoterAbi} from "./types/ControllerData/TetuVoterAbi";
 import {Address, BigDecimal, BigInt, store} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/ControllerData/ProxyAbi";
 import {VaultAbi} from "./types/ControllerData/VaultAbi";
-import {
-  calculateApr,
-  formatUnits,
-  tryGetUsdPrice
-} from "./helpers/common-helper";
+import {calculateApr, formatUnits, tryGetUsdPrice} from "./helpers/common-helper";
 import {REWARD_TOKEN_DECIMALS} from "./constants";
 import {VeTetuAbi} from "./types/templates/VeTetuTemplate/VeTetuAbi";
-import {MultiBribeTemplate} from "./types/templates";
 import {MultiBribeAbi} from "./types/templates/TetuVoterTemplate/MultiBribeAbi";
 import {LiquidatorAbi} from "./types/templates/TetuVoterTemplate/LiquidatorAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
@@ -39,7 +34,8 @@ import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 import {
   generateGaugeVaultId,
   generateTetuVoterUserId,
-  generateTetuVoterUserVoteId, generateVaultVoteEntityId,
+  generateTetuVoterUserVoteId,
+  generateVaultVoteEntityId,
   generateVeNFTId
 } from "./helpers/id-helper";
 import {getOrCreateBribe} from "./helpers/bribe-helper";

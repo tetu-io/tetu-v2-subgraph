@@ -13,22 +13,15 @@ import {
   SplitterEntity,
   VaultEntity,
   VaultFactoryEntity,
-  VaultVoteEntity,
-  VeTetuEntity,
-  VeTetuTokenEntity
+  VaultVoteEntity, VeTetuEntity
 } from "./types/schema";
-import {Address, BigDecimal, BigInt, ByteArray, crypto} from "@graphprotocol/graph-ts";
+import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {formatUnits, getOrCreateToken, tryGetUsdPrice} from "./helpers/common-helper";
 import {VaultAbi} from "./types/VaultFactoryData/VaultAbi";
 import {ControllerAbi} from "./types/VaultFactoryData/ControllerAbi";
 import {LiquidatorAbi} from "./types/VaultFactoryData/LiquidatorAbi";
 import {ProxyAbi} from "./types/VaultFactoryData/ProxyAbi";
-import {
-  MultiGaugeTemplate,
-  StrategySplitterTemplate,
-  VaultTemplate,
-  VeTetuTemplate
-} from './types/templates'
+import {StrategySplitterTemplate, VaultTemplate} from './types/templates'
 import {RATIO_DENOMINATOR, ZERO_BD} from "./constants";
 import {StrategySplitterAbi} from "./types/VaultFactoryData/StrategySplitterAbi";
 import {MultiGaugeAbi} from "./types/VaultFactoryData/MultiGaugeAbi";
@@ -37,7 +30,9 @@ import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 import {ProxyAbi as ProxyAbiCommon} from "./common/ProxyAbi";
 import {MultiGaugeAbi as MultiGaugeAbiCommon} from "./common/MultiGaugeAbi";
+import {VeTetuAbi as VeTetuAbiCommon} from "./common/VeTetuAbi";
 import {getOrCreateGauge} from "./helpers/gauge-helper";
+import {getOrCreateVe} from "./helpers/ve-helper";
 
 export function handleVaultDeployed(event: VaultDeployed): void {
   const factory = createOrGetFactory(event.address.toHexString())
@@ -120,7 +115,7 @@ export function handleVaultDeployed(event: VaultDeployed): void {
 
   VaultTemplate.create(event.params.vaultProxy);
   const gauge = _getOrCreateGauge(vault.gauge);
-  createVe(gauge.ve)
+  _getOrCreateVe(gauge.ve)
 
   factory.save();
   vault.save();
@@ -203,39 +198,11 @@ export function createInsurance(
   return insurance;
 }
 
-function createVe(veAdr: string): void {
-  let ve = VeTetuEntity.load(veAdr);
-  if (!ve) {
-    ve = new VeTetuEntity(veAdr);
-    const veCtr = VeTetuAbi.bind(Address.fromString(veAdr));
-    const proxy = ProxyAbi.bind(Address.fromString(veAdr))
-
-    ve.version = veCtr.VE_VERSION();
-    ve.revision = veCtr.revision().toI32()
-    ve.createdTs = veCtr.created().toI32()
-    ve.createdBlock = veCtr.createdBlock().toI32()
-    ve.implementations = [proxy.implementation().toHexString()]
-    ve.controller = veCtr.controller().toHexString()
-    ve.count = veCtr.tokenId().toI32();
-    ve.epoch = veCtr.epoch().toI32();
-    ve.allowedPawnshops = []
-    ve.lockedAmountUSD = BigDecimal.fromString('0');
-
-    VeTetuTemplate.create(Address.fromString(veAdr));
-    ve.save();
-
-    const tokenAdr = veCtr.tokens(BigInt.fromI32(0));
-    const tokenInfoId = crypto.keccak256(ByteArray.fromUTF8(veAdr + tokenAdr.toHexString())).toHexString();
-    let tokenInfo = VeTetuTokenEntity.load(tokenInfoId);
-    if (!tokenInfo) {
-      tokenInfo = new VeTetuTokenEntity(tokenInfoId);
-      tokenInfo.ve = veAdr;
-      tokenInfo.address = tokenAdr.toHexString();
-      tokenInfo.weight = ZERO_BD;
-      tokenInfo.supply = ZERO_BD;
-      tokenInfo.save();
-    }
-  }
+function _getOrCreateVe(veAdr: string): VeTetuEntity {
+  return getOrCreateVe(
+    changetype<VeTetuAbiCommon>(VeTetuAbi.bind(Address.fromString(veAdr))),
+    changetype<ProxyAbiCommon>(ProxyAbi.bind(Address.fromString(veAdr))),
+  );
 }
 
 function _getOrCreateGauge(gaugeAdr: string): GaugeEntity {

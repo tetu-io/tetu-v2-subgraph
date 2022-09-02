@@ -28,6 +28,9 @@ import {LiquidatorAbi} from "./types/templates/VeTetuTemplate/LiquidatorAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 import {generateVeNFTId} from "./helpers/id-helper";
+import {getOrCreateVe} from "./helpers/ve-helper";
+import {VeTetuAbi as VeTetuAbiCommon} from "./common/VeTetuAbi";
+import {ProxyAbi as ProxyAbiCommon} from "./common/ProxyAbi";
 
 // ***************************************************
 //                   DEPOSIT/WITHDRAW
@@ -79,7 +82,7 @@ export function handleTransfer(event: Transfer): void {
 // ***************************************************
 
 export function handlePawnshopWhitelisted(event: PawnshopWhitelisted): void {
-  const ve = getOrCreateVe(event.address.toHexString());
+  const ve = _getOrCreateVe(event.address.toHexString());
   const arr = ve.allowedPawnshops;
   const pawnshop = event.params.value;
 
@@ -99,14 +102,14 @@ export function handlePawnshopWhitelisted(event: PawnshopWhitelisted): void {
 }
 
 export function handleRevisionIncreased(event: RevisionIncreased): void {
-  const ve = getOrCreateVe(event.address.toHexString());
+  const ve = _getOrCreateVe(event.address.toHexString());
   ve.revision = event.params.value.toI32();
   ve.save();
 }
 
 
 export function handleUpgraded(event: Upgraded): void {
-  const ve = getOrCreateVe(event.address.toHexString());
+  const ve = _getOrCreateVe(event.address.toHexString());
   const implementations = ve.implementations;
   implementations.push(event.params.implementation.toHexString())
   ve.implementations = implementations;
@@ -123,7 +126,7 @@ function updateUser(
   time: BigInt,
   token: string
 ): void {
-  const ve = getOrCreateVe(veAdr);
+  const ve = _getOrCreateVe(veAdr);
   const veCtr = VeTetuAbi.bind(Address.fromString(veAdr));
   const veNFT = getOrCreateVeNFT(veId, veAdr);
 
@@ -189,23 +192,11 @@ function getOrCreateVeToken(
   return tokenEntity;
 }
 
-function getOrCreateVe(address: string): VeTetuEntity {
-  let ve = VeTetuEntity.load(address);
-  if (!ve) {
-    ve = new VeTetuEntity(address);
-    const veCtr = VeTetuAbi.bind(Address.fromString(address))
-    const proxy = ProxyAbi.bind(Address.fromString(address))
-
-    ve.version = veCtr.VE_VERSION();
-    ve.revision = veCtr.revision().toI32()
-    ve.createdTs = veCtr.created().toI32()
-    ve.createdBlock = veCtr.createdBlock().toI32()
-    ve.implementations = [proxy.implementation().toHexString()]
-    ve.count = veCtr.tokenId().toI32();
-    ve.epoch = veCtr.epoch().toI32();
-    ve.allowedPawnshops = [];
-  }
-  return ve;
+function _getOrCreateVe(veAdr: string): VeTetuEntity {
+  return getOrCreateVe(
+    changetype<VeTetuAbiCommon>(VeTetuAbi.bind(Address.fromString(veAdr))),
+    changetype<ProxyAbiCommon>(ProxyAbi.bind(Address.fromString(veAdr))),
+  );
 }
 
 function updateVeTokensInfo(ve: string): void {
