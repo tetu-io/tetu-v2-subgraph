@@ -16,7 +16,13 @@ import {
   Upgraded,
   WithdrawFromStrategy
 } from "./types/templates/StrategySplitterTemplate/StrategySplitterAbi";
-import {SplitterEntity, StrategyEntity, StrategyHistory, TokenEntity} from "./types/schema";
+import {
+  SplitterEntity,
+  StrategyEntity,
+  StrategyHistory,
+  TokenEntity,
+  VaultEntity
+} from "./types/schema";
 import {StrategyTemplate} from './types/templates'
 import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {StrategyAbi} from "./types/templates/StrategyTemplate/StrategyAbi";
@@ -140,6 +146,7 @@ export function handleSetStrategyCapacity(event: SetStrategyCapacity): void {
 
 export function handleHardWork(event: HardWork): void {
   const splitter = SplitterEntity.load(event.address.toHexString()) as SplitterEntity;
+  const vault = VaultEntity.load(splitter.vault) as VaultEntity;
   const strategy = getOrCreateStrategy(event.params.strategy.toHexString());
   const splitterCtr = StrategySplitterAbi.bind(event.address);
   const aprDenominator = splitterCtr.APR_DENOMINATOR();
@@ -158,6 +165,8 @@ export function handleHardWork(event: HardWork): void {
   strategy.tvl = tvl;
   strategy.apr = apr;
   strategy.averageApr = avgApr;
+  strategy.tvlAllocationPercent = strategy.tvl.times(BigDecimal.fromString('100'))
+    .div(formatUnits(splitterCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals)));
 
   strategy.lastHardWork = event.block.timestamp.toI32();
 
@@ -201,15 +210,20 @@ function getOrCreateStrategy(address: string): StrategyEntity {
     strategy.splitter = splitterAdr.toHexString();
     strategy.asset = strategyCtr.asset().toHexString();
     strategy.assetDecimals = vaultCtr.decimals();
+
+    strategy.name = strategyCtr.NAME();
+    strategy.platform = strategyCtr.PLATFORM();
+
     strategy.compoundRatio = strategyCtr.compoundRatio().toBigDecimal().times(BigDecimal.fromString('100')).div(compoundDenominator.toBigDecimal());
     strategy.paused = splitterCtr.pausedStrategies(Address.fromString(address));
     strategy.apr = splitterCtr.strategiesAPR(Address.fromString(address)).toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator.toBigDecimal());
     strategy.averageApr = splitterCtr.averageApr(Address.fromString(address)).toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator.toBigDecimal());
     strategy.lastHardWork = splitterCtr.lastHardWorks(Address.fromString(address)).toI32();
-    strategy.tvl = strategyCtr.totalAssets().toBigDecimal();
+    strategy.tvl = formatUnits(strategyCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals));
     strategy.profit = BigDecimal.fromString('0');
     strategy.loss = BigDecimal.fromString('0');
     strategy.capacity = BigDecimal.fromString('0');
+    strategy.tvlAllocationPercent = BigDecimal.fromString('0');
 
     StrategyTemplate.create(Address.fromString(address));
     strategy.save();
@@ -242,8 +256,10 @@ export function updateTvl(
   time: i32
 ): void {
   const strategy = getOrCreateStrategy(strategyAdr);
+  const splitterCtr = StrategySplitterAbi.bind(Address.fromString(strategy.splitter));
   const strategyCtr = StrategyAbi.bind(Address.fromString(strategyAdr));
   strategy.tvl = formatUnits(strategyCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals));
+  strategy.tvlAllocationPercent = strategy.tvl.times(BigDecimal.fromString('100')).div(formatUnits(splitterCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals)));
   saveStrategyHistory(strategy, time);
   strategy.save();
 }

@@ -512,6 +512,8 @@ templates:
           file: ./abis/TetuVaultV2.json
         - name: ForwarderAbi
           file: ./abis/ForwarderV3.json
+        - name: StrategySplitterAbi
+          file: ./abis/StrategySplitterV2.json
       eventHandlers:
         - event: Upgraded(indexed address)
           handler: handleUpgraded

@@ -57,7 +57,7 @@ type ProxyUpgradeAnnounceEntity @entity {
 #                    TOKENS
 ###############################################
 
-type TokenEntity @entity(immutable: true) {
+type TokenEntity @entity {
     "Any token used on the platform"
     id: ID!
 
@@ -281,6 +281,8 @@ type StrategyEntity @entity {
     splitter: SplitterEntity!
 
     #attributes
+    name: String!
+    platform: String!
     asset: TokenEntity!
     assetDecimals: Int!
     compoundRatio: BigDecimal!
@@ -294,6 +296,7 @@ type StrategyEntity @entity {
     loss: BigDecimal!
     apr: BigDecimal!
     averageApr: BigDecimal!
+    tvlAllocationPercent: BigDecimal!
 }
 
 type StrategyHistory @entity(immutable: true) {
@@ -309,6 +312,7 @@ type StrategyHistory @entity(immutable: true) {
     loss: BigDecimal!
     apr: BigDecimal!
     averageApr: BigDecimal!
+    tvlAllocationPercent: BigDecimal!
 }
 
 ###############################################
