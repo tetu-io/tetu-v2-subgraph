@@ -24,7 +24,7 @@ import {StrategyAbi} from "./types/templates/StrategyTemplate/StrategyAbi";
 import {ProxyAbi} from "./types/templates/StrategySplitterTemplate/ProxyAbi";
 import {ADDRESS_ZERO, HUNDRED_BD, ZERO_BD} from "./constants";
 import {VaultAbi} from "./types/templates/StrategySplitterTemplate/VaultAbi";
-import {formatUnits} from "./helpers";
+import {formatUnits} from "./helpers/common-helper";
 
 // ***************************************************
 //             ADD/REMOVE STRATEGIES

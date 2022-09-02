@@ -14,13 +14,14 @@ import {
   VeNFTVeDistRewardHistory,
   VeTetuEntity
 } from "./types/schema";
-import {calculateApr, formatUnits, generateVeNFTId, tryGetUsdPrice} from "./helpers";
+import {calculateApr, formatUnits, tryGetUsdPrice} from "./helpers/common-helper";
 import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {VaultAbi} from "./types/ControllerData/VaultAbi";
 import {ADDRESS_ZERO, WEEK} from "./constants";
 import {LiquidatorAbi} from "./types/templates/VeDistributorTemplate/LiquidatorAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
+import {generateVeNFTId} from "./helpers/id-helper";
 
 // ***************************************************
 //                    MAIN LOGIC

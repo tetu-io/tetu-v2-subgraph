@@ -27,16 +27,15 @@ import {ProxyAbi} from "./types/templates/MultiGaugeTemplate/ProxyAbi";
 import {
   calculateApr,
   formatUnits,
-  generateGaugeVaultId,
-  generateVeNFTId,
   tryGetUsdPrice
-} from "./helpers";
+} from "./helpers/common-helper";
 import {VaultAbi} from "./types/templates/MultiGaugeTemplate/VaultAbi";
 import {ControllerAbi} from "./types/templates/MultiGaugeTemplate/ControllerAbi";
 import {LiquidatorAbi} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 import {ADDRESS_ZERO} from "./constants";
+import {generateGaugeVaultId, generateVeNFTId} from "./helpers/id-helper";
 
 // ***************************************************
 //                     DEPOSIT/WITHDRAW

@@ -21,12 +21,13 @@ import {
 } from "./types/schema";
 import {Address, BigDecimal, BigInt, ByteArray, crypto} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/templates/VeTetuTemplate/ProxyAbi";
-import {formatUnits, generateVeNFTId, parseUnits, tryGetUsdPrice} from "./helpers";
+import {formatUnits, parseUnits, tryGetUsdPrice} from "./helpers/common-helper";
 import {ADDRESS_ZERO} from "./constants";
 import {VaultAbi} from "./types/templates/VeTetuTemplate/VaultAbi";
 import {LiquidatorAbi} from "./types/templates/VeTetuTemplate/LiquidatorAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
+import {generateVeNFTId} from "./helpers/id-helper";
 
 // ***************************************************
 //                   DEPOSIT/WITHDRAW

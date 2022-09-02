@@ -15,7 +15,8 @@ import {
   StrategyEntity
 } from "./types/schema";
 import {BigDecimal, BigInt, store} from "@graphprotocol/graph-ts";
-import {formatUnits, generatePlatformVoteEntityId, generateVeNFTId} from "./helpers";
+import {formatUnits} from "./helpers/common-helper";
+import {generatePlatformVoteEntityId, generateVeNFTId} from "./helpers/id-helper";
 
 // ***************************************************
 //                ATTACH/DETACH/VOTE

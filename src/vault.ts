@@ -25,7 +25,7 @@ import {
   VaultAbi,
 } from "./types/templates/VaultTemplate/VaultAbi";
 import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
-import {calculateApr, formatUnits, tryGetUsdPrice} from "./helpers";
+import {calculateApr, formatUnits, tryGetUsdPrice} from "./helpers/common-helper";
 import {ADDRESS_ZERO} from "./constants";
 import {ControllerAbi} from "./types/templates/VaultTemplate/ControllerAbi";
 import {LiquidatorAbi} from "./types/templates/VaultTemplate/LiquidatorAbi";

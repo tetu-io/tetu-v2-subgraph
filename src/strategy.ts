@@ -12,7 +12,7 @@ import {
 } from "./types/templates/StrategyTemplate/StrategyAbi";
 import {ForwarderTokenInfo, StrategyEntity, StrategyHistory} from "./types/schema";
 import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
-import {formatUnits} from "./helpers";
+import {formatUnits} from "./helpers/common-helper";
 import {VaultAbi} from "./types/templates/StrategyTemplate/VaultAbi";
 import {ForwarderAbi} from "./types/templates/StrategyTemplate/ForwarderAbi";
 import {StrategySplitterAbi} from "./types/templates/StrategySplitterTemplate/StrategySplitterAbi";

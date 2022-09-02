@@ -25,18 +25,21 @@ import {ProxyAbi} from "./types/templates/MultiBribeTemplate/ProxyAbi";
 import {
   calculateApr,
   formatUnits,
-  generateBribeVaultId,
-  generateBribeVaultRewardId,
-  generateVeBribeId,
-  generateVeBribeRewardId,
-  generateVeNFTId,
   tryGetUsdPrice
-} from "./helpers";
+} from "./helpers/common-helper";
 import {ADDRESS_ZERO} from "./constants";
 import {VaultAbi} from "./types/templates/MultiBribeTemplate/VaultAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
+import {MultiBribeAbi as MultiBribeAbiCommon} from "./common/MultiBribeAbi";
+import {ProxyAbi as ProxyAbiCommon} from "./common/ProxyAbi";
 import {LiquidatorAbi} from "./types/VaultFactoryData/LiquidatorAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
+import {
+  generateBribeVaultId,
+  generateBribeVaultRewardId,
+  generateVeBribeId, generateVeBribeRewardId, generateVeNFTId
+} from "./helpers/id-helper";
+import {getOrCreateBribe} from "./helpers/bribe-helper";
 
 // ***************************************************
 //                     DEPOSIT/WITHDRAW
@@ -100,13 +103,13 @@ export function handleNotifyReward(event: NotifyReward): void {
 // ***************************************************
 
 export function handleRevisionIncreased(event: RevisionIncreased): void {
-  const bribe = getOrCreateBribe(event.address.toHexString());
+  const bribe = _getOrCreateBribe(event.address.toHexString());
   bribe.revision = event.params.value.toI32();
   bribe.save();
 }
 
 export function handleUpgraded(event: Upgraded): void {
-  const bribe = getOrCreateBribe(event.address.toHexString());
+  const bribe = _getOrCreateBribe(event.address.toHexString());
   const implementations = bribe.implementations;
   implementations.push(event.params.implementation.toHexString())
   bribe.implementations = implementations;
@@ -127,7 +130,7 @@ function updateAll(
   rewardToken: string,
   earned: BigInt
 ): void {
-  const bribe = getOrCreateBribe(bribeAdr);
+  const bribe = _getOrCreateBribe(bribeAdr);
   const bribeVault = getOrCreateBribeVault(vaultAdr, bribe.id);
   const vault = VaultEntity.load(bribeVault.vault) as VaultEntity;
   const controller = ControllerEntity.load(bribe.controller) as ControllerEntity;
@@ -191,31 +194,6 @@ function updateAll(
 
   bribe.save();
   bribeVault.save();
-}
-
-function getOrCreateBribe(address: string): BribeEntity {
-  let bribe = BribeEntity.load(address);
-
-  if (!bribe) {
-    bribe = new BribeEntity(address);
-    const bribeCtr = MultiBribeAbi.bind(Address.fromString(address));
-    const proxy = ProxyAbi.bind(Address.fromString(address))
-
-    bribe.version = bribeCtr.MULTI_BRIBE_VERSION();
-    bribe.revision = bribeCtr.revision().toI32();
-    bribe.createdTs = bribeCtr.created().toI32()
-    bribe.createdBlock = bribeCtr.createdBlock().toI32()
-    bribe.implementations = [proxy.implementation().toHexString()]
-
-    bribe.ve = bribeCtr.ve().toHexString();
-    bribe.controller = bribeCtr.controller().toHexString();
-
-    bribe.operator = bribeCtr.operator().toHexString();
-    bribe.defaultRewardToken = bribeCtr.defaultRewardToken().toHexString()
-
-  }
-
-  return bribe;
 }
 
 function getOrCreateBribeVault(vaultAdr: string, bribeAdr: string): BribeVaultEntity {
@@ -352,6 +330,13 @@ function saveVeBribeRewardHistory(veBribeReward: VeBribeReward, user: VeBribe, c
     // already saved in this block
     return;
   }
+}
+
+function _getOrCreateBribe(bribeAdr: string): BribeEntity {
+  return getOrCreateBribe(
+    changetype<MultiBribeAbiCommon>(MultiBribeAbi.bind(Address.fromString(bribeAdr))),
+    changetype<ProxyAbiCommon>(ProxyAbi.bind(Address.fromString(bribeAdr)))
+  )
 }
 
 function _tryGetUsdPrice(

@@ -18,28 +18,38 @@ import {
 } from "./types/ControllerData/ControllerAbi";
 import {
   AddressChangeAnnounceEntity,
+  BribeEntity,
   ControllerEntity,
   ForwarderEntity,
-  InvestFundEntity, PlatformVoterEntity,
-  ProxyUpgradeAnnounceEntity, TetuVoterEntity,
-  VaultEntity, VeDistEntity
+  InvestFundEntity,
+  PlatformVoterEntity,
+  ProxyUpgradeAnnounceEntity,
+  TetuVoterEntity,
+  VaultEntity,
+  VeDistEntity
 } from "./types/schema";
 import {ADDRESS_ZERO, CONTROLLER_TIME_LOCK, RATIO_DENOMINATOR, WEEK} from "./constants";
-import {Address, BigDecimal, BigInt, log, store} from "@graphprotocol/graph-ts";
+import {Address, BigDecimal, BigInt, store} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/ControllerData/ProxyAbi";
 import {
   ForwarderTemplate,
   InvestFundTemplate,
   PlatformVoterTemplate,
-  TetuVoterTemplate, VeDistributorTemplate
+  VeDistributorTemplate
 } from "./types/templates";
-import {formatUnits} from "./helpers";
+import {formatUnits} from "./helpers/common-helper";
 import {InvestFundAbi} from "./types/ControllerData/InvestFundAbi";
 import {ForwarderAbi} from "./types/ControllerData/ForwarderAbi";
 import {VaultAbi} from "./types/ControllerData/VaultAbi";
 import {TetuVoterAbi} from "./types/ControllerData/TetuVoterAbi";
 import {VeDistributorAbi} from "./types/ControllerData/VeDistributorAbi";
 import {PlatformVoterAbi} from "./types/ControllerData/PlatformVoterAbi";
+import {getOrCreateTetuVoter} from "./helpers/tetu-voter-helper";
+import {TetuVoterAbi as TetuVoterAbiCommon} from "./common/TetuVoterAbi";
+import {ProxyAbi as ProxyAbiCommon} from "./common/ProxyAbi";
+import {getOrCreateBribe} from "./helpers/bribe-helper";
+import {MultiBribeAbi as MultiBribeAbiCommon} from "./common/MultiBribeAbi";
+import {MultiBribeAbi} from "./types/templates/TetuVoterTemplate/MultiBribeAbi";
 
 export function handleContractInitialized(event: ContractInitialized): void {
   const controller = new ControllerEntity(event.params.controller.toHexString());
@@ -118,7 +128,7 @@ export function handleAddressChanged(event: AddressChanged): void {
   // *** TETU_VOTER
   if (BigInt.fromI32(2).equals(event.params._type)) {
     controller.tetuVoter = event.params.newAddress.toHexString();
-    createTetuVoter(event.params.newAddress.toHexString());
+    _getOrCreateTetuVoter(event.params.newAddress.toHexString());
   }
 
   // *** PLATFORM_VOTER
@@ -153,30 +163,20 @@ export function handleAddressChanged(event: AddressChanged): void {
   controller.save();
 }
 
-function createTetuVoter(address: string): void {
-  let voter = TetuVoterEntity.load(address);
-  if (!voter) {
-    voter = new TetuVoterEntity(address);
-    const voterCtr = TetuVoterAbi.bind(Address.fromString(address));
-    const proxy = ProxyAbi.bind(Address.fromString(address));
-    const tokenCtr = VaultAbi.bind(voterCtr.token());
+function _getOrCreateTetuVoter(voterAdr: string): TetuVoterEntity {
+  const voter = getOrCreateTetuVoter(
+    changetype<TetuVoterAbiCommon>(TetuVoterAbi.bind(Address.fromString(voterAdr))),
+    changetype<ProxyAbiCommon>(ProxyAbi.bind(Address.fromString(voterAdr)))
+  );
+  _getOrCreateBribe(voter.bribe);
+  return voter;
+}
 
-    voter.version = voterCtr.VOTER_VERSION();
-    voter.revision = voterCtr.revision().toI32();
-    voter.createdTs = voterCtr.created().toI32();
-    voter.createdBlock = voterCtr.createdBlock().toI32();
-    voter.implementations = [proxy.implementation().toHexString()];
-    voter.controller = voterCtr.controller().toHexString();
-    voter.ve = voterCtr.ve().toHexString();
-    voter.gauge = voterCtr.gauge().toHexString();
-    voter.bribe = voterCtr.bribe().toHexString();
-    voter.token = voterCtr.token().toHexString();
-    voter.rewardsBalance = formatUnits(tokenCtr.balanceOf(Address.fromString(address)), BigInt.fromI32(18));
-    voter.votersCount = 0;
-
-    TetuVoterTemplate.create(Address.fromString(address));
-    voter.save();
-  }
+function _getOrCreateBribe(bribeAdr: string): BribeEntity {
+  return getOrCreateBribe(
+    changetype<MultiBribeAbiCommon>(MultiBribeAbi.bind(Address.fromString(bribeAdr))),
+    changetype<ProxyAbiCommon>(ProxyAbi.bind(Address.fromString(bribeAdr)))
+  )
 }
 
 function createPlatformVoter(address: string): void {
@@ -353,8 +353,8 @@ export function handleOperatorRemoved(event: OperatorRemoved): void {
   const controller = ControllerEntity.load(event.address.toHexString()) as ControllerEntity;
   const operators = controller.operators;
   let id = -1;
-  for(let i = 0; i < operators.length; i++) {
-    if(Address.fromString(operators[i]).equals(event.params.operator)) {
+  for (let i = 0; i < operators.length; i++) {
+    if (Address.fromString(operators[i]).equals(event.params.operator)) {
       id = i;
     }
   }

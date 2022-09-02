@@ -22,7 +22,7 @@ import {
 } from "./types/schema";
 import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {ForwarderAbi} from "./types/ControllerData/ForwarderAbi";
-import {formatUnits, tryGetUsdPrice} from "./helpers";
+import {formatUnits, tryGetUsdPrice} from "./helpers/common-helper";
 import {VaultAbi} from "./types/templates/ForwarderTemplate/VaultAbi";
 import {ControllerAbi} from "./types/templates/ForwarderTemplate/ControllerAbi";
 import {LiquidatorAbi} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";

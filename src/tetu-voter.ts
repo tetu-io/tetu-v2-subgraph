@@ -26,27 +26,33 @@ import {VaultAbi} from "./types/ControllerData/VaultAbi";
 import {
   calculateApr,
   formatUnits,
-  generateGaugeVaultId,
-  generateTetuVoterUserId,
-  generateTetuVoterUserVoteId,
-  generateVaultVoteEntityId,
-  generateVeNFTId,
   tryGetUsdPrice
-} from "./helpers";
+} from "./helpers/common-helper";
 import {REWARD_TOKEN_DECIMALS} from "./constants";
 import {VeTetuAbi} from "./types/templates/VeTetuTemplate/VeTetuAbi";
 import {MultiBribeTemplate} from "./types/templates";
 import {MultiBribeAbi} from "./types/templates/TetuVoterTemplate/MultiBribeAbi";
 import {LiquidatorAbi} from "./types/templates/TetuVoterTemplate/LiquidatorAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
+import {TetuVoterAbi as TetuVoterAbiCommon} from "./common/TetuVoterAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
+import {
+  generateGaugeVaultId,
+  generateTetuVoterUserId,
+  generateTetuVoterUserVoteId, generateVaultVoteEntityId,
+  generateVeNFTId
+} from "./helpers/id-helper";
+import {getOrCreateBribe} from "./helpers/bribe-helper";
+import {MultiBribeAbi as MultiBribeAbiCommon} from "./common/MultiBribeAbi";
+import {ProxyAbi as ProxyAbiCommon} from "./common/ProxyAbi";
+import {getOrCreateTetuVoter} from "./helpers/tetu-voter-helper";
 
 // ***************************************************
 //                ATTACH/DETACH/VOTE
 // ***************************************************
 
 export function handleVoted(event: Voted): void {
-  const voter = getOrCreateTetuVoter(event.address.toHexString());
+  const voter = _getOrCreateTetuVoter(event.address.toHexString());
   const voterUser = getOrCreateTetuVoterUser(event.params.tokenId, voter.id, voter.ve);
   const vaultVote = getOrCreateVaultVoteEntity(voter, event.params.vault.toHexString());
   const userVote = getOrCreateTetuVoterUserVote(voterUser, vaultVote);
@@ -82,7 +88,7 @@ export function handleVoted(event: Voted): void {
 }
 
 export function handleAbstained(event: Abstained): void {
-  const voter = getOrCreateTetuVoter(event.address.toHexString());
+  const voter = _getOrCreateTetuVoter(event.address.toHexString());
   const voterUser = TetuVoterUser.load(generateTetuVoterUserId(event.params.tokenId.toString(), voter.id));
   if (!voterUser) {
     // it can happen if voter added with exist votes
@@ -123,13 +129,13 @@ export function handleAbstained(event: Abstained): void {
 // ***************************************************
 
 export function handleNotifyReward(event: NotifyReward): void {
-  const voter = getOrCreateTetuVoter(event.address.toHexString());
+  const voter = _getOrCreateTetuVoter(event.address.toHexString());
   updateTetuVoter(voter, BigInt.fromI32(0));
   saveTetuVoterRewards(voter, event.block.timestamp);
 }
 
 export function handleDistributeReward(event: DistributeReward): void {
-  const voter = getOrCreateTetuVoter(event.address.toHexString());
+  const voter = _getOrCreateTetuVoter(event.address.toHexString());
   updateTetuVoter(voter, BigInt.fromI32(0));
   saveTetuVoterRewards(voter, event.block.timestamp);
 }
@@ -139,13 +145,13 @@ export function handleDistributeReward(event: DistributeReward): void {
 // ***************************************************
 
 export function handleRevisionIncreased(event: RevisionIncreased): void {
-  const voter = getOrCreateTetuVoter(event.address.toHexString());
+  const voter = _getOrCreateTetuVoter(event.address.toHexString());
   voter.revision = event.params.value.toI32();
   voter.save();
 }
 
 export function handleUpgraded(event: Upgraded): void {
-  const voter = getOrCreateTetuVoter(event.address.toHexString());
+  const voter = _getOrCreateTetuVoter(event.address.toHexString());
   const implementations = voter.implementations;
   implementations.push(event.params.implementation.toHexString())
   voter.implementations = implementations;
@@ -155,34 +161,6 @@ export function handleUpgraded(event: Upgraded): void {
 // ***************************************************
 //                     HELPERS
 // ***************************************************
-
-function getOrCreateTetuVoter(voterAdr: string): TetuVoterEntity {
-  let voter = TetuVoterEntity.load(voterAdr);
-  if (!voter) {
-    voter = new TetuVoterEntity(voterAdr);
-    const voterCtr = TetuVoterAbi.bind(Address.fromString(voterAdr));
-    const proxy = ProxyAbi.bind(Address.fromString(voterAdr));
-    const tokenCtr = VaultAbi.bind(voterCtr.token());
-
-    voter.version = voterCtr.VOTER_VERSION();
-    voter.revision = voterCtr.revision().toI32();
-    voter.createdTs = voterCtr.created().toI32();
-    voter.createdBlock = voterCtr.createdBlock().toI32();
-    voter.implementations = [proxy.implementation().toHexString()];
-
-    voter.controller = voterCtr.controller().toHexString();
-    voter.ve = voterCtr.ve().toHexString();
-    voter.gauge = voterCtr.gauge().toHexString();
-    voter.bribe = voterCtr.bribe().toHexString();
-    voter.token = voterCtr.token().toHexString();
-
-    voter.rewardsBalance = formatUnits(tokenCtr.balanceOf(Address.fromString(voterAdr)), REWARD_TOKEN_DECIMALS);
-    voter.votersCount = 0;
-
-    createBribe(voter.bribe);
-  }
-  return voter;
-}
 
 function updateTetuVoter(voter: TetuVoterEntity, newVoter: BigInt): void {
   const rewardTokenCtr = VaultAbi.bind(Address.fromString(voter.token));
@@ -312,29 +290,20 @@ function getOrCreateGaugeVault(vaultAdr: string, gaugeAdr: string): GaugeVaultEn
   return vault;
 }
 
-function createBribe(bribeAdr: string): void {
-  let bribe = BribeEntity.load(bribeAdr);
+function _getOrCreateBribe(bribeAdr: string): BribeEntity {
+  return getOrCreateBribe(
+    changetype<MultiBribeAbiCommon>(MultiBribeAbi.bind(Address.fromString(bribeAdr))),
+    changetype<ProxyAbiCommon>(ProxyAbi.bind(Address.fromString(bribeAdr)))
+  )
+}
 
-  if (!bribe) {
-    bribe = new BribeEntity(bribeAdr);
-    const bribeCtr = MultiBribeAbi.bind(Address.fromString(bribeAdr));
-    const proxy = ProxyAbi.bind(Address.fromString(bribeAdr))
-
-    bribe.version = bribeCtr.MULTI_BRIBE_VERSION();
-    bribe.revision = bribeCtr.revision().toI32();
-    bribe.createdTs = bribeCtr.created().toI32()
-    bribe.createdBlock = bribeCtr.createdBlock().toI32()
-    bribe.implementations = [proxy.implementation().toHexString()]
-
-    bribe.ve = bribeCtr.ve().toHexString();
-    bribe.controller = bribeCtr.controller().toHexString();
-
-    bribe.operator = bribeCtr.operator().toHexString();
-    bribe.defaultRewardToken = bribeCtr.defaultRewardToken().toHexString()
-
-    MultiBribeTemplate.create(Address.fromString(bribeAdr));
-    bribe.save();
-  }
+function _getOrCreateTetuVoter(voterAdr: string): TetuVoterEntity {
+  const voter = getOrCreateTetuVoter(
+    changetype<TetuVoterAbiCommon>(TetuVoterAbi.bind(Address.fromString(voterAdr))),
+    changetype<ProxyAbiCommon>(ProxyAbi.bind(Address.fromString(voterAdr)))
+  );
+  _getOrCreateBribe(voter.bribe);
+  return voter;
 }
 
 function _tryGetUsdPrice(

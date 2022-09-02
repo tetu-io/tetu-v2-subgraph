@@ -18,7 +18,7 @@ import {
   VeTetuTokenEntity
 } from "./types/schema";
 import {Address, BigDecimal, BigInt, ByteArray, crypto} from "@graphprotocol/graph-ts";
-import {formatUnits, getOrCreateToken, tryGetUsdPrice} from "./helpers";
+import {formatUnits, getOrCreateToken, tryGetUsdPrice} from "./helpers/common-helper";
 import {VaultAbi} from "./types/VaultFactoryData/VaultAbi";
 import {ControllerAbi} from "./types/VaultFactoryData/ControllerAbi";
 import {LiquidatorAbi} from "./types/VaultFactoryData/LiquidatorAbi";

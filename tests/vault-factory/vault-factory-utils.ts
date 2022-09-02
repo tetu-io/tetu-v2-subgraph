@@ -13,7 +13,7 @@ import {VOTER_ADDRESS} from "../tetu-voter/tetu-voter-utils";
 import {VaultFactoryEntity} from "../../src/types/schema";
 import {INSURANCE_ENTITY, VAULT_ENTITY} from "../vault/vault-utils";
 import {RATIO_DENOMINATOR} from "../../src/constants";
-import {formatUnits, parseUnits} from "../../src/helpers";
+import {formatUnits, parseUnits} from "../../src/helpers/common-helper";
 import {SPLITTER_ENTITY} from "../splitter/splitter-utils";
 import {INVEST_FUND_ENTITY_NAME} from "../invest-fund/invest-fund-utils";
 import {GAUGE_ENTITY} from "../gauge/gauge-utils";

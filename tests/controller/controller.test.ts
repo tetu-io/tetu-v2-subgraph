@@ -52,7 +52,7 @@ import {
   VaultRemoved
 } from "../../src/types/ControllerData/ControllerAbi";
 import {TETU_VOTER_ENTITY_NAME} from "../tetu-voter/tetu-voter-utils";
-import {formatUnits} from "../../src/helpers";
+import {formatUnits} from "../../src/helpers/common-helper";
 import {PLATFORM_VOTER_ENTITY_NAME} from "../platform-voter/platform-voter-utils";
 import {FORWARDER_ENTITY_NAME} from "../forwarder/forwarder-utils";
 import {INVEST_FUND_ENTITY_NAME} from "../invest-fund/invest-fund-utils";
