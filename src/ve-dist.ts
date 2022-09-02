@@ -9,17 +9,18 @@ import {
 import {Upgraded} from "./types/ControllerData/VeDistributorAbi";
 import {
   ControllerEntity,
-  TokenEntity,
   VeDistEntity,
-  VeTetuEntity,
   VeNFTEntity,
-  VeNFTVeDistRewardHistory
+  VeNFTVeDistRewardHistory,
+  VeTetuEntity
 } from "./types/schema";
-import {calculateApr, formatUnits, generateVeNFTId, parseUnits} from "./helpers";
-import {Address, BigDecimal, BigInt, log} from "@graphprotocol/graph-ts";
+import {calculateApr, formatUnits, generateVeNFTId, tryGetUsdPrice} from "./helpers";
+import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {VaultAbi} from "./types/ControllerData/VaultAbi";
-import {ADDRESS_ZERO, getUSDC, WEEK, ZERO_BD} from "./constants";
+import {ADDRESS_ZERO, WEEK} from "./constants";
 import {LiquidatorAbi} from "./types/templates/VeDistributorTemplate/LiquidatorAbi";
+import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
+import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 
 // ***************************************************
 //                    MAIN LOGIC
@@ -29,7 +30,7 @@ export function handleCheckpointToken(event: CheckpointToken): void {
   const veDist = getVeDist(event.address.toHexString());
   const controller = ControllerEntity.load(veDist.controller) as ControllerEntity;
   const decimals = BigInt.fromI32(veDist.decimals);
-  const rewardPrice = tryGetUsdPrice(controller.liquidator, veDist.rewardToken, decimals);
+  const rewardPrice = _tryGetUsdPrice(controller.liquidator, veDist.rewardToken, decimals);
   updateVeDist(veDist, rewardPrice);
 }
 
@@ -40,7 +41,7 @@ export function handleClaimed(event: Claimed): void {
   const controller = ControllerEntity.load(veDist.controller) as ControllerEntity;
   const veNFT = VeNFTEntity.load(generateVeNFTId(event.params.tokenId.toString(), veDist.ve)) as VeNFTEntity;
   const claimed = formatUnits(event.params.amount, decimals);
-  const rewardPrice = tryGetUsdPrice(controller.liquidator, veDist.rewardToken, decimals);
+  const rewardPrice = _tryGetUsdPrice(controller.liquidator, veDist.rewardToken, decimals);
   const claimedUSD = claimed.times(rewardPrice);
   veNFT.veDistRewardsTotal = veNFT.veDistRewardsTotal.plus(claimed);
   veNFT.veDistLastApr = calculateApr(BigInt.fromI32(veNFT.veDistLastClaim), event.block.timestamp, claimedUSD, veNFT.lockedAmountUSD);
@@ -117,40 +118,14 @@ function saveRewardHistory(veNFT: VeNFTEntity, time: BigInt, claimed: BigDecimal
   }
 }
 
-function getOrCreateToken(tokenAdr: string): TokenEntity {
-  let token = TokenEntity.load(tokenAdr);
-  if (!token) {
-    token = new TokenEntity(tokenAdr);
-    const tokenCtr = VaultAbi.bind(Address.fromString(tokenAdr));
-
-    token.symbol = tokenCtr.symbol();
-    token.name = tokenCtr.name();
-    token.decimals = tokenCtr.decimals();
-    token.usdPrice = ZERO_BD;
-  }
-  return token;
-}
-
-function tryGetUsdPrice(
+function _tryGetUsdPrice(
   liquidatorAdr: string,
   asset: string,
   decimals: BigInt
 ): BigDecimal {
-  if (getUSDC().equals(Address.fromString(asset))) {
-    return BigDecimal.fromString('1');
-  }
-  const liquidator = LiquidatorAbi.bind(Address.fromString(liquidatorAdr))
-  const p = liquidator.try_getPrice(
-    Address.fromString(asset),
-    getUSDC(),
-    parseUnits(BigDecimal.fromString('1'), decimals)
+  return tryGetUsdPrice(
+    changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(liquidatorAdr))),
+    changetype<VaultAbiCommon>(VaultAbi.bind(Address.fromString(asset))),
+    decimals
   );
-  if (!p.reverted) {
-    let token = getOrCreateToken(asset);
-    token.usdPrice = formatUnits(p.value, decimals);
-    token.save();
-    return formatUnits(p.value, decimals);
-  }
-  log.error("=== FAILED GET PRICE === liquidator: {} asset: {}", [liquidatorAdr, asset]);
-  return BigDecimal.fromString('0')
 }

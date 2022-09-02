@@ -16,24 +16,27 @@ import {
   GaugeEntity,
   GaugeVaultEntity,
   GaugeVaultReward,
-  GaugeVaultRewardHistory, TokenEntity,
+  GaugeVaultRewardHistory,
   UserGauge,
   UserGaugeReward,
-  UserGaugeRewardHistory, VaultEntity
+  UserGaugeRewardHistory,
+  VaultEntity
 } from "./types/schema";
-import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
+import {Address, BigDecimal, BigInt, ByteArray, crypto} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/templates/MultiGaugeTemplate/ProxyAbi";
 import {
   calculateApr,
   formatUnits,
   generateGaugeVaultId,
   generateVeNFTId,
-  parseUnits
+  tryGetUsdPrice
 } from "./helpers";
 import {VaultAbi} from "./types/templates/MultiGaugeTemplate/VaultAbi";
 import {ControllerAbi} from "./types/templates/MultiGaugeTemplate/ControllerAbi";
 import {LiquidatorAbi} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";
-import {ADDRESS_ZERO, getUSDC, ZERO_BD} from "./constants";
+import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
+import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
+import {ADDRESS_ZERO} from "./constants";
 
 // ***************************************************
 //                     DEPOSIT/WITHDRAW
@@ -167,7 +170,7 @@ function updateAll(
   const sharePrice = formatUnits(vaultCtr.sharePrice(), assetDecimals);
 
   // get asset price
-  vault.assetPrice = tryGetUsdPrice(liquidatorAdr, asset.toHexString(), assetDecimals);
+  vault.assetPrice = _tryGetUsdPrice(liquidatorAdr, asset, assetDecimals);
   vault.stakingTokenPrice = vault.assetPrice.times(sharePrice)
   const totalSupplyUSD = vault.totalSupply.times(vault.stakingTokenPrice);
 
@@ -188,7 +191,7 @@ function updateAll(
       const rewardTokenDecimals = BigInt.fromI32(rewardTokenCtr.decimals())
       const _earned = formatUnits(earned, rewardTokenDecimals)
       const periodDays = (time.toI32() - userReward.lastEarnedUpdate) / 60 / 60 / 24;
-      const rewardTokenPrice = tryGetUsdPrice(liquidatorAdr, rewardToken, rewardTokenDecimals);
+      const rewardTokenPrice = _tryGetUsdPrice(liquidatorAdr, asset, rewardTokenDecimals);
       const earnedUsd = _earned.times(rewardTokenPrice);
 
       userReward.apr = earnedUsd.div(user.stakedBalanceUSD).div(BigInt.fromI32(periodDays).toBigDecimal()).times(BigDecimal.fromString('36500'))
@@ -211,7 +214,7 @@ function updateAll(
     const reward = getOrCreateReward(vault.id, rewardAdr.toHexString());
     const rewardTokenCtr = VaultAbi.bind(rewardAdr);
     const rewardTokenDecimals = BigInt.fromI32(rewardTokenCtr.decimals())
-    const rewardTokenPrice = tryGetUsdPrice(liquidatorAdr, rewardAdr.toHexString(), rewardTokenDecimals);
+    const rewardTokenPrice = _tryGetUsdPrice(liquidatorAdr, asset, rewardTokenDecimals);
     updateRewardInfoAndSave(reward, gauge.id, vault.vault, vault.totalSupply, totalSupplyUSD, time, rewardTokenPrice);
     saveRewardHistory(reward, time, vault);
   }
@@ -383,40 +386,14 @@ function saveUserRewardHistory(userReward: UserGaugeReward, user: UserGauge, cla
   }
 }
 
-function getOrCreateToken(tokenAdr: string): TokenEntity {
-  let token = TokenEntity.load(tokenAdr);
-  if(!token) {
-    token = new TokenEntity(tokenAdr);
-    const tokenCtr = VaultAbi.bind(Address.fromString(tokenAdr));
-
-    token.symbol = tokenCtr.symbol();
-    token.name = tokenCtr.name();
-    token.decimals = tokenCtr.decimals();
-    token.usdPrice = ZERO_BD;
-  }
-  return token;
-}
-
-function tryGetUsdPrice(
+function _tryGetUsdPrice(
   liquidatorAdr: string,
-  asset: string,
+  asset: Address,
   decimals: BigInt
 ): BigDecimal {
-  if (getUSDC().equals(Address.fromString(asset))) {
-    return BigDecimal.fromString('1');
-  }
-  const liquidator = LiquidatorAbi.bind(Address.fromString(liquidatorAdr))
-  const p = liquidator.try_getPrice(
-    Address.fromString(asset),
-    getUSDC(),
-    parseUnits(BigDecimal.fromString('1'), decimals)
+  return tryGetUsdPrice(
+    changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(liquidatorAdr))),
+    changetype<VaultAbiCommon>(VaultAbi.bind(asset)),
+    decimals
   );
-  if (!p.reverted) {
-    let token = getOrCreateToken(asset);
-    token.usdPrice = formatUnits(p.value, decimals);
-    token.save();
-    return formatUnits(p.value, decimals);
-  }
-  log.error("=== FAILED GET PRICE === liquidator: {} asset: {}", [liquidatorAdr, asset]);
-  return BigDecimal.fromString('0')
 }

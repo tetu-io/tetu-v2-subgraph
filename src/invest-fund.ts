@@ -1,10 +1,10 @@
 // noinspection JSUnusedGlobalSymbols
 
 import {FundDeposit, FundWithdrawn} from "./types/templates/InvestFundTemplate/InvestFundAbi";
-import {InvestFundBalance, InvestFundBalanceHistory, InvestFundEntity} from "./types/schema";
+import {InvestFundBalance, InvestFundBalanceHistory} from "./types/schema";
 import {BigInt} from "@graphprotocol/graph-ts";
 import {VaultAbi} from "./types/templates/InvestFundTemplate/VaultAbi";
-import { formatUnits } from "./helpers";
+import {formatUnits} from "./helpers";
 
 export function handleFundDeposit(event: FundDeposit): void {
   const tokenCtr = VaultAbi.bind(event.params.token);

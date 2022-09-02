@@ -3,7 +3,8 @@
 import {
   BribeDeposit,
   BribeWithdraw,
-  ClaimRewards, MultiBribeAbi,
+  ClaimRewards,
+  MultiBribeAbi,
   NotifyReward,
   RevisionIncreased,
   Upgraded
@@ -23,13 +24,19 @@ import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/templates/MultiBribeTemplate/ProxyAbi";
 import {
   calculateApr,
-  generateVeBribeId,
+  formatUnits,
   generateBribeVaultId,
-  generateBribeVaultRewardId, generateVeBribeRewardId, formatUnits, generateVeNFTId
+  generateBribeVaultRewardId,
+  generateVeBribeId,
+  generateVeBribeRewardId,
+  generateVeNFTId,
+  tryGetUsdPrice
 } from "./helpers";
-import {tryGetUsdPrice} from "./vault-factory";
 import {ADDRESS_ZERO} from "./constants";
 import {VaultAbi} from "./types/templates/MultiBribeTemplate/VaultAbi";
+import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
+import {LiquidatorAbi} from "./types/VaultFactoryData/LiquidatorAbi";
+import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 
 // ***************************************************
 //                     DEPOSIT/WITHDRAW
@@ -132,7 +139,7 @@ function updateAll(
   }
 
   // get asset price
-  bribeVault.assetPrice = tryGetUsdPrice(controller.liquidator, vault.asset, assetDecimals);
+  bribeVault.assetPrice = _tryGetUsdPrice(controller.liquidator, vault.asset, assetDecimals);
   bribeVault.stakingTokenPrice = bribeVault.assetPrice.times(vault.sharePrice)
   const totalSupplyUSD = bribeVault.totalSupply.times(bribeVault.stakingTokenPrice);
 
@@ -151,7 +158,7 @@ function updateAll(
       const rewardDecimals = BigInt.fromI32(bribeVaultReward.decimals)
 
       const _earned = formatUnits(earned, rewardDecimals)
-      const rewardTokenPrice = tryGetUsdPrice(controller.liquidator, rewardToken, rewardDecimals);
+      const rewardTokenPrice = _tryGetUsdPrice(controller.liquidator, rewardToken, rewardDecimals);
       const earnedUsd = _earned.times(rewardTokenPrice);
 
       veBribeReward.apr = calculateApr(BigInt.fromI32(veBribeReward.lastEarnedUpdate), time, earnedUsd, veBribe.stakedBalanceUSD)
@@ -175,7 +182,7 @@ function updateAll(
   if (veId.equals(BigInt.fromI32(0)) && Address.fromString(ADDRESS_ZERO).notEqual(Address.fromString(rewardToken))) {
     const bribeVaultReward = getOrCreateBribeVaultReward(bribeVault.id, rewardToken);
     const rewardDecimals = BigInt.fromI32(bribeVaultReward.decimals)
-    const rewardTokenPrice = tryGetUsdPrice(controller.liquidator, rewardToken, rewardDecimals);
+    const rewardTokenPrice = _tryGetUsdPrice(controller.liquidator, rewardToken, rewardDecimals);
 
     const reward = getOrCreateBribeVaultReward(bribeVault.id, rewardToken);
     updateRewardInfoAndSave(reward, bribe.id, bribeVault.vault, bribeVault.totalSupply, totalSupplyUSD, time, rewardTokenPrice);
@@ -347,4 +354,14 @@ function saveVeBribeRewardHistory(veBribeReward: VeBribeReward, user: VeBribe, c
   }
 }
 
-
+function _tryGetUsdPrice(
+  liquidatorAdr: string,
+  asset: string,
+  decimals: BigInt
+): BigDecimal {
+  return tryGetUsdPrice(
+    changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(liquidatorAdr))),
+    changetype<VaultAbiCommon>(VaultAbi.bind(Address.fromString(asset))),
+    decimals
+  );
+}

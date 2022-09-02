@@ -12,8 +12,7 @@ import {
   PlatformVoteEntity,
   PlatformVoteHistory,
   PlatformVoterEntity,
-  StrategyEntity,
-  VeNFTEntity
+  StrategyEntity
 } from "./types/schema";
 import {BigDecimal, BigInt, store} from "@graphprotocol/graph-ts";
 import {formatUnits, generatePlatformVoteEntityId, generateVeNFTId} from "./helpers";

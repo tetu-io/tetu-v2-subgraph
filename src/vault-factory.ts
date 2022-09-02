@@ -10,13 +10,15 @@ import {
 import {
   GaugeEntity,
   InsuranceEntity,
-  SplitterEntity, TokenEntity,
+  SplitterEntity,
   VaultEntity,
   VaultFactoryEntity,
-  VaultVoteEntity, VeNFTTokenEntity, VeTetuEntity, VeTetuTokenEntity
+  VaultVoteEntity,
+  VeTetuEntity,
+  VeTetuTokenEntity
 } from "./types/schema";
-import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
-import {formatUnits, parseUnits} from "./helpers";
+import {Address, BigDecimal, BigInt, ByteArray, crypto} from "@graphprotocol/graph-ts";
+import {formatUnits, getOrCreateToken, tryGetUsdPrice} from "./helpers";
 import {VaultAbi} from "./types/VaultFactoryData/VaultAbi";
 import {ControllerAbi} from "./types/VaultFactoryData/ControllerAbi";
 import {LiquidatorAbi} from "./types/VaultFactoryData/LiquidatorAbi";
@@ -27,10 +29,12 @@ import {
   VaultTemplate,
   VeTetuTemplate
 } from './types/templates'
-import {getUSDC, RATIO_DENOMINATOR, ZERO_BD} from "./constants";
+import {RATIO_DENOMINATOR, ZERO_BD} from "./constants";
 import {StrategySplitterAbi} from "./types/VaultFactoryData/StrategySplitterAbi";
 import {MultiGaugeAbi} from "./types/VaultFactoryData/MultiGaugeAbi";
 import {VeTetuAbi} from "./types/VaultFactoryData/VeTetuAbi";
+import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
+import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 
 export function handleVaultDeployed(event: VaultDeployed): void {
   const factory = createOrGetFactory(event.address.toHexString())
@@ -82,7 +86,7 @@ export function handleVaultDeployed(event: VaultDeployed): void {
   vault.usersCount = 0;
 
   // create token entity
-  const token = getOrCreateToken(event.params.asset.toHexString());
+  const token = getOrCreateToken(changetype<VaultAbiCommon>(VaultAbi.bind(event.params.asset)));
   token.save();
 
   let vote = VaultVoteEntity.load(event.params.vaultProxy.toHexString());
@@ -98,7 +102,7 @@ export function handleVaultDeployed(event: VaultDeployed): void {
     vote.save();
   }
 
-  vault.assetPrice = tryGetUsdPrice(
+  vault.assetPrice = _tryGetUsdPrice(
     controllerCtr.liquidator().toHexString(),
     event.params.asset.toHexString(),
     decimals
@@ -254,41 +258,14 @@ function createVe(veAdr: string): void {
   }
 }
 
-
-function getOrCreateToken(tokenAdr: string): TokenEntity {
-  let token = TokenEntity.load(tokenAdr);
-  if (!token) {
-    token = new TokenEntity(tokenAdr);
-    const tokenCtr = VaultAbi.bind(Address.fromString(tokenAdr));
-
-    token.symbol = tokenCtr.symbol();
-    token.name = tokenCtr.name();
-    token.decimals = tokenCtr.decimals();
-    token.usdPrice = ZERO_BD;
-  }
-  return token;
-}
-
-export function tryGetUsdPrice(
+function _tryGetUsdPrice(
   liquidatorAdr: string,
   asset: string,
   decimals: BigInt
 ): BigDecimal {
-  if (getUSDC().equals(Address.fromString(asset))) {
-    return BigDecimal.fromString('1');
-  }
-  const liquidator = LiquidatorAbi.bind(Address.fromString(liquidatorAdr))
-  const p = liquidator.try_getPrice(
-    Address.fromString(asset),
-    getUSDC(),
-    parseUnits(BigDecimal.fromString('1'), decimals)
+  return tryGetUsdPrice(
+    changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(liquidatorAdr))),
+    changetype<VaultAbiCommon>(VaultAbi.bind(Address.fromString(asset))),
+    decimals
   );
-  if (!p.reverted) {
-    let token = getOrCreateToken(asset);
-    token.usdPrice = formatUnits(p.value, decimals);
-    token.save();
-    return formatUnits(p.value, decimals);
-  }
-  log.error("=== FAILED GET PRICE === liquidator: {} asset: {}", [liquidatorAdr, asset]);
-  return BigDecimal.fromString('0')
 }

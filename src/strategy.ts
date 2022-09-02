@@ -10,18 +10,13 @@ import {
   WithdrawAllToSplitter,
   WithdrawToSplitter
 } from "./types/templates/StrategyTemplate/StrategyAbi";
-import {
-  ForwarderTokenInfo,
-  SplitterEntity,
-  StrategyEntity,
-  StrategyHistory,
-  VaultEntity
-} from "./types/schema";
-import {Address, BigDecimal, BigInt, log} from "@graphprotocol/graph-ts";
+import {ForwarderTokenInfo, StrategyEntity, StrategyHistory} from "./types/schema";
+import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {formatUnits} from "./helpers";
 import {VaultAbi} from "./types/templates/StrategyTemplate/VaultAbi";
 import {ForwarderAbi} from "./types/templates/StrategyTemplate/ForwarderAbi";
 import {StrategySplitterAbi} from "./types/templates/StrategySplitterTemplate/StrategySplitterAbi";
+import {HUNDRED_BD, ZERO_BD} from "./constants";
 
 // ***************************************************
 //                 STATE CHANGES
@@ -96,8 +91,12 @@ function updateBalances(
   const strategyCtr = StrategyAbi.bind(Address.fromString(address));
   const splitterCtr = StrategySplitterAbi.bind(Address.fromString(strategy.splitter));
   strategy.tvl = formatUnits(strategyCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals));
-  strategy.tvlAllocationPercent = strategy.tvl.times(BigDecimal.fromString('100'))
-    .div(formatUnits(splitterCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals)));
+  const totalAssets = formatUnits(splitterCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals));
+  if (totalAssets.equals(ZERO_BD)) {
+    strategy.tvlAllocationPercent = ZERO_BD;
+  } else {
+    strategy.tvlAllocationPercent = strategy.tvl.times(HUNDRED_BD).div(totalAssets);
+  }
   saveStrategyHistory(strategy, time);
   strategy.save();
 }

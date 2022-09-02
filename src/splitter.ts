@@ -8,7 +8,8 @@ import {
   ManualAprChanged,
   Paused,
   Rebalance,
-  RevisionIncreased, SetStrategyCapacity,
+  RevisionIncreased,
+  SetStrategyCapacity,
   StrategyAdded,
   StrategyRemoved,
   StrategyScheduled,
@@ -16,18 +17,12 @@ import {
   Upgraded,
   WithdrawFromStrategy
 } from "./types/templates/StrategySplitterTemplate/StrategySplitterAbi";
-import {
-  SplitterEntity,
-  StrategyEntity,
-  StrategyHistory,
-  TokenEntity,
-  VaultEntity
-} from "./types/schema";
+import {SplitterEntity, StrategyEntity, StrategyHistory, TokenEntity} from "./types/schema";
 import {StrategyTemplate} from './types/templates'
 import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {StrategyAbi} from "./types/templates/StrategyTemplate/StrategyAbi";
 import {ProxyAbi} from "./types/templates/StrategySplitterTemplate/ProxyAbi";
-import {ADDRESS_ZERO, ZERO_BD} from "./constants";
+import {ADDRESS_ZERO, HUNDRED_BD, ZERO_BD} from "./constants";
 import {VaultAbi} from "./types/templates/StrategySplitterTemplate/VaultAbi";
 import {formatUnits} from "./helpers";
 
@@ -164,8 +159,12 @@ export function handleHardWork(event: HardWork): void {
   strategy.tvl = tvl;
   strategy.apr = apr;
   strategy.averageApr = avgApr;
-  strategy.tvlAllocationPercent = strategy.tvl.times(BigDecimal.fromString('100'))
-    .div(formatUnits(splitterCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals)));
+  const totalAssets = formatUnits(splitterCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals));
+  if (totalAssets.equals(ZERO_BD)) {
+    strategy.tvlAllocationPercent = ZERO_BD;
+  } else {
+    strategy.tvlAllocationPercent = strategy.tvl.times(HUNDRED_BD).div(totalAssets);
+  }
 
   strategy.lastHardWork = event.block.timestamp.toI32();
 
@@ -245,6 +244,7 @@ function saveStrategyHistory(
   h.loss = strategy.loss;
   h.apr = strategy.apr;
   h.averageApr = strategy.averageApr;
+  h.tvlAllocationPercent = strategy.tvlAllocationPercent;
 
   h.save();
 }
@@ -258,7 +258,12 @@ export function updateTvl(
   const splitterCtr = StrategySplitterAbi.bind(Address.fromString(strategy.splitter));
   const strategyCtr = StrategyAbi.bind(Address.fromString(strategyAdr));
   strategy.tvl = formatUnits(strategyCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals));
-  strategy.tvlAllocationPercent = strategy.tvl.times(BigDecimal.fromString('100')).div(formatUnits(splitterCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals)));
+  const totalAssets = formatUnits(splitterCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals));
+  if (totalAssets.equals(ZERO_BD)) {
+    strategy.tvlAllocationPercent = ZERO_BD;
+  } else {
+    strategy.tvlAllocationPercent = strategy.tvl.times(HUNDRED_BD).div(totalAssets);
+  }
   saveStrategyHistory(strategy, time);
   strategy.save();
 }

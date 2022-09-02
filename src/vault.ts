@@ -2,7 +2,7 @@
 
 import {
   InsuranceBalance,
-  InsuranceEntity, TokenEntity,
+  InsuranceEntity,
   UserCompoundProfit,
   UserEntity,
   UserVault,
@@ -20,17 +20,17 @@ import {
   MaxDepositChanged,
   MaxWithdrawChanged,
   RevisionIncreased,
-  SplitterChanged,
   Transfer,
   Upgraded,
   VaultAbi,
 } from "./types/templates/VaultTemplate/VaultAbi";
 import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
-import {calculateApr, formatUnits, parseUnits} from "./helpers";
-import {createSplitter} from "./vault-factory";
-import {ADDRESS_ZERO, DAY, getUSDC, ZERO_BD} from "./constants";
+import {calculateApr, formatUnits, tryGetUsdPrice} from "./helpers";
+import {ADDRESS_ZERO} from "./constants";
 import {ControllerAbi} from "./types/templates/VaultTemplate/ControllerAbi";
 import {LiquidatorAbi} from "./types/templates/VaultTemplate/LiquidatorAbi";
+import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
+import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 
 // *****************************************
 //            MAIN LOGIC
@@ -313,7 +313,7 @@ function updateVaultAttributes(
   vault.sharePrice = formatUnits(vaultCtr.sharePrice(), decimals)
   vault.totalSupply = formatUnits(vaultCtr.totalSupply(), decimals)
 
-  const assetPrice = tryGetUsdPrice(
+  const assetPrice = _tryGetUsdPrice(
     controllerCtr.liquidator().toHexString(),
     vault.asset,
     decimals
@@ -370,41 +370,14 @@ function getOrCreateVaultUser(
   return vaultUser;
 }
 
-function getOrCreateToken(tokenAdr: string): TokenEntity {
-  let token = TokenEntity.load(tokenAdr);
-  if (!token) {
-    token = new TokenEntity(tokenAdr);
-    const tokenCtr = VaultAbi.bind(Address.fromString(tokenAdr));
-
-    token.symbol = tokenCtr.symbol();
-    token.name = tokenCtr.name();
-    token.decimals = tokenCtr.decimals();
-    token.usdPrice = ZERO_BD;
-  }
-  return token;
-}
-
-function tryGetUsdPrice(
+function _tryGetUsdPrice(
   liquidatorAdr: string,
   asset: string,
   decimals: BigInt
 ): BigDecimal {
-  if (getUSDC().equals(Address.fromString(asset))) {
-    return BigDecimal.fromString('1');
-  }
-  const liquidator = LiquidatorAbi.bind(Address.fromString(liquidatorAdr))
-  const p = liquidator.try_getPrice(
-    Address.fromString(asset),
-    getUSDC(),
-    parseUnits(BigDecimal.fromString('1'), decimals)
+  return tryGetUsdPrice(
+    changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(liquidatorAdr))),
+    changetype<VaultAbiCommon>(VaultAbi.bind(Address.fromString(asset))),
+    decimals
   );
-  if (!p.reverted) {
-    let token = getOrCreateToken(asset);
-    token.usdPrice = formatUnits(p.value, decimals);
-    token.save();
-    return formatUnits(p.value, decimals);
-  }
-  log.error("=== FAILED GET PRICE === liquidator: {} asset: {}", [liquidatorAdr, asset]);
-  return BigDecimal.fromString('0')
 }
-

@@ -1,10 +1,8 @@
 // noinspection JSUnusedGlobalSymbols
 
 import {
-  ContractInitialized,
   Distributed,
   GaugeRatioChanged,
-  Initialized,
   InvestFundRatioChanged,
   RevisionIncreased,
   SlippageChanged,
@@ -19,18 +17,17 @@ import {
   InvestFundEntity,
   TetuVoterEntity,
   TetuVoterRewardHistory,
-  TokenEntity,
   VeDistBalance,
   VeDistEntity
 } from "./types/schema";
-import {Address, BigDecimal, BigInt, log} from "@graphprotocol/graph-ts";
+import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {ForwarderAbi} from "./types/ControllerData/ForwarderAbi";
-import {ProxyAbi} from "./types/ControllerData/ProxyAbi";
-import {formatUnits, parseUnits} from "./helpers";
+import {formatUnits, tryGetUsdPrice} from "./helpers";
 import {VaultAbi} from "./types/templates/ForwarderTemplate/VaultAbi";
 import {ControllerAbi} from "./types/templates/ForwarderTemplate/ControllerAbi";
-import {getUSDC, ZERO_BD} from "./constants";
 import {LiquidatorAbi} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";
+import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
+import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 
 // ***************************************************
 //                 STATE CHANGES
@@ -84,7 +81,7 @@ export function handleDistributed(event: Distributed): void {
   const tetuAdr = forwarderCtr.tetu();
   const tokenDecimals = BigInt.fromI32(tokenCtr.decimals());
   const liquidatorAdr = controllerCtr.liquidator().toHexString();
-  const tetuPrice = tryGetUsdPrice(liquidatorAdr, tetuAdr.toHexString(), BigInt.fromI32(18))
+  const tetuPrice = _tryGetUsdPrice(liquidatorAdr, tetuAdr.toHexString(), BigInt.fromI32(18))
 
   distribution.forwarder = event.address.toHexString();
   distribution.time = event.block.timestamp.toI32();
@@ -177,40 +174,14 @@ function getOrCreateForwarderTokenInfo(address: string, forwarder: string): Forw
   return tokenInfo;
 }
 
-function getOrCreateToken(tokenAdr: string): TokenEntity {
-  let token = TokenEntity.load(tokenAdr);
-  if(!token) {
-    token = new TokenEntity(tokenAdr);
-    const tokenCtr = VaultAbi.bind(Address.fromString(tokenAdr));
-
-    token.symbol = tokenCtr.symbol();
-    token.name = tokenCtr.name();
-    token.decimals = tokenCtr.decimals();
-    token.usdPrice = ZERO_BD;
-  }
-  return token;
-}
-
-function tryGetUsdPrice(
+function _tryGetUsdPrice(
   liquidatorAdr: string,
   asset: string,
   decimals: BigInt
 ): BigDecimal {
-  if (getUSDC().equals(Address.fromString(asset))) {
-    return BigDecimal.fromString('1');
-  }
-  const liquidator = LiquidatorAbi.bind(Address.fromString(liquidatorAdr))
-  const p = liquidator.try_getPrice(
-    Address.fromString(asset),
-    getUSDC(),
-    parseUnits(BigDecimal.fromString('1'), decimals)
+  return tryGetUsdPrice(
+    changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(liquidatorAdr))),
+    changetype<VaultAbiCommon>(VaultAbi.bind(Address.fromString(asset))),
+    decimals
   );
-  if (!p.reverted) {
-    let token = getOrCreateToken(asset);
-    token.usdPrice = formatUnits(p.value, decimals);
-    token.save();
-    return formatUnits(p.value, decimals);
-  }
-  log.error("=== FAILED GET PRICE === liquidator: {} asset: {}", [liquidatorAdr, asset]);
-  return BigDecimal.fromString('0')
 }

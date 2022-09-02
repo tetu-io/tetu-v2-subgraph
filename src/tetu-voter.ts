@@ -17,12 +17,10 @@ import {
   TetuVoterUser,
   TetuVoterUserVote,
   TetuVoterUserVoteHistory,
-  TokenEntity,
-  UserEntity,
   VaultVoteEntity
 } from "./types/schema";
 import {TetuVoterAbi} from "./types/ControllerData/TetuVoterAbi";
-import {Address, BigDecimal, BigInt, log, store} from "@graphprotocol/graph-ts";
+import {Address, BigDecimal, BigInt, store} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/ControllerData/ProxyAbi";
 import {VaultAbi} from "./types/ControllerData/VaultAbi";
 import {
@@ -33,13 +31,15 @@ import {
   generateTetuVoterUserVoteId,
   generateVaultVoteEntityId,
   generateVeNFTId,
-  parseUnits
+  tryGetUsdPrice
 } from "./helpers";
-import {ADDRESS_ZERO, getUSDC, REWARD_TOKEN_DECIMALS, ZERO_BD} from "./constants";
+import {REWARD_TOKEN_DECIMALS} from "./constants";
 import {VeTetuAbi} from "./types/templates/VeTetuTemplate/VeTetuAbi";
 import {MultiBribeTemplate} from "./types/templates";
 import {MultiBribeAbi} from "./types/templates/TetuVoterTemplate/MultiBribeAbi";
 import {LiquidatorAbi} from "./types/templates/TetuVoterTemplate/LiquidatorAbi";
+import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
+import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 
 // ***************************************************
 //                ATTACH/DETACH/VOTE
@@ -290,7 +290,7 @@ export function updateVaultVoteEntity(
   const gauge = getOrCreateGaugeVault(vaultVote.vault, gaugeAdr);
   const totalSupplyUSD = gauge.totalSupply.times(gauge.stakingTokenPrice);
   const controller = ControllerEntity.load(controllerAdr) as ControllerEntity;
-  vaultVote.rewardTokenPrice = tryGetUsdPrice(controller.liquidator, rewardToken, REWARD_TOKEN_DECIMALS);
+  vaultVote.rewardTokenPrice = _tryGetUsdPrice(controller.liquidator, rewardToken, REWARD_TOKEN_DECIMALS);
   const expectedRewardsUSD = vaultVote.expectReward.times(vaultVote.rewardTokenPrice);
   vaultVote.expectApr = calculateApr(BigInt.fromI32(0), BigInt.fromI32(60 * 60 * 24 * 7), expectedRewardsUSD, totalSupplyUSD)
 }
@@ -337,40 +337,14 @@ function createBribe(bribeAdr: string): void {
   }
 }
 
-function getOrCreateToken(tokenAdr: string): TokenEntity {
-  let token = TokenEntity.load(tokenAdr);
-  if (!token) {
-    token = new TokenEntity(tokenAdr);
-    const tokenCtr = VaultAbi.bind(Address.fromString(tokenAdr));
-
-    token.symbol = tokenCtr.symbol();
-    token.name = tokenCtr.name();
-    token.decimals = tokenCtr.decimals();
-    token.usdPrice = ZERO_BD;
-  }
-  return token;
-}
-
-function tryGetUsdPrice(
+function _tryGetUsdPrice(
   liquidatorAdr: string,
   asset: string,
   decimals: BigInt
 ): BigDecimal {
-  if (getUSDC().equals(Address.fromString(asset))) {
-    return BigDecimal.fromString('1');
-  }
-  const liquidator = LiquidatorAbi.bind(Address.fromString(liquidatorAdr))
-  const p = liquidator.try_getPrice(
-    Address.fromString(asset),
-    getUSDC(),
-    parseUnits(BigDecimal.fromString('1'), decimals)
+  return tryGetUsdPrice(
+    changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(liquidatorAdr))),
+    changetype<VaultAbiCommon>(VaultAbi.bind(Address.fromString(asset))),
+    decimals
   );
-  if (!p.reverted) {
-    let token = getOrCreateToken(asset);
-    token.usdPrice = formatUnits(p.value, decimals);
-    token.save();
-    return formatUnits(p.value, decimals);
-  }
-  log.error("=== FAILED GET PRICE === liquidator: {} asset: {}", [liquidatorAdr, asset]);
-  return BigDecimal.fromString('0')
 }

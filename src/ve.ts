@@ -12,7 +12,6 @@ import {
 } from "./types/templates/VeTetuTemplate/VeTetuAbi";
 import {
   ControllerEntity,
-  TokenEntity,
   UserEntity,
   VeNFTEntity,
   VeNFTTokenEntity,
@@ -20,12 +19,14 @@ import {
   VeTetuEntity,
   VeTetuTokenEntity
 } from "./types/schema";
-import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
+import {Address, BigDecimal, BigInt, ByteArray, crypto} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/templates/VeTetuTemplate/ProxyAbi";
-import {formatUnits, generateVeNFTId, parseUnits} from "./helpers";
-import {ADDRESS_ZERO, getUSDC, ZERO_BD} from "./constants";
+import {formatUnits, generateVeNFTId, parseUnits, tryGetUsdPrice} from "./helpers";
+import {ADDRESS_ZERO} from "./constants";
 import {VaultAbi} from "./types/templates/VeTetuTemplate/VaultAbi";
 import {LiquidatorAbi} from "./types/templates/VeTetuTemplate/LiquidatorAbi";
+import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
+import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 
 // ***************************************************
 //                   DEPOSIT/WITHDRAW
@@ -130,7 +131,7 @@ function updateUser(
     const tokenEntity = getOrCreateVeToken(veNFT.id, veAdr, token);
     const decimals = BigInt.fromI32(tokenEntity.decimals)
     veNFT.derivedAmount = formatUnits(veCtr.lockedDerivedAmount(veId), decimals);
-    const tokenPrice = tryGetUsdPrice(controller.liquidator, token, decimals);
+    const tokenPrice = _tryGetUsdPrice(controller.liquidator, token, decimals);
     tokenEntity.amount = formatUnits(veCtr.lockedAmounts(veId, Address.fromString(token)), decimals);
     tokenEntity.amountUSD = tokenEntity.amount.times(tokenPrice);
     saveTokenHistory(tokenEntity, time);
@@ -266,41 +267,15 @@ function updateVeNftUser(veNFT: VeNFTEntity, userAdr: string): void {
   }
 }
 
-function getOrCreateToken(tokenAdr: string): TokenEntity {
-  let token = TokenEntity.load(tokenAdr);
-  if (!token) {
-    token = new TokenEntity(tokenAdr);
-    const tokenCtr = VaultAbi.bind(Address.fromString(tokenAdr));
-
-    token.symbol = tokenCtr.symbol();
-    token.name = tokenCtr.name();
-    token.decimals = tokenCtr.decimals();
-    token.usdPrice = ZERO_BD;
-  }
-  return token;
-}
-
-function tryGetUsdPrice(
+function _tryGetUsdPrice(
   liquidatorAdr: string,
   asset: string,
   decimals: BigInt
 ): BigDecimal {
-  if (getUSDC().equals(Address.fromString(asset))) {
-    return BigDecimal.fromString('1');
-  }
-  const liquidator = LiquidatorAbi.bind(Address.fromString(liquidatorAdr))
-  const p = liquidator.try_getPrice(
-    Address.fromString(asset),
-    getUSDC(),
-    parseUnits(BigDecimal.fromString('1'), decimals)
+  return tryGetUsdPrice(
+    changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(liquidatorAdr))),
+    changetype<VaultAbiCommon>(VaultAbi.bind(Address.fromString(asset))),
+    decimals
   );
-  if (!p.reverted) {
-    let token = getOrCreateToken(asset);
-    token.usdPrice = formatUnits(p.value, decimals);
-    token.save();
-    return formatUnits(p.value, decimals);
-  }
-  log.error("=== FAILED GET PRICE === liquidator: {} asset: {}", [liquidatorAdr, asset]);
-  return BigDecimal.fromString('0')
 }
 
