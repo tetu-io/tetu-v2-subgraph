@@ -24,11 +24,7 @@ import {
 } from "./types/schema";
 import {Address, BigDecimal, BigInt, ByteArray, crypto} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/templates/MultiGaugeTemplate/ProxyAbi";
-import {
-  calculateApr,
-  formatUnits,
-  tryGetUsdPrice
-} from "./helpers/common-helper";
+import {calculateApr, formatUnits, tryGetUsdPrice} from "./helpers/common-helper";
 import {VaultAbi} from "./types/templates/MultiGaugeTemplate/VaultAbi";
 import {ControllerAbi} from "./types/templates/MultiGaugeTemplate/ControllerAbi";
 import {LiquidatorAbi} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";
@@ -36,6 +32,9 @@ import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 import {ADDRESS_ZERO} from "./constants";
 import {generateGaugeVaultId, generateVeNFTId} from "./helpers/id-helper";
+import {getOrCreateGauge} from "./helpers/gauge-helper";
+import {MultiGaugeAbi as MultiGaugeAbiCommon} from "./common/MultiGaugeAbi";
+import {ProxyAbi as ProxyAbiCommon} from "./common/ProxyAbi";
 
 // ***************************************************
 //                     DEPOSIT/WITHDRAW
@@ -127,14 +126,14 @@ export function handleAddStakingToken(event: AddStakingToken): void {
 }
 
 export function handleRevisionIncreased(event: RevisionIncreased): void {
-  const gauge = getOrCreateGauge(event.address.toHexString());
+  const gauge = _getOrCreateGauge(event.address.toHexString());
   gauge.revision = event.params.value.toI32();
   gauge.save();
 }
 
 
 export function handleUpgraded(event: Upgraded): void {
-  const gauge = getOrCreateGauge(event.address.toHexString());
+  const gauge = _getOrCreateGauge(event.address.toHexString());
   const implementations = gauge.implementations;
   implementations.push(event.params.implementation.toHexString())
   gauge.implementations = implementations;
@@ -154,7 +153,7 @@ function updateAll(
   rewardToken: string,
   earned: BigInt
 ): void {
-  const gauge = getOrCreateGauge(gaugeAdr);
+  const gauge = _getOrCreateGauge(gaugeAdr);
   const vault = getOrCreateGaugeVault(vaultAdr, gauge.id);
   const gaugeCtr = MultiGaugeAbi.bind(Address.fromString(gauge.id));
   const vaultCtr = VaultAbi.bind(Address.fromString(vault.vault));
@@ -221,28 +220,6 @@ function updateAll(
 
   gauge.save();
   vault.save();
-}
-
-function getOrCreateGauge(address: string): GaugeEntity {
-  let gauge = GaugeEntity.load(address);
-
-  if (!gauge) {
-    gauge = new GaugeEntity(address);
-    const gaugeCtr = MultiGaugeAbi.bind(Address.fromString(address));
-    const proxy = ProxyAbi.bind(Address.fromString(address))
-
-    gauge.version = gaugeCtr.MULTI_GAUGE_VERSION();
-    gauge.revision = gaugeCtr.revision().toI32();
-    gauge.createdTs = gaugeCtr.created().toI32()
-    gauge.createdBlock = gaugeCtr.createdBlock().toI32()
-    gauge.implementations = [proxy.implementation().toHexString()]
-    gauge.ve = gaugeCtr.ve().toHexString();
-    gauge.operator = gaugeCtr.operator().toHexString();
-    gauge.defaultRewardToken = gaugeCtr.defaultRewardToken().toHexString()
-
-  }
-
-  return gauge;
 }
 
 function getOrCreateGaugeVault(vaultAdr: string, gaugeAdr: string): GaugeVaultEntity {
@@ -383,6 +360,13 @@ function saveUserRewardHistory(userReward: UserGaugeReward, user: UserGauge, cla
     // already saved in this block
     return;
   }
+}
+
+function _getOrCreateGauge(gaugeAdr: string): GaugeEntity {
+  return getOrCreateGauge(
+    changetype<MultiGaugeAbiCommon>(MultiGaugeAbi.bind(Address.fromString(gaugeAdr))),
+    changetype<ProxyAbiCommon>(ProxyAbi.bind(Address.fromString(gaugeAdr))),
+  );
 }
 
 function _tryGetUsdPrice(

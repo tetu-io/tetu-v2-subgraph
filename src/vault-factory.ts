@@ -35,6 +35,9 @@ import {MultiGaugeAbi} from "./types/VaultFactoryData/MultiGaugeAbi";
 import {VeTetuAbi} from "./types/VaultFactoryData/VeTetuAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
+import {ProxyAbi as ProxyAbiCommon} from "./common/ProxyAbi";
+import {MultiGaugeAbi as MultiGaugeAbiCommon} from "./common/MultiGaugeAbi";
+import {getOrCreateGauge} from "./helpers/gauge-helper";
 
 export function handleVaultDeployed(event: VaultDeployed): void {
   const factory = createOrGetFactory(event.address.toHexString())
@@ -116,7 +119,7 @@ export function handleVaultDeployed(event: VaultDeployed): void {
   factory.vaultsCount = factory.vaultsCount + 1;
 
   VaultTemplate.create(event.params.vaultProxy);
-  const gauge = getOrCreateGauge(vault.gauge);
+  const gauge = _getOrCreateGauge(vault.gauge);
   createVe(gauge.ve)
 
   factory.save();
@@ -200,29 +203,6 @@ export function createInsurance(
   return insurance;
 }
 
-function getOrCreateGauge(address: string): GaugeEntity {
-  let gauge = GaugeEntity.load(address);
-  if (!gauge) {
-    gauge = new GaugeEntity(address);
-    const gaugeCtr = MultiGaugeAbi.bind(Address.fromString(address));
-    const proxy = ProxyAbi.bind(Address.fromString(address))
-
-    gauge.version = gaugeCtr.MULTI_GAUGE_VERSION();
-    gauge.revision = gaugeCtr.revision().toI32();
-    gauge.createdTs = gaugeCtr.created().toI32()
-    gauge.createdBlock = gaugeCtr.createdBlock().toI32()
-    gauge.implementations = [proxy.implementation().toHexString()]
-    gauge.ve = gaugeCtr.ve().toHexString();
-    gauge.controller = gaugeCtr.controller().toHexString();
-    gauge.operator = gaugeCtr.operator().toHexString();
-    gauge.defaultRewardToken = gaugeCtr.defaultRewardToken().toHexString()
-
-    MultiGaugeTemplate.create(Address.fromString(address));
-    gauge.save();
-  }
-  return gauge;
-}
-
 function createVe(veAdr: string): void {
   let ve = VeTetuEntity.load(veAdr);
   if (!ve) {
@@ -256,6 +236,13 @@ function createVe(veAdr: string): void {
       tokenInfo.save();
     }
   }
+}
+
+function _getOrCreateGauge(gaugeAdr: string): GaugeEntity {
+  return getOrCreateGauge(
+    changetype<MultiGaugeAbiCommon>(MultiGaugeAbi.bind(Address.fromString(gaugeAdr))),
+    changetype<ProxyAbiCommon>(ProxyAbi.bind(Address.fromString(gaugeAdr))),
+  );
 }
 
 function _tryGetUsdPrice(
