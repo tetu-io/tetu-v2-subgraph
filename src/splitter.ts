@@ -239,7 +239,7 @@ function _updateStrategyData(strategyAdr: string, time: i32): void {
     strategy,
     time,
     changetype<StrategySplitterAbiCommon>(StrategySplitterAbi.bind(Address.fromString(strategy.splitter))),
-    changetype<StrategyAbiCommon>(StrategyAbi.bind(Address.fromString(address))),
+    changetype<StrategyAbiCommon>(StrategyAbi.bind(Address.fromString(strategyAdr))),
   )
 }
 
