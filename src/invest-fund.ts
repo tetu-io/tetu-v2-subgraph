@@ -37,11 +37,7 @@ function loadBalance(fundAdr: string, tokenAdr: string): InvestFundBalance {
   return balance;
 }
 
-function saveBalanceHistory(
-  balance: InvestFundBalance,
-  // @ts-ignore
-  time: i32
-): void {
+function saveBalanceHistory(balance: InvestFundBalance, time: i32): void {
   const h = new InvestFundBalanceHistory(balance.id + "_" + BigInt.fromI32(time).toString());
 
   h.fundBalance = balance.id;

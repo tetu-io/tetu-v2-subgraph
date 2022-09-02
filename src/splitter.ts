@@ -25,6 +25,9 @@ import {ProxyAbi} from "./types/templates/StrategySplitterTemplate/ProxyAbi";
 import {ADDRESS_ZERO, HUNDRED_BD, ZERO_BD} from "./constants";
 import {VaultAbi} from "./types/templates/StrategySplitterTemplate/VaultAbi";
 import {formatUnits} from "./helpers/common-helper";
+import {saveStrategyHistory, updateStrategyData} from "./helpers/strategy-helper";
+import {StrategySplitterAbi as StrategySplitterAbiCommon} from "./common/StrategySplitterAbi";
+import {StrategyAbi as StrategyAbiCommon} from "./common/StrategyAbi";
 
 // ***************************************************
 //             ADD/REMOVE STRATEGIES
@@ -94,11 +97,11 @@ export function handleLoss(event: Loss): void {
 }
 
 export function handleInvested(event: Invested): void {
-  updateTvl(event.params.strategy.toHexString(), event.block.timestamp.toI32());
+  _updateStrategyData(event.params.strategy.toHexString(), event.block.timestamp.toI32());
 }
 
 export function handleWithdrawFromStrategy(event: WithdrawFromStrategy): void {
-  updateTvl(event.params.strategy.toHexString(), event.block.timestamp.toI32());
+  _updateStrategyData(event.params.strategy.toHexString(), event.block.timestamp.toI32());
 }
 
 export function handlePaused(event: Paused): void {
@@ -178,8 +181,8 @@ export function handleHardWork(event: HardWork): void {
 // ***************************************************
 
 export function handleRebalance(event: Rebalance): void {
-  updateTvl(event.params.lowStrategy.toHexString(), event.block.timestamp.toI32());
-  updateTvl(event.params.topStrategy.toHexString(), event.block.timestamp.toI32());
+  _updateStrategyData(event.params.lowStrategy.toHexString(), event.block.timestamp.toI32());
+  _updateStrategyData(event.params.topStrategy.toHexString(), event.block.timestamp.toI32());
 }
 
 // ***************************************************
@@ -230,42 +233,14 @@ function getOrCreateStrategy(address: string): StrategyEntity {
   return strategy;
 }
 
-function saveStrategyHistory(
-  strategy: StrategyEntity,
-  // @ts-ignore
-  time: i32
-): void {
-  const h = new StrategyHistory(strategy.id + '_' + BigInt.fromI32(time).toString());
-  h.strategy = strategy.id;
-  h.time = time;
-
-  h.tvl = strategy.tvl;
-  h.profit = strategy.profit;
-  h.loss = strategy.loss;
-  h.apr = strategy.apr;
-  h.averageApr = strategy.averageApr;
-  h.tvlAllocationPercent = strategy.tvlAllocationPercent;
-
-  h.save();
-}
-
-export function updateTvl(
-  strategyAdr: string,
-  // @ts-ignore
-  time: i32
-): void {
+function _updateStrategyData(strategyAdr: string, time: i32): void {
   const strategy = getOrCreateStrategy(strategyAdr);
-  const splitterCtr = StrategySplitterAbi.bind(Address.fromString(strategy.splitter));
-  const strategyCtr = StrategyAbi.bind(Address.fromString(strategyAdr));
-  strategy.tvl = formatUnits(strategyCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals));
-  const totalAssets = formatUnits(splitterCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals));
-  if (totalAssets.equals(ZERO_BD)) {
-    strategy.tvlAllocationPercent = ZERO_BD;
-  } else {
-    strategy.tvlAllocationPercent = strategy.tvl.times(HUNDRED_BD).div(totalAssets);
-  }
-  saveStrategyHistory(strategy, time);
-  strategy.save();
+  updateStrategyData(
+    strategy,
+    time,
+    changetype<StrategySplitterAbiCommon>(StrategySplitterAbi.bind(Address.fromString(strategy.splitter))),
+    changetype<StrategyAbiCommon>(StrategyAbi.bind(Address.fromString(address))),
+  )
 }
 
 function getOrCreateToken(tokenAdr: string): TokenEntity {

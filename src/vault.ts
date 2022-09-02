@@ -225,7 +225,6 @@ function updateUser(
   decimals: BigInt,
   timestamp: BigInt,
   vault: VaultEntity,
-  // @ts-ignore
   increase: boolean,
   sharesTransferred: BigDecimal
 ): void {
@@ -287,11 +286,7 @@ function updateUser(
   }
 }
 
-function updateVaultAttributes(
-  address: string,
-  // @ts-ignore
-  time: i32
-): VaultEntity {
+function updateVaultAttributes(address: string, time: i32): VaultEntity {
   const vault = VaultEntity.load(address);
   if (!vault) {
     log.critical("Vault not found {}", [address]);

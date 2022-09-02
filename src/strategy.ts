@@ -10,13 +10,15 @@ import {
   WithdrawAllToSplitter,
   WithdrawToSplitter
 } from "./types/templates/StrategyTemplate/StrategyAbi";
-import {ForwarderTokenInfo, StrategyEntity, StrategyHistory} from "./types/schema";
+import {ForwarderTokenInfo, StrategyEntity} from "./types/schema";
 import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {formatUnits} from "./helpers/common-helper";
 import {VaultAbi} from "./types/templates/StrategyTemplate/VaultAbi";
 import {ForwarderAbi} from "./types/templates/StrategyTemplate/ForwarderAbi";
 import {StrategySplitterAbi} from "./types/templates/StrategySplitterTemplate/StrategySplitterAbi";
-import {HUNDRED_BD, ZERO_BD} from "./constants";
+import {updateStrategyData} from "./helpers/strategy-helper";
+import {StrategySplitterAbi as StrategySplitterAbiCommon} from "./common/StrategySplitterAbi";
+import {StrategyAbi as StrategyAbiCommon} from "./common/StrategyAbi";
 
 // ***************************************************
 //                 STATE CHANGES
@@ -49,17 +51,17 @@ export function handleRevisionIncreased(event: RevisionIncreased): void {
 // ***************************************************
 
 export function handleEmergencyExit(event: EmergencyExit): void {
-  updateBalances(event.address.toHexString(), event.block.timestamp.toI32());
+  _updateStrategyData(event.address.toHexString(), event.block.timestamp.toI32());
 }
 
 export function handleWithdrawAllToSplitter(
   event: WithdrawAllToSplitter
 ): void {
-  updateBalances(event.address.toHexString(), event.block.timestamp.toI32());
+  _updateStrategyData(event.address.toHexString(), event.block.timestamp.toI32());
 }
 
 export function handleWithdrawToSplitter(event: WithdrawToSplitter): void {
-  updateBalances(event.address.toHexString(), event.block.timestamp.toI32());
+  _updateStrategyData(event.address.toHexString(), event.block.timestamp.toI32());
 }
 
 export function handleSentToForwarder(event: SentToForwarder): void {
@@ -82,40 +84,12 @@ export function handleSentToForwarder(event: SentToForwarder): void {
 //                    HELPERS
 // ***************************************************
 
-function updateBalances(
-  address: string,
-  // @ts-ignore
-  time: i32
-): void {
-  const strategy = StrategyEntity.load(address) as StrategyEntity;
-  const strategyCtr = StrategyAbi.bind(Address.fromString(address));
-  const splitterCtr = StrategySplitterAbi.bind(Address.fromString(strategy.splitter));
-  strategy.tvl = formatUnits(strategyCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals));
-  const totalAssets = formatUnits(splitterCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals));
-  if (totalAssets.equals(ZERO_BD)) {
-    strategy.tvlAllocationPercent = ZERO_BD;
-  } else {
-    strategy.tvlAllocationPercent = strategy.tvl.times(HUNDRED_BD).div(totalAssets);
-  }
-  saveStrategyHistory(strategy, time);
-  strategy.save();
-}
-
-function saveStrategyHistory(
-  strategy: StrategyEntity,
-  // @ts-ignore
-  time: i32
-): void {
-  const h = new StrategyHistory(strategy.id + '_' + BigInt.fromI32(time).toString());
-  h.strategy = strategy.id;
-  h.time = time;
-
-  h.tvl = strategy.tvl;
-  h.profit = strategy.profit;
-  h.loss = strategy.loss;
-  h.apr = strategy.apr;
-  h.averageApr = strategy.averageApr;
-  h.tvlAllocationPercent = strategy.tvlAllocationPercent;
-
-  h.save();
+function _updateStrategyData(strategyAdr: string, time: i32): void {
+  const strategy = StrategyEntity.load(strategyAdr) as StrategyEntity;
+  updateStrategyData(
+    strategy,
+    time,
+    changetype<StrategySplitterAbiCommon>(StrategySplitterAbi.bind(Address.fromString(strategy.splitter))),
+    changetype<StrategyAbiCommon>(StrategyAbi.bind(Address.fromString(strategyAdr))),
+  )
 }
