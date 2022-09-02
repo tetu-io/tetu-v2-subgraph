@@ -146,16 +146,15 @@ export function handleSetStrategyCapacity(event: SetStrategyCapacity): void {
 
 export function handleHardWork(event: HardWork): void {
   const splitter = SplitterEntity.load(event.address.toHexString()) as SplitterEntity;
-  const vault = VaultEntity.load(splitter.vault) as VaultEntity;
   const strategy = getOrCreateStrategy(event.params.strategy.toHexString());
   const splitterCtr = StrategySplitterAbi.bind(event.address);
-  const aprDenominator = splitterCtr.APR_DENOMINATOR();
+  const aprDenominator = BigDecimal.fromString('100_000');
 
   const earned = formatUnits(event.params.earned, BigInt.fromI32(strategy.assetDecimals));
   const lost = formatUnits(event.params.lost, BigInt.fromI32(strategy.assetDecimals));
   const tvl = formatUnits(event.params.tvl, BigInt.fromI32(strategy.assetDecimals));
-  const apr = event.params.apr.toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator.toBigDecimal());
-  const avgApr = event.params.avgApr.toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator.toBigDecimal());
+  const apr = event.params.apr.toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator);
+  const avgApr = event.params.avgApr.toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator);
 
   splitter.profit = splitter.profit.plus(earned);
   splitter.loss = splitter.loss.plus(lost);
@@ -200,7 +199,7 @@ function getOrCreateStrategy(address: string): StrategyEntity {
     const vaultCtr = VaultAbi.bind(vaultAdr);
     const proxy = ProxyAbi.bind(Address.fromString(address))
     const compoundDenominator = strategyCtr.COMPOUND_DENOMINATOR();
-    const aprDenominator = splitterCtr.APR_DENOMINATOR();
+    const aprDenominator = BigDecimal.fromString('100000');
 
     strategy.version = strategyCtr.STRATEGY_VERSION();
     strategy.revision = strategyCtr.revision().toI32();
@@ -216,8 +215,8 @@ function getOrCreateStrategy(address: string): StrategyEntity {
 
     strategy.compoundRatio = strategyCtr.compoundRatio().toBigDecimal().times(BigDecimal.fromString('100')).div(compoundDenominator.toBigDecimal());
     strategy.paused = splitterCtr.pausedStrategies(Address.fromString(address));
-    strategy.apr = splitterCtr.strategiesAPR(Address.fromString(address)).toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator.toBigDecimal());
-    strategy.averageApr = splitterCtr.averageApr(Address.fromString(address)).toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator.toBigDecimal());
+    strategy.apr = splitterCtr.strategiesAPR(Address.fromString(address)).toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator);
+    strategy.averageApr = splitterCtr.averageApr(Address.fromString(address)).toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator);
     strategy.lastHardWork = splitterCtr.lastHardWorks(Address.fromString(address)).toI32();
     strategy.tvl = formatUnits(strategyCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals));
     strategy.profit = BigDecimal.fromString('0');
