@@ -37,6 +37,8 @@ dataSources:
           file: ./abis/PlatformVoter.json
         - name: VeDistributorAbi
           file: ./abis/VeDistributor.json
+        - name: MultiBribeAbi
+          file: ./abis/MultiBribe.json
       eventHandlers:
         - event: AddressChangeAnnounced(uint256,address)
           handler: handleAddressChangeAnnounced

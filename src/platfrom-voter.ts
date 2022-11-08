@@ -45,6 +45,7 @@ export function handleVoted(event: Voted): void {
   vote.platformVoter = voter.id;
   vote.veNFT = veNFTId;
   vote.voteType = event.params._type.toI32();
+  vote.date = event.block.timestamp.toI32();
 
   vote.desiredValue = formatUnits(event.params.value, BigInt.fromI32(3))
   vote.target = event.params.target.toHexString();

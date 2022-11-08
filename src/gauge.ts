@@ -295,6 +295,7 @@ function saveRewardHistory(
     history.time = time.toI32();
     history.gaugeVaultReward = reward.id;
     history.totalSupply = vault.totalSupply;
+    history.totalDerivedSupply = vault.totalDerivedSupply
     history.apr = reward.apr;
     history.rewardRate = reward.rewardRate;
     history.periodFinish = reward.periodFinish;

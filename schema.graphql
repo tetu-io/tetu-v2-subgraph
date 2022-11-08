@@ -362,7 +362,6 @@ type GaugeVaultReward @entity {
 
     gaugeVault: GaugeVaultEntity!
     rewardToken: TokenEntity!
-    decimals: Int!
 
     apr: BigDecimal!
     rewardRate: BigDecimal!
@@ -605,6 +604,7 @@ type TetuVoterUserVote @entity {
 
     user: TetuVoterUser!
     vaultVote: VaultVoteEntity!
+    date: Int!
 
     weight: BigDecimal!
     percent: BigDecimal!
@@ -805,6 +805,7 @@ type PlatformVoteEntity @entity {
     platformVoter: PlatformVoterEntity!
     veNFT: VeNFTEntity!
     voteType: Int!
+    date: Int!
 
     #attributes
     desiredValue: BigDecimal!
@@ -840,6 +841,7 @@ type PlatformVoteHistory @entity(immutable: true) {
 ###############################################
 
 type VeTetuEntity @entity {
+    "veTETU contract address"
     id: ID!
     version: String!
     revision: Int!
@@ -858,6 +860,7 @@ type VeTetuEntity @entity {
 }
 
 type VeNFTEntity @entity {
+    "ve ID + ve address"
     id: ID!
 
     ve: VeTetuEntity!

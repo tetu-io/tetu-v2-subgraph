@@ -51,7 +51,7 @@ export function handleVoted(event: Voted): void {
   const voter = _getOrCreateTetuVoter(event.address.toHexString());
   const voterUser = getOrCreateTetuVoterUser(event.params.tokenId, voter.id, voter.ve);
   const vaultVote = getOrCreateVaultVoteEntity(voter, event.params.vault.toHexString());
-  const userVote = getOrCreateTetuVoterUserVote(voterUser, vaultVote);
+  const userVote = getOrCreateTetuVoterUserVote(voterUser, vaultVote, event.block.timestamp);
 
   updateTetuVoter(voter, BigInt.fromI32(1));
 
@@ -194,13 +194,14 @@ function getOrCreateTetuVoterUser(veId: BigInt, voterAdr: string, veAdr: string)
   return user;
 }
 
-function getOrCreateTetuVoterUserVote(voterUser: TetuVoterUser, vaultVote: VaultVoteEntity): TetuVoterUserVote {
+function getOrCreateTetuVoterUserVote(voterUser: TetuVoterUser, vaultVote: VaultVoteEntity, date: BigInt): TetuVoterUserVote {
   const voteId = generateTetuVoterUserVoteId(voterUser.id, vaultVote.id);
   let vote = TetuVoterUserVote.load(voteId);
   if (!vote) {
     vote = new TetuVoterUserVote(voteId);
 
     vote.user = voterUser.id;
+    vote.date = date.toI32();
     vote.vaultVote = vaultVote.id;
     vote.weight = BigDecimal.fromString('0')
     vote.percent = BigDecimal.fromString('0')
