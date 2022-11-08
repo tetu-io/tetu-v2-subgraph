@@ -77,7 +77,7 @@ export function handleDistributed(event: Distributed): void {
 
   const forwarderCtr = ForwarderAbi.bind(event.address);
   const controllerCtr = ControllerAbi.bind(forwarderCtr.controller());
-  const tokenCtr = VaultAbi.bind(event.params.token);
+  const tokenCtr = VaultAbi.bind(event.params.incomeToken);
   const tetuAdr = forwarderCtr.tetu();
   const tokenDecimals = BigInt.fromI32(tokenCtr.decimals());
   const liquidatorAdr = controllerCtr.liquidator().toHexString();
@@ -86,18 +86,18 @@ export function handleDistributed(event: Distributed): void {
   distribution.forwarder = event.address.toHexString();
   distribution.time = event.block.timestamp.toI32();
   distribution.sender = event.params.sender.toHexString()
-  distribution.token = event.params.token.toHexString()
-  distribution.balance = formatUnits(event.params.balance, tokenDecimals);
+  distribution.token = event.params.incomeToken.toHexString()
+  distribution.balance = formatUnits(event.params.queuedBalance, tokenDecimals);
   distribution.tetuValue = formatUnits(event.params.tetuValue, BigInt.fromI32(18));
   distribution.usdValue = distribution.tetuValue.times(tetuPrice);
   distribution.tetuBalance = formatUnits(event.params.tetuBalance, BigInt.fromI32(18));
   distribution.toInvestFund = formatUnits(event.params.toInvestFund, BigInt.fromI32(18));
   distribution.toGauges = formatUnits(event.params.toGauges, BigInt.fromI32(18));
-  distribution.toVeTetu = formatUnits(event.params.toVeTetu, BigInt.fromI32(18));
+  distribution.toBribes = formatUnits(event.params.toBribes, BigInt.fromI32(18));
   distribution.save();
 
   // *** TOKEN BALANCE
-  let tokenInfo = getOrCreateForwarderTokenInfo(event.params.token.toHexString(), event.address.toHexString());
+  let tokenInfo = getOrCreateForwarderTokenInfo(event.params.incomeToken.toHexString(), event.address.toHexString());
   tokenInfo.balance = formatUnits(tokenCtr.balanceOf(event.address), tokenDecimals);
   tokenInfo.lastUpdate = event.block.timestamp.toI32();
   tokenInfo.save();
@@ -106,7 +106,7 @@ export function handleDistributed(event: Distributed): void {
   const forwarder = ForwarderEntity.load(event.address.toHexString()) as ForwarderEntity;
   forwarder.toInvestFundTotal = forwarder.toInvestFundTotal.plus(distribution.toInvestFund);
   forwarder.toGaugesTotal = forwarder.toGaugesTotal.plus(distribution.toGauges);
-  forwarder.toVeTetuTotal = forwarder.toVeTetuTotal.plus(distribution.toVeTetu);
+  forwarder.toBribesTotal = forwarder.toBribesTotal.plus(distribution.toBribes);
   forwarder.save();
 
   // *** INVEST FUND BALANCE CHANGE
@@ -115,17 +115,6 @@ export function handleDistributed(event: Distributed): void {
   investFundBalance.amount = investFundBalance.amount.plus(formatUnits(event.params.toInvestFund, BigInt.fromI32(18)))
   saveInvestFundBalanceHistory(investFundBalance, event.block.timestamp);
   investFundBalance.save();
-
-  // *** VE DIST BALANCE CHANGE
-  const veDistAdr = controllerCtr.veDistributor();
-  const veDist = VeDistEntity.load(veDistAdr.toHexString()) as VeDistEntity;
-  veDist.tokenBalance = veDist.tokenBalance.plus(distribution.toVeTetu);
-  const veDistBalance = new VeDistBalance(event.transaction.hash.toHexString() + "_" + event.logIndex.toString());
-  veDistBalance.veDist = veDist.id;
-  veDistBalance.time = event.block.timestamp.toI32();
-  veDistBalance.balance = veDist.tokenBalance;
-  veDistBalance.save();
-  veDist.save();
 
   // *** TETU VOTER BALANCE CHANGE
   const tetuVoterAdr = controllerCtr.voter();

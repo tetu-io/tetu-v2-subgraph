@@ -276,7 +276,7 @@ function createForwarder(address: string): void {
 
     forwarder.toInvestFundTotal = BigDecimal.fromString('0');
     forwarder.toGaugesTotal = BigDecimal.fromString('0');
-    forwarder.toVeTetuTotal = BigDecimal.fromString('0');
+    forwarder.toBribesTotal = BigDecimal.fromString('0');
 
     ForwarderTemplate.create(Address.fromString(address));
     forwarder.save();

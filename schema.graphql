@@ -664,7 +664,7 @@ type ForwarderEntity @entity {
 
     toInvestFundTotal: BigDecimal!
     toGaugesTotal: BigDecimal!
-    toVeTetuTotal: BigDecimal!
+    toBribesTotal: BigDecimal!
 
     tokenInfo: [ForwarderTokenInfo!]! @derivedFrom(field: "forwarder")
 
@@ -694,7 +694,7 @@ type ForwarderDistribution @entity(immutable: true) {
     tetuBalance: BigDecimal!
     toInvestFund: BigDecimal!
     toGauges: BigDecimal!
-    toVeTetu: BigDecimal!
+    toBribes: BigDecimal!
 }
 
 ###############################################
