@@ -26,7 +26,7 @@ import {
 } from "./types/templates/VaultTemplate/VaultAbi";
 import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
 import {calculateApr, formatUnits, tryGetUsdPrice} from "./helpers/common-helper";
-import {ADDRESS_ZERO} from "./constants";
+import {ADDRESS_ZERO, ZERO_BD} from "./constants";
 import {ControllerAbi} from "./types/templates/VaultTemplate/ControllerAbi";
 import {LiquidatorAbi} from "./types/templates/VaultTemplate/LiquidatorAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
@@ -268,7 +268,11 @@ function updateUser(
     user.acProfitCount = user.acProfitCount + 1;
     user.acAprSum = user.acAprSum.plus(apr);
 
-    profitEntity.averageApr = user.acAprSum.div(BigInt.fromI32(user.acProfitCount).toBigDecimal())
+    if(user.acProfitCount > 0) {
+      profitEntity.averageApr = user.acAprSum.div(BigInt.fromI32(user.acProfitCount).toBigDecimal())
+    } else {
+      profitEntity.averageApr = ZERO_BD;
+    }
 
     profitEntity.save();
   }

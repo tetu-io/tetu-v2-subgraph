@@ -187,6 +187,7 @@ function getOrCreateVeToken(
     tokenEntity.decimals = tokenCtr.decimals();
     tokenEntity.amount = BigDecimal.fromString('0');
     tokenEntity.amountUSD = BigDecimal.fromString('0');
+    tokenEntity.save();
   }
 
   return tokenEntity;
@@ -245,6 +246,7 @@ function getOrCreateVeNFT(veId: BigInt, veAdr: string): VeNFTEntity {
     veNFT.veDistLastClaim = 0;
     veNFT.lockedAmountUSD = BigDecimal.fromString('0');
     veNFT.veDistLastApr = BigDecimal.fromString('0');
+    veNFT.save();
   }
   return veNFT;
 }

@@ -24,7 +24,7 @@ import {Address, BigDecimal, BigInt, store} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/ControllerData/ProxyAbi";
 import {VaultAbi} from "./types/ControllerData/VaultAbi";
 import {calculateApr, formatUnits, tryGetUsdPrice} from "./helpers/common-helper";
-import {REWARD_TOKEN_DECIMALS} from "./constants";
+import {REWARD_TOKEN_DECIMALS, ZERO_BD} from "./constants";
 import {VeTetuAbi} from "./types/templates/VeTetuTemplate/VeTetuAbi";
 import {MultiBribeAbi} from "./types/templates/TetuVoterTemplate/MultiBribeAbi";
 import {LiquidatorAbi} from "./types/templates/TetuVoterTemplate/LiquidatorAbi";
@@ -62,8 +62,11 @@ export function handleVoted(event: Voted): void {
 
   // update vote info
   userVote.weight = formatUnits(event.params.weight, REWARD_TOKEN_DECIMALS);
-  userVote.percent = userVote.weight.times(BigDecimal.fromString('100')).div(voterUser.power);
-
+  if (voterUser.power.gt(ZERO_BD)) {
+    userVote.percent = userVote.weight.times(BigDecimal.fromString('100')).div(voterUser.power);
+  } else {
+    userVote.percent = ZERO_BD;
+  }
 
   updateVaultVoteEntity(
     vaultVote,
@@ -190,6 +193,7 @@ function getOrCreateTetuVoterUser(veId: BigInt, voterAdr: string, veAdr: string)
     user.veNFT = generateVeNFTId(veId.toString(), veAdr);
     user.voteTimeLockEnd = 0;
     user.power = BigDecimal.fromString('0')
+    user.save();
   }
   return user;
 }
@@ -205,7 +209,7 @@ function getOrCreateTetuVoterUserVote(voterUser: TetuVoterUser, vaultVote: Vault
     vote.vaultVote = vaultVote.id;
     vote.weight = BigDecimal.fromString('0')
     vote.percent = BigDecimal.fromString('0')
-
+    vote.save();
   }
   return vote;
 }
@@ -239,7 +243,7 @@ function getOrCreateVaultVoteEntity(tetuVoter: TetuVoterEntity, vaultAdr: string
     vaultVote.expectReward = BigDecimal.fromString('0');
     vaultVote.rewardTokenPrice = BigDecimal.fromString('0');
     vaultVote.expectApr = BigDecimal.fromString('0');
-
+    vaultVote.save();
   }
   return vaultVote;
 }
@@ -258,7 +262,12 @@ export function updateVaultVoteEntity(
   // update vault vote info
   const totalWeight = formatUnits(voterCtr.totalWeight(), REWARD_TOKEN_DECIMALS);
   vaultVote.voteAmount = vaultVote.voteAmount.plus(userVoteWeight);
-  vaultVote.votePercent = vaultVote.voteAmount.times(BigDecimal.fromString('100')).div(totalWeight);
+  if (totalWeight.gt(ZERO_BD)) {
+    vaultVote.votePercent = vaultVote.voteAmount.times(BigDecimal.fromString('100')).div(totalWeight);
+  } else {
+    vaultVote.votePercent = ZERO_BD;
+  }
+
   vaultVote.expectReward = voterRewardsBalance.times(vaultVote.votePercent).div(BigDecimal.fromString('100'));
 
   //calc apr
@@ -282,7 +291,7 @@ function getOrCreateGaugeVault(vaultAdr: string, gaugeAdr: string): GaugeVaultEn
     vault.totalDerivedSupply = BigDecimal.fromString('0');
     vault.assetPrice = BigDecimal.fromString('0');
     vault.stakingTokenPrice = BigDecimal.fromString('0');
-
+    vault.save();
   }
   return vault;
 }

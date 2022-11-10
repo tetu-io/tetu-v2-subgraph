@@ -1,9 +1,8 @@
 import {TetuVoterEntity} from "../types/schema";
-import {formatUnits} from "./common-helper";
-import {REWARD_TOKEN_DECIMALS, ZERO_BD} from "../constants";
+import {ZERO_BD} from "../constants";
 import {TetuVoterAbi} from "../common/TetuVoterAbi";
 import {ProxyAbi} from "../common/ProxyAbi";
-import {VaultAbi} from "../common/VaultAbi";
+import {TetuVoterTemplate} from "../types/templates";
 
 export function getOrCreateTetuVoter(
   voterCtr: TetuVoterAbi,
@@ -27,6 +26,9 @@ export function getOrCreateTetuVoter(
 
     voter.rewardsBalance = ZERO_BD;
     voter.votersCount = 0;
+
+    TetuVoterTemplate.create(voterCtr._address);
+    voter.save();
   }
   return voter;
 }

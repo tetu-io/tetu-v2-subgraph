@@ -253,6 +253,7 @@ function getOrCreateToken(tokenAdr: string): TokenEntity {
     token.name = tokenCtr.name();
     token.decimals = tokenCtr.decimals();
     token.usdPrice = ZERO_BD;
+    token.save();
   }
   return token;
 }

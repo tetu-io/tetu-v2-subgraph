@@ -1,6 +1,7 @@
 import {BribeEntity} from "../types/schema";
 import {MultiBribeAbi} from "../common/MultiBribeAbi";
 import {ProxyAbi} from "../common/ProxyAbi";
+import {MultiBribeTemplate} from "../types/templates";
 
 export function getOrCreateBribe(bribeCtr: MultiBribeAbi, proxy: ProxyAbi): BribeEntity {
   let bribe = BribeEntity.load(bribeCtr._address.toHexString());
@@ -20,6 +21,8 @@ export function getOrCreateBribe(bribeCtr: MultiBribeAbi, proxy: ProxyAbi): Brib
     bribe.operator = bribeCtr.operator().toHexString();
     bribe.defaultRewardToken = bribeCtr.defaultRewardToken().toHexString()
 
+    MultiBribeTemplate.create(bribeCtr._address);
+    bribe.save();
   }
 
   return bribe;

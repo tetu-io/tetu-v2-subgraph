@@ -24,16 +24,15 @@ import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/templates/MultiBribeTemplate/ProxyAbi";
 import {
   calculateApr,
-  formatUnits,
+  formatUnits, getOrCreateToken,
   tryGetUsdPrice
 } from "./helpers/common-helper";
 import {ADDRESS_ZERO} from "./constants";
-import {VaultAbi} from "./types/templates/MultiBribeTemplate/VaultAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
 import {MultiBribeAbi as MultiBribeAbiCommon} from "./common/MultiBribeAbi";
 import {ProxyAbi as ProxyAbiCommon} from "./common/ProxyAbi";
 import {LiquidatorAbi} from "./types/VaultFactoryData/LiquidatorAbi";
-import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
+import {VaultAbi, VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 import {
   generateBribeVaultId,
   generateBribeVaultRewardId,
@@ -156,9 +155,9 @@ function updateAll(
     // HANDLE CLAIM
 
     if (Address.fromString(ADDRESS_ZERO).notEqual(Address.fromString(rewardToken))) {
+      const rewardTokenEntity = getOrCreateToken(VaultAbi.bind(Address.fromString(rewardToken)));
       const veBribeReward = getOrCreateVeBribeReward(veBribe.id, rewardToken);
-      const bribeVaultReward = getOrCreateBribeVaultReward(bribeVault.id, veBribeReward.token);
-      const rewardDecimals = BigInt.fromI32(bribeVaultReward.decimals)
+      const rewardDecimals = BigInt.fromI32(rewardTokenEntity.decimals)
 
       const _earned = formatUnits(earned, rewardDecimals)
       const rewardTokenPrice = _tryGetUsdPrice(controller.liquidator, rewardToken, rewardDecimals);
@@ -183,8 +182,8 @@ function updateAll(
 
   // HANDLE NOTIFY
   if (veId.equals(BigInt.fromI32(0)) && Address.fromString(ADDRESS_ZERO).notEqual(Address.fromString(rewardToken))) {
-    const bribeVaultReward = getOrCreateBribeVaultReward(bribeVault.id, rewardToken);
-    const rewardDecimals = BigInt.fromI32(bribeVaultReward.decimals)
+    const rewardTokenEntity = getOrCreateToken(VaultAbi.bind(Address.fromString(rewardToken)));
+    const rewardDecimals = BigInt.fromI32(rewardTokenEntity.decimals)
     const rewardTokenPrice = _tryGetUsdPrice(controller.liquidator, rewardToken, rewardDecimals);
 
     const reward = getOrCreateBribeVaultReward(bribeVault.id, rewardToken);
@@ -211,7 +210,7 @@ function getOrCreateBribeVault(vaultAdr: string, bribeAdr: string): BribeVaultEn
     const vaultCtr = VaultAbi.bind(Address.fromString(bribeVault.vault));
     bribeVault.asset = vaultCtr.asset().toHexString();
     bribeVault.decimals = vaultCtr.decimals();
-
+    bribeVault.save();
   }
   return bribeVault;
 }
@@ -227,7 +226,9 @@ function getOrCreateBribeVaultReward(bribeVaultId: string, rewardTokenAdr: strin
     reward.apr = BigDecimal.fromString('0')
     reward.rewardRate = BigDecimal.fromString('0')
     reward.periodFinish = 0;
+    reward.left = BigDecimal.fromString('0');
     reward.rewardTokenPrice = BigDecimal.fromString('0')
+    reward.save();
   }
 
   return reward;
@@ -289,6 +290,8 @@ function getOrCreateVeBribe(bribeVaultId: string, veId: BigInt, veAdr: string): 
     user.bribeVault = bribeVaultId
     user.veNFT = generateVeNFTId(veId.toString(), veAdr);
     user.stakedBalance = BigDecimal.fromString('0')
+    user.stakedBalanceUSD = BigDecimal.fromString('0')
+    user.save();
   }
 
   return user;
@@ -306,6 +309,7 @@ function getOrCreateVeBribeReward(veBribeId: string, rewardTokenAdr: string): Ve
     veBribeReward.earnedTotalUSD = BigDecimal.fromString('0');
     veBribeReward.apr = BigDecimal.fromString('0');
     veBribeReward.lastEarnedUpdate = 0;
+    veBribeReward.save();
   }
   return veBribeReward;
 }

@@ -31,7 +31,7 @@ export function calculateApr(
   supplyUSD: BigDecimal,
 ): BigDecimal {
   const period = timeEnd.minus(timeStart).toBigDecimal();
-  if (period.equals(ZERO_BD) || supplyUSD.equals(ZERO_BD)) {
+  if (period.le(ZERO_BD) || supplyUSD.le(ZERO_BD)) {
     return ZERO_BD;
   }
   return profitUSD.div(supplyUSD).div(period.div(DAY)).times(BigDecimal.fromString('36500'));
@@ -69,6 +69,7 @@ export function getOrCreateToken(tokenCtr: VaultAbi): TokenEntity {
     token.name = tokenCtr.name();
     token.decimals = tokenCtr.decimals();
     token.usdPrice = ZERO_BD;
+    token.save();
   }
   return token;
 }

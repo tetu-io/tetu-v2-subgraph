@@ -30,7 +30,7 @@ import {ControllerAbi} from "./types/templates/MultiGaugeTemplate/ControllerAbi"
 import {LiquidatorAbi} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
-import {ADDRESS_ZERO} from "./constants";
+import {ADDRESS_ZERO, ZERO_BD} from "./constants";
 import {generateGaugeVaultId, generateVeNFTId} from "./helpers/id-helper";
 import {getOrCreateGauge} from "./helpers/gauge-helper";
 import {MultiGaugeAbi as MultiGaugeAbiCommon} from "./common/MultiGaugeAbi";
@@ -192,7 +192,11 @@ function updateAll(
       const rewardTokenPrice = _tryGetUsdPrice(liquidatorAdr, asset, rewardTokenDecimals);
       const earnedUsd = _earned.times(rewardTokenPrice);
 
-      userReward.apr = earnedUsd.div(user.stakedBalanceUSD).div(BigInt.fromI32(periodDays).toBigDecimal()).times(BigDecimal.fromString('36500'))
+      if(user.stakedBalanceUSD.gt(ZERO_BD) && periodDays > 0) {
+        userReward.apr = earnedUsd.div(user.stakedBalanceUSD).div(BigInt.fromI32(periodDays).toBigDecimal()).times(BigDecimal.fromString('36500'))
+      } else {
+        userReward.apr = ZERO_BD;
+      }
 
       userReward.earnedTotal = userReward.earnedTotal.plus(_earned);
       userReward.earnedTotalUSD = userReward.earnedTotalUSD.plus(earnedUsd);
@@ -239,6 +243,7 @@ function getOrCreateGaugeVault(vaultAdr: string, gaugeAdr: string): GaugeVaultEn
     vault.totalDerivedSupply = BigDecimal.fromString('0');
     vault.assetPrice = BigDecimal.fromString('0');
     vault.stakingTokenPrice = BigDecimal.fromString('0');
+    vault.save();
 
   }
   return vault;
@@ -257,6 +262,7 @@ function getOrCreateReward(gaugeVaultId: string, rewardTokenAdr: string): GaugeV
     reward.left = BigDecimal.fromString('0')
     reward.periodFinish = 0;
     reward.rewardTokenPrice = BigDecimal.fromString('0');
+    reward.save();
   }
 
   return reward;
@@ -319,7 +325,9 @@ function getOrCreateGaugeUser(gaugeVaultId: string, userAdr: string): UserGauge 
     user.gaugeVault = gaugeVaultId
     user.user = userAdr
     user.stakedBalance = BigDecimal.fromString('0')
+    user.stakedBalanceUSD = BigDecimal.fromString('0')
     user.stakedDerivedBalance = BigDecimal.fromString('0')
+    user.save();
   }
 
   return user;
@@ -337,6 +345,7 @@ function getOrCreateUserReward(userId: string, rewardTokenAdr: string): UserGaug
     userReward.earnedTotalUSD = BigDecimal.fromString('0');
     userReward.apr = BigDecimal.fromString('0');
     userReward.lastEarnedUpdate = 0;
+    userReward.save();
   }
   return userReward;
 }

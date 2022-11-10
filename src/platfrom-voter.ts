@@ -17,6 +17,7 @@ import {
 import {BigDecimal, BigInt, store} from "@graphprotocol/graph-ts";
 import {formatUnits} from "./helpers/common-helper";
 import {generatePlatformVoteEntityId, generateVeNFTId} from "./helpers/id-helper";
+import {ZERO_BD, ZERO_BI} from "./constants";
 
 // ***************************************************
 //                ATTACH/DETACH/VOTE
@@ -54,7 +55,12 @@ export function handleVoted(event: Voted): void {
   vote.totalAttributeWeight = event.params.totalAttributeWeight.toBigDecimal()
   vote.totalAttributeValue = event.params.totalAttributeValue.toBigDecimal()
   vote.newValue = formatUnits(event.params.newValue, BigInt.fromI32(3))
-  vote.percent = vote.totalAttributeValue.times(BigDecimal.fromString('100')).div(event.params.veWeightedValue.toBigDecimal())
+  if(event.params.veWeightedValue.gt(ZERO_BI)) {
+    vote.percent = vote.totalAttributeValue.times(BigDecimal.fromString('100')).div(event.params.veWeightedValue.toBigDecimal())
+  } else {
+    vote.percent = ZERO_BD;
+  }
+
 
   updateTargetAttribute(event.params._type, event.params.target.toHexString(), formatUnits(event.params.newValue, BigInt.fromI32(3)), voter);
   saveVoteHistory(vote, event.block.timestamp);

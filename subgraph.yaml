@@ -131,6 +131,8 @@ templates:
           file: ./abis/TetuVaultV2.json
         - name: ProxyAbi
           file: ./abis/Proxy.json
+        - name: LiquidatorAbi
+          file: ./abis/TetuLiquidator.json
       eventHandlers:
         - event: RevisionIncreased(uint256,address)
           handler: handleRevisionIncreased
@@ -162,6 +164,8 @@ templates:
           file: ./abis/TetuVaultV2.json
         - name: ProxyAbi
           file: ./abis/Proxy.json
+        - name: LiquidatorAbi
+          file: ./abis/TetuLiquidator.json
       eventHandlers:
         - event: BribeDeposit(indexed address,indexed uint256,uint256)
           handler: handleBribeDeposit
@@ -380,6 +384,8 @@ templates:
           file: ./abis/InvestFundV2.json
         - name: VaultAbi
           file: ./abis/TetuVaultV2.json
+        - name: LiquidatorAbi
+          file: ./abis/TetuLiquidator.json
       eventHandlers:
         - event: FundDeposit(indexed address,uint256)
           handler: handleFundDeposit
@@ -516,6 +522,8 @@ templates:
           file: ./abis/ForwarderV3.json
         - name: StrategySplitterAbi
           file: ./abis/StrategySplitterV2.json
+        - name: LiquidatorAbi
+          file: ./abis/TetuLiquidator.json
       eventHandlers:
         - event: Upgraded(indexed address)
           handler: handleUpgraded

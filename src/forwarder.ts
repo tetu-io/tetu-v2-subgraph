@@ -159,6 +159,7 @@ function getOrCreateForwarderTokenInfo(address: string, forwarder: string): Forw
     tokenInfo.slippage = BigDecimal.fromString('0');
     tokenInfo.lastUpdate = 0;
     tokenInfo.balance = BigDecimal.fromString('0');
+    tokenInfo.save();
   }
   return tokenInfo;
 }
