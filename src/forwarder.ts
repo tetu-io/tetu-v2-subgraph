@@ -28,6 +28,7 @@ import {ControllerAbi} from "./types/templates/ForwarderTemplate/ControllerAbi";
 import {LiquidatorAbi} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
+import {Upgraded} from "./types/templates/MultiBribeTemplate/MultiBribeAbi";
 
 // ***************************************************
 //                 STATE CHANGES
@@ -67,6 +68,15 @@ export function handleTetuThresholdChanged(event: TetuThresholdChanged): void {
   forwarder.toInvestFundRatio = formatUnits(event.params.newValue, BigInt.fromI32(18));
   forwarder.save();
 }
+
+export function handleUpgraded(event: Upgraded): void {
+  const forwarder = ForwarderEntity.load(event.address.toHexString()) as ForwarderEntity;
+  const implementations = forwarder.implementations;
+  implementations.push(event.params.implementation.toHexString())
+  forwarder.implementations = implementations;
+  forwarder.save()
+}
+
 
 // ***************************************************
 //                   ACTIONS

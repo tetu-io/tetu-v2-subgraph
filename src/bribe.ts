@@ -10,7 +10,7 @@ import {
   Upgraded
 } from "./types/templates/MultiBribeTemplate/MultiBribeAbi";
 import {
-  BribeEntity,
+  BribeEntity, BribeRewardNotification,
   BribeVaultEntity,
   BribeVaultReward,
   BribeVaultRewardHistory,
@@ -20,7 +20,7 @@ import {
   VeBribeReward,
   VeBribeRewardHistory
 } from "./types/schema";
-import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
+import {Address, BigDecimal, BigInt, ethereum} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/templates/MultiBribeTemplate/ProxyAbi";
 import {
   calculateApr,
@@ -95,6 +95,17 @@ export function handleNotifyReward(event: NotifyReward): void {
     event.params.reward.toHexString(),
     BigInt.fromI32(0)
   );
+
+  const bribe = _getOrCreateBribe(event.address.toHexString());
+  const bribeVault = getOrCreateBribeVault(event.params.token.toHexString(), bribe.id);
+  const rewardTokenEntity = getOrCreateToken(VaultAbi.bind(event.params.reward));
+  const n = new BribeRewardNotification(event.transaction.hash.toHexString() + event.logIndex.toHexString());
+  n.bribeVault = bribeVault.id;
+  n.rewardToken = rewardTokenEntity.id;
+  n.amount = formatUnits(event.params.amount, BigInt.fromI32(rewardTokenEntity.decimals));
+  n.time = event.block.timestamp.toI32();
+  n.tx = event.transaction.hash.toHexString();
+  n.save();
 }
 
 // ***************************************************

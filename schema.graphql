@@ -472,6 +472,7 @@ type BribeVaultEntity @entity {
     stakingTokenPrice: BigDecimal!
 
     rewards: [BribeVaultReward!]! @derivedFrom(field: "bribeVault")
+    rewardNotifications: [BribeRewardNotification!]! @derivedFrom(field: "bribeVault")
     users: [VeBribe!]! @derivedFrom(field: "bribeVault")
 }
 
@@ -488,6 +489,16 @@ type BribeVaultReward @entity {
     rewardTokenPrice: BigDecimal!
 
     history: [BribeVaultRewardHistory!]! @derivedFrom(field: "bribeVaultReward")
+}
+
+type BribeRewardNotification @entity {
+    id: ID!
+
+    bribeVault: BribeVaultEntity!
+    rewardToken: TokenEntity!
+    amount: BigDecimal!
+    time: Int!
+    tx: String!
 }
 
 type BribeVaultRewardHistory @entity(immutable: true) {
