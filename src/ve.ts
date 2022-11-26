@@ -150,6 +150,7 @@ function updateUser(
   veNFT.lockedEnd = veCtr.lockedEnd(veId).toI32();
   veNFT.save();
 
+  ve.totalSupply = formatUnits(veCtr.totalSupply(), BigInt.fromI32(18));
   ve.count = veCtr.tokenId().toI32();
   ve.save();
 }

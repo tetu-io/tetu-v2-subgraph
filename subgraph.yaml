@@ -246,6 +246,8 @@ templates:
           file: ./abis/MultiBribe.json
         - name: LiquidatorAbi
           file: ./abis/TetuLiquidator.json
+        - name: VeTetuAbi
+          file: ./abis/VeTetu.json
       eventHandlers:
         - event: Abstained(uint256,int256,address)
           handler: handleAbstained

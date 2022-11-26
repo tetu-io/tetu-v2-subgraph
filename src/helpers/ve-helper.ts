@@ -21,6 +21,7 @@ export function getOrCreateVe(veCtr: VeTetuAbi, proxy: ProxyAbi): VeTetuEntity {
     ve.epoch = veCtr.epoch().toI32();
     ve.allowedPawnshops = []
     ve.lockedAmountUSD = BigDecimal.fromString('0');
+    ve.totalSupply = BigDecimal.fromString('0');
 
     VeTetuTemplate.create(Address.fromString(veCtr._address.toHexString()));
     ve.save();

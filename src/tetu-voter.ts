@@ -16,7 +16,7 @@ import {
   TetuVoterRewardHistory,
   TetuVoterUser,
   TetuVoterUserVote,
-  TetuVoterUserVoteHistory,
+  TetuVoterUserVoteHistory, VaultEntity,
   VaultVoteEntity
 } from "./types/schema";
 import {TetuVoterAbi} from "./types/ControllerData/TetuVoterAbi";
@@ -103,7 +103,7 @@ export function handleAbstained(event: Abstained): void {
   voterUser.power = formatUnits(veCtr.balanceOfNFT(event.params.tokenId), REWARD_TOKEN_DECIMALS);
 
   // update vote info
-  store.remove('VaultVoteEntity', generateTetuVoterUserVoteId(voterUser.id, vaultVote.id))
+  store.remove('TetuVoterUserVote', generateTetuVoterUserVoteId(voterUser.id, vaultVote.id))
 
 
   updateVaultVoteEntity(
@@ -244,6 +244,10 @@ function getOrCreateVaultVoteEntity(tetuVoter: TetuVoterEntity, vaultAdr: string
     vaultVote.rewardTokenPrice = BigDecimal.fromString('0');
     vaultVote.expectApr = BigDecimal.fromString('0');
     vaultVote.save();
+
+    const vault = VaultEntity.load(vaultAdr) as VaultEntity;
+    vault.vote = vaultVote.id;
+    vault.save();
   }
   return vaultVote;
 }

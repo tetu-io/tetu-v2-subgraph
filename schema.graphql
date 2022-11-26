@@ -183,6 +183,23 @@ type UserVault @entity {
     acProfitCount: Int!
     acAprSum: BigDecimal! # for calculate average apr
     compoundProfits: [UserCompoundProfit!]! @derivedFrom(field: "userVault")
+    vaultActions: [UserVaultAction!]! @derivedFrom(field: "userVault")
+}
+
+type UserVaultAction @entity(immutable: true) {
+    "tx hash + log Id"
+    id: ID!
+
+    vault: VaultEntity!
+    userVault: UserVault!
+
+    tx: String!
+    time: Int!
+    increase: Boolean!
+    amount: BigDecimal!
+    amountUSD: BigDecimal!
+    profit: BigDecimal!
+    profitUSD: BigDecimal!
 }
 
 type UserCompoundProfit @entity(immutable: true) {
@@ -865,6 +882,7 @@ type VeTetuEntity @entity {
     epoch: Int!
     allowedPawnshops: [String!]!
     lockedAmountUSD: BigDecimal!
+    totalSupply: BigDecimal!
     tokens: [VeTetuTokenEntity!]! @derivedFrom(field: "ve")
     nfts: [VeNFTEntity!]! @derivedFrom(field: "ve")
 }

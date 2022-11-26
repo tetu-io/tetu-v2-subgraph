@@ -5,7 +5,7 @@ import {
   InsuranceEntity,
   UserCompoundProfit,
   UserEntity,
-  UserVault,
+  UserVault, UserVaultAction,
   VaultApproveEntity,
   VaultEntity,
   VaultHistory
@@ -55,7 +55,9 @@ export function handleTransfer(event: Transfer): void {
       event.block.timestamp,
       vault,
       false,
-      formatUnits(event.params.value, decimals)
+      formatUnits(event.params.value, decimals),
+      event.transaction.hash.toHexString(),
+      event.logIndex.toHexString()
     );
   }
 
@@ -67,7 +69,9 @@ export function handleTransfer(event: Transfer): void {
       event.block.timestamp,
       vault,
       true,
-      formatUnits(event.params.value, decimals)
+      formatUnits(event.params.value, decimals),
+      event.transaction.hash.toHexString(),
+      event.logIndex.toHexString()
     );
   }
 
@@ -226,10 +230,15 @@ function updateUser(
   timestamp: BigInt,
   vault: VaultEntity,
   increase: boolean,
-  sharesTransferred: BigDecimal
+  sharesTransferred: BigDecimal,
+  txHash: string,
+  logId: string
 ): void {
   const vaultCtr = VaultAbi.bind(Address.fromString(vault.id));
   const user = getOrCreateVaultUser(vaultAdr, userAdr);
+  const userAction = new UserVaultAction(txHash + logId);
+  userAction.profit = ZERO_BD;
+  userAction.profitUSD = ZERO_BD;
   // if user did not have a balance and received the token, need to add vault user
   if (user.balanceShares.le(BigDecimal.fromString('0')) && increase) {
     vault.usersCount++;
@@ -256,6 +265,8 @@ function updateUser(
 
     profitEntity.userVault = user.id;
 
+    userAction.profit = profit;
+    userAction.profitUSD = profit.times(vault.assetPrice);
     profitEntity.profit = profit;
     profitEntity.time = timestamp.toI32();
     profitEntity.balanceShares = balanceShares;
@@ -268,7 +279,7 @@ function updateUser(
     user.acProfitCount = user.acProfitCount + 1;
     user.acAprSum = user.acAprSum.plus(apr);
 
-    if(user.acProfitCount > 0) {
+    if (user.acProfitCount > 0) {
       profitEntity.averageApr = user.acAprSum.div(BigInt.fromI32(user.acProfitCount).toBigDecimal())
     } else {
       profitEntity.averageApr = ZERO_BD;
@@ -283,6 +294,15 @@ function updateUser(
   user.balanceAssetsUsd = user.balanceAssets.times(vault.assetPrice);
   user.lastUpdate = timestamp.toI32()
   user.save();
+
+  userAction.vault = vault.id;
+  userAction.userVault = user.id;
+  userAction.tx = txHash;
+  userAction.time = timestamp.toI32();
+  userAction.increase = increase;
+  userAction.amount = sharesTransferred;
+  userAction.amountUSD = sharesTransferred.times(vault.assetPrice);
+  userAction.save();
 
   // if user do not have a balance after transfer and transferred the token, need to remove vault user
   if (user.balanceShares.le(BigDecimal.fromString('0')) && !increase) {
