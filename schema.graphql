@@ -383,6 +383,7 @@ type GaugeVaultReward @entity {
     apr: BigDecimal!
     rewardRate: BigDecimal!
     left: BigDecimal!
+    leftUSD: BigDecimal!
     periodFinish: Int!
     rewardTokenPrice: BigDecimal!
 
@@ -503,6 +504,7 @@ type BribeVaultReward @entity {
     rewardRate: BigDecimal!
     periodFinish: Int!
     left: BigDecimal!
+    leftUSD: BigDecimal!
     rewardTokenPrice: BigDecimal!
 
     history: [BribeVaultRewardHistory!]! @derivedFrom(field: "bribeVaultReward")

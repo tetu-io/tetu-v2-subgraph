@@ -182,7 +182,7 @@ function updateAll(
 
       // reward info
       const reward = getOrCreateBribeVaultReward(bribeVault.id, rewardToken);
-      updateRewardInfoAndSave(reward, bribe.id, bribeVault.vault, bribeVault.totalSupply, totalSupplyUSD, time, rewardTokenPrice);
+      updateRewardInfoAndSave(reward, bribe.id, bribeVault.vault, bribeVault.totalSupply, totalSupplyUSD, time, rewardTokenPrice, rewardDecimals);
       saveRewardHistory(reward, time, bribeVault);
 
       saveVeBribeRewardHistory(veBribeReward, veBribe, _earned);
@@ -198,7 +198,7 @@ function updateAll(
     const rewardTokenPrice = _tryGetUsdPrice(controller.liquidator, rewardToken, rewardDecimals);
 
     const reward = getOrCreateBribeVaultReward(bribeVault.id, rewardToken);
-    updateRewardInfoAndSave(reward, bribe.id, bribeVault.vault, bribeVault.totalSupply, totalSupplyUSD, time, rewardTokenPrice);
+    updateRewardInfoAndSave(reward, bribe.id, bribeVault.vault, bribeVault.totalSupply, totalSupplyUSD, time, rewardTokenPrice, rewardDecimals);
     saveRewardHistory(reward, time, bribeVault);
   }
 
@@ -238,6 +238,7 @@ function getOrCreateBribeVaultReward(bribeVaultId: string, rewardTokenAdr: strin
     reward.rewardRate = BigDecimal.fromString('0')
     reward.periodFinish = 0;
     reward.left = BigDecimal.fromString('0');
+    reward.leftUSD = BigDecimal.fromString('0');
     reward.rewardTokenPrice = BigDecimal.fromString('0')
     reward.save();
   }
@@ -252,15 +253,17 @@ function updateRewardInfoAndSave(
   totalSupply: BigDecimal,
   totalSupplyUSD: BigDecimal,
   now: BigInt,
-  rewardTokenPrice: BigDecimal
+  rewardTokenPrice: BigDecimal,
+  rewardDecimals: BigInt
 ): void {
   const bribeCtr = MultiBribeAbi.bind(Address.fromString(bribeAdr));
 
   reward.rewardRate = bribeCtr.rewardRate(Address.fromString(vaultAdr), Address.fromString(reward.rewardToken)).toBigDecimal()
   reward.periodFinish = bribeCtr.periodFinish(Address.fromString(vaultAdr), Address.fromString(reward.rewardToken)).toI32()
-  reward.left = reward.rewardRate.times(totalSupply).times(rewardTokenPrice);
+  reward.left = formatUnits(bribeCtr.left(Address.fromString(vaultAdr), Address.fromString(reward.rewardToken)), rewardDecimals);
+  reward.leftUSD = reward.left.times(rewardTokenPrice);
 
-  reward.apr = calculateApr(BigInt.fromI32(reward.periodFinish), now, reward.left, totalSupplyUSD);
+  reward.apr = calculateApr(BigInt.fromI32(reward.periodFinish), now, reward.leftUSD, totalSupplyUSD);
   reward.rewardTokenPrice = rewardTokenPrice;
 
   reward.save();

@@ -100,6 +100,15 @@ export function handleVeTokenLocked(event: VeTokenLocked): void {
   const user = getOrCreateGaugeUser(gaugeVaultId, event.params.account.toHexString());
   user.veNFT = nftId;
   user.save();
+
+  updateAll(
+    event.address.toHexString(),
+    event.params.stakingToken.toHexString(),
+    event.params.account.toHexString(),
+    event.block.timestamp,
+    ADDRESS_ZERO,
+    BigInt.fromI32(0)
+  );
 }
 
 export function handleVeTokenUnlocked(event: VeTokenUnlocked): void {
@@ -107,7 +116,24 @@ export function handleVeTokenUnlocked(event: VeTokenUnlocked): void {
   const user = getOrCreateGaugeUser(gaugeVaultId, event.params.account.toHexString());
   user.veNFT = null;
   user.save();
+
+  updateAll(
+    event.address.toHexString(),
+    event.params.stakingToken.toHexString(),
+    event.params.account.toHexString(),
+    event.block.timestamp,
+    ADDRESS_ZERO,
+    BigInt.fromI32(0)
+  );
 }
+
+// function updateDerivedSupply(gauge: Address, vault: Address): void {
+//   const gaugeVault = getOrCreateGaugeVault(vault.toHexString(), gauge.toHexString());
+//   const gaugeCtr = MultiGaugeAbi.bind(gauge);
+//   const vaultCtr = VaultAbi.bind(Address.fromString(gaugeVault.vault));
+//   gaugeVault.totalDerivedSupply = formatUnits(gaugeCtr.derivedSupply(vault), BigInt.fromI32(vaultCtr.decimals()));
+//   gaugeVault.save();
+// }
 
 // ***************************************************
 //                 ATTRIBUTES CHANGED
@@ -154,11 +180,11 @@ function updateAll(
   earned: BigInt
 ): void {
   const gauge = _getOrCreateGauge(gaugeAdr);
-  const vault = getOrCreateGaugeVault(vaultAdr, gauge.id);
+  const gaugeVault = getOrCreateGaugeVault(vaultAdr, gauge.id);
   const gaugeCtr = MultiGaugeAbi.bind(Address.fromString(gauge.id));
-  const vaultCtr = VaultAbi.bind(Address.fromString(vault.vault));
-  vault.totalSupply = formatUnits(gaugeCtr.totalSupply(Address.fromString(vault.vault)), BigInt.fromI32(vaultCtr.decimals()));
-  vault.totalDerivedSupply = formatUnits(gaugeCtr.derivedSupply(Address.fromString(vault.vault)), BigInt.fromI32(vaultCtr.decimals()));
+  const vaultCtr = VaultAbi.bind(Address.fromString(gaugeVault.vault));
+  gaugeVault.totalSupply = formatUnits(gaugeCtr.totalSupply(Address.fromString(gaugeVault.vault)), BigInt.fromI32(vaultCtr.decimals()));
+  gaugeVault.totalDerivedSupply = formatUnits(gaugeCtr.derivedSupply(Address.fromString(gaugeVault.vault)), BigInt.fromI32(vaultCtr.decimals()));
 
 
   const controllerCtr = ControllerAbi.bind(gaugeCtr.controller());
@@ -168,16 +194,16 @@ function updateAll(
   const sharePrice = formatUnits(vaultCtr.sharePrice(), assetDecimals);
 
   // get asset price
-  vault.assetPrice = _tryGetUsdPrice(liquidatorAdr, asset, assetDecimals);
-  vault.stakingTokenPrice = vault.assetPrice.times(sharePrice)
-  const totalSupplyUSD = vault.totalSupply.times(vault.stakingTokenPrice);
+  gaugeVault.assetPrice = _tryGetUsdPrice(liquidatorAdr, asset, assetDecimals);
+  gaugeVault.stakingTokenPrice = gaugeVault.assetPrice.times(sharePrice)
+  const totalSupplyUSD = gaugeVault.totalSupply.times(gaugeVault.stakingTokenPrice);
 
   // update user info if possible
   if (Address.fromString(ADDRESS_ZERO).notEqual(Address.fromString(account))) {
     // user info
-    const user = getOrCreateGaugeUser(vault.id, account);
+    const user = getOrCreateGaugeUser(gaugeVault.id, account);
     user.stakedBalance = formatUnits(gaugeCtr.balanceOf(Address.fromString(vaultAdr), Address.fromString(account)), assetDecimals);
-    user.stakedBalanceUSD = user.stakedBalance.times(vault.stakingTokenPrice);
+    user.stakedBalanceUSD = user.stakedBalance.times(gaugeVault.stakingTokenPrice);
     user.stakedDerivedBalance = formatUnits(gaugeCtr.derivedBalance(Address.fromString(vaultAdr), Address.fromString(account)), assetDecimals);
 
     // HANDLE CLAIM
@@ -192,7 +218,7 @@ function updateAll(
       const rewardTokenPrice = _tryGetUsdPrice(liquidatorAdr, asset, rewardTokenDecimals);
       const earnedUsd = _earned.times(rewardTokenPrice);
 
-      if(user.stakedBalanceUSD.gt(ZERO_BD) && periodDays > 0) {
+      if (user.stakedBalanceUSD.gt(ZERO_BD) && periodDays > 0) {
         userReward.apr = earnedUsd.div(user.stakedBalanceUSD).div(BigInt.fromI32(periodDays).toBigDecimal()).times(BigDecimal.fromString('36500'))
       } else {
         userReward.apr = ZERO_BD;
@@ -213,17 +239,17 @@ function updateAll(
   const rewardTokensLength = gaugeCtr.rewardTokensLength(Address.fromString(vaultAdr)).toI32()
   for (let i = 0; i < rewardTokensLength; i++) {
     const rewardAdr = gaugeCtr.rewardTokens(Address.fromString(vaultAdr), BigInt.fromI32(i));
-    const reward = getOrCreateReward(vault.id, rewardAdr.toHexString());
+    const reward = getOrCreateReward(gaugeVault.id, rewardAdr.toHexString());
     const rewardTokenCtr = VaultAbi.bind(rewardAdr);
     const rewardTokenDecimals = BigInt.fromI32(rewardTokenCtr.decimals())
     const rewardTokenPrice = _tryGetUsdPrice(liquidatorAdr, asset, rewardTokenDecimals);
-    updateRewardInfoAndSave(reward, gauge.id, vault.vault, vault.totalSupply, totalSupplyUSD, time, rewardTokenPrice);
-    saveRewardHistory(reward, time, vault);
+    updateRewardInfoAndSave(reward, gauge.id, gaugeVault.vault, gaugeVault.totalSupply, totalSupplyUSD, time, rewardTokenPrice, rewardTokenDecimals);
+    saveRewardHistory(reward, time, gaugeVault);
   }
 
 
   gauge.save();
-  vault.save();
+  gaugeVault.save();
 }
 
 function getOrCreateGaugeVault(vaultAdr: string, gaugeAdr: string): GaugeVaultEntity {
@@ -260,6 +286,7 @@ function getOrCreateReward(gaugeVaultId: string, rewardTokenAdr: string): GaugeV
     reward.apr = BigDecimal.fromString('0')
     reward.rewardRate = BigDecimal.fromString('0')
     reward.left = BigDecimal.fromString('0')
+    reward.leftUSD = BigDecimal.fromString('0')
     reward.periodFinish = 0;
     reward.rewardTokenPrice = BigDecimal.fromString('0');
     reward.save();
@@ -275,15 +302,17 @@ function updateRewardInfoAndSave(
   totalSupply: BigDecimal,
   totalSupplyUSD: BigDecimal,
   now: BigInt,
-  rewardTokenPrice: BigDecimal
+  rewardTokenPrice: BigDecimal,
+  rewardTokenDecimals: BigInt
 ): void {
   const gaugeCtr = MultiGaugeAbi.bind(Address.fromString(gaugeAdr));
 
   reward.rewardRate = gaugeCtr.rewardRate(Address.fromString(vaultAdr), Address.fromString(reward.rewardToken)).toBigDecimal()
   reward.periodFinish = gaugeCtr.periodFinish(Address.fromString(vaultAdr), Address.fromString(reward.rewardToken)).toI32()
-  reward.left = reward.rewardRate.times(totalSupply).times(rewardTokenPrice);
+  reward.left = formatUnits(gaugeCtr.left(Address.fromString(vaultAdr), Address.fromString(reward.rewardToken)), rewardTokenDecimals);
+  reward.leftUSD = reward.left.times(rewardTokenPrice);
 
-  reward.apr = calculateApr(BigInt.fromI32(reward.periodFinish), now, reward.left, totalSupplyUSD);
+  reward.apr = calculateApr(BigInt.fromI32(reward.periodFinish), now, reward.leftUSD, totalSupplyUSD);
   reward.rewardTokenPrice = rewardTokenPrice;
 
   reward.save();

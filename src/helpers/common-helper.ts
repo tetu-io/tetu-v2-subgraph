@@ -43,6 +43,7 @@ export function tryGetUsdPrice(
   decimals: BigInt
 ): BigDecimal {
   if (getUSDC().equals(Address.fromString(tokenCtr._address.toHexString()))) {
+    getOrCreateToken(tokenCtr);
     return BigDecimal.fromString('1');
   }
   const p = liquidator.try_getPrice(
@@ -64,11 +65,12 @@ export function tryGetUsdPrice(
 export function getOrCreateToken(tokenCtr: VaultAbi): TokenEntity {
   let token = TokenEntity.load(tokenCtr._address.toHexString());
   if (!token) {
+    const isUSDC = getUSDC().equals(Address.fromString(tokenCtr._address.toHexString()));
     token = new TokenEntity(tokenCtr._address.toHexString());
     token.symbol = tokenCtr.symbol();
     token.name = tokenCtr.name();
     token.decimals = tokenCtr.decimals();
-    token.usdPrice = ZERO_BD;
+    token.usdPrice = isUSDC ? BigDecimal.fromString('1') : ZERO_BD;
     token.save();
   }
   return token;
