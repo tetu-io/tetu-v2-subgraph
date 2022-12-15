@@ -3,7 +3,7 @@
 import {
   Deposit,
   Merged,
-  PawnshopWhitelisted,
+  TransferWhitelisted,
   RevisionIncreased,
   Transfer,
   Upgraded,
@@ -81,7 +81,7 @@ export function handleTransfer(event: Transfer): void {
 //                   STATE CHANGES
 // ***************************************************
 
-export function handlePawnshopWhitelisted(event: PawnshopWhitelisted): void {
+export function handleTransferWhitelisted(event: TransferWhitelisted): void {
   const ve = _getOrCreateVe(event.address.toHexString());
   const arr = ve.allowedPawnshops;
   const pawnshop = event.params.value;

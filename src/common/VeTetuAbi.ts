@@ -166,21 +166,33 @@ export class Initialized__Params {
   }
 }
 
-export class PawnshopWhitelisted extends ethereum.Event {
-  get params(): PawnshopWhitelisted__Params {
-    return new PawnshopWhitelisted__Params(this);
+export class Merged extends ethereum.Event {
+  get params(): Merged__Params {
+    return new Merged__Params(this);
   }
 }
 
-export class PawnshopWhitelisted__Params {
-  _event: PawnshopWhitelisted;
+export class Merged__Params {
+  _event: Merged;
 
-  constructor(event: PawnshopWhitelisted) {
+  constructor(event: Merged) {
     this._event = event;
   }
 
-  get value(): Address {
+  get stakingToken(): Address {
     return this._event.parameters[0].value.toAddress();
+  }
+
+  get provider(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+
+  get from(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+
+  get to(): BigInt {
+    return this._event.parameters[3].value.toBigInt();
   }
 }
 
@@ -203,6 +215,32 @@ export class RevisionIncreased__Params {
 
   get oldLogic(): Address {
     return this._event.parameters[1].value.toAddress();
+  }
+}
+
+export class Split extends ethereum.Event {
+  get params(): Split__Params {
+    return new Split__Params(this);
+  }
+}
+
+export class Split__Params {
+  _event: Split;
+
+  constructor(event: Split) {
+    this._event = event;
+  }
+
+  get parentTokenId(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+
+  get newTokenId(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get percent(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
   }
 }
 
@@ -229,6 +267,24 @@ export class Transfer__Params {
 
   get tokenId(): BigInt {
     return this._event.parameters[2].value.toBigInt();
+  }
+}
+
+export class TransferWhitelisted extends ethereum.Event {
+  get params(): TransferWhitelisted__Params {
+    return new TransferWhitelisted__Params(this);
+  }
+}
+
+export class TransferWhitelisted__Params {
+  _event: TransferWhitelisted;
+
+  constructor(event: TransferWhitelisted) {
+    this._event = event;
+  }
+
+  get value(): Address {
+    return this._event.parameters[0].value.toAddress();
   }
 }
 
@@ -266,33 +322,28 @@ export class Withdraw__Params {
   }
 }
 
-export class Merged extends ethereum.Event {
-  get params(): Merged__Params {
-    return new Merged__Params(this);
-  }
-}
+export class VeTetuAbi__increaseUnlockTimeResult {
+  value0: BigInt;
+  value1: BigInt;
 
-export class Merged__Params {
-  _event: Merged;
-
-  constructor(event: Merged) {
-    this._event = event;
+  constructor(value0: BigInt, value1: BigInt) {
+    this.value0 = value0;
+    this.value1 = value1;
   }
 
-  get stakingToken(): Address {
-    return this._event.parameters[0].value.toAddress();
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromUnsignedBigInt(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    return map;
   }
 
-  get provider(): Address {
-    return this._event.parameters[1].value.toAddress();
+  getPower(): BigInt {
+    return this.value0;
   }
 
-  get from(): BigInt {
-    return this._event.parameters[2].value.toBigInt();
-  }
-
-  get to(): BigInt {
-    return this._event.parameters[3].value.toBigInt();
+  getUnlockDate(): BigInt {
+    return this.value1;
   }
 }
 
@@ -724,6 +775,49 @@ export class VeTetuAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
+  increaseUnlockTime(
+    _tokenId: BigInt,
+    _lockDuration: BigInt
+  ): VeTetuAbi__increaseUnlockTimeResult {
+    let result = super.call(
+      "increaseUnlockTime",
+      "increaseUnlockTime(uint256,uint256):(uint256,uint256)",
+      [
+        ethereum.Value.fromUnsignedBigInt(_tokenId),
+        ethereum.Value.fromUnsignedBigInt(_lockDuration)
+      ]
+    );
+
+    return new VeTetuAbi__increaseUnlockTimeResult(
+      result[0].toBigInt(),
+      result[1].toBigInt()
+    );
+  }
+
+  try_increaseUnlockTime(
+    _tokenId: BigInt,
+    _lockDuration: BigInt
+  ): ethereum.CallResult<VeTetuAbi__increaseUnlockTimeResult> {
+    let result = super.tryCall(
+      "increaseUnlockTime",
+      "increaseUnlockTime(uint256,uint256):(uint256,uint256)",
+      [
+        ethereum.Value.fromUnsignedBigInt(_tokenId),
+        ethereum.Value.fromUnsignedBigInt(_lockDuration)
+      ]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new VeTetuAbi__increaseUnlockTimeResult(
+        value[0].toBigInt(),
+        value[1].toBigInt()
+      )
+    );
+  }
+
   isApprovedForAll(_owner: Address, _operator: Address): boolean {
     let result = super.call(
       "isApprovedForAll",
@@ -845,20 +939,20 @@ export class VeTetuAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBoolean());
   }
 
-  isWhitelistedPawnshop(param0: Address): boolean {
+  isWhitelistedTransfer(param0: Address): boolean {
     let result = super.call(
-      "isWhitelistedPawnshop",
-      "isWhitelistedPawnshop(address):(bool)",
+      "isWhitelistedTransfer",
+      "isWhitelistedTransfer(address):(bool)",
       [ethereum.Value.fromAddress(param0)]
     );
 
     return result[0].toBoolean();
   }
 
-  try_isWhitelistedPawnshop(param0: Address): ethereum.CallResult<boolean> {
+  try_isWhitelistedTransfer(param0: Address): ethereum.CallResult<boolean> {
     let result = super.tryCall(
-      "isWhitelistedPawnshop",
-      "isWhitelistedPawnshop(address):(bool)",
+      "isWhitelistedTransfer",
+      "isWhitelistedTransfer(address):(bool)",
       [ethereum.Value.fromAddress(param0)]
     );
     if (result.reverted) {
@@ -1299,6 +1393,21 @@ export class VeTetuAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
+  tokensLength(): BigInt {
+    let result = super.call("tokensLength", "tokensLength():(uint256)", []);
+
+    return result[0].toBigInt();
+  }
+
+  try_tokensLength(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall("tokensLength", "tokensLength():(uint256)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
   totalSupply(): BigInt {
     let result = super.call("totalSupply", "totalSupply():(uint256)", []);
 
@@ -1488,21 +1597,6 @@ export class VeTetuAbi extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toAddress());
-  }
-
-  tokensLength(): BigInt {
-    let result = super.call("tokensLength", "tokensLength():(uint256)", []);
-
-    return result[0].toBigInt();
-  }
-
-  try_tokensLength(): ethereum.CallResult<BigInt> {
-    let result = super.tryCall("tokensLength", "tokensLength():(uint256)", []);
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 }
 
@@ -1878,6 +1972,14 @@ export class IncreaseUnlockTimeCall__Outputs {
   constructor(call: IncreaseUnlockTimeCall) {
     this._call = call;
   }
+
+  get power(): BigInt {
+    return this._call.outputValues[0].value.toBigInt();
+  }
+
+  get unlockDate(): BigInt {
+    return this._call.outputValues[1].value.toBigInt();
+  }
 }
 
 export class InitCall extends ethereum.Call {
@@ -1901,8 +2003,12 @@ export class InitCall__Inputs {
     return this._call.inputValues[0].value.toAddress();
   }
 
+  get weight(): BigInt {
+    return this._call.inputValues[1].value.toBigInt();
+  }
+
   get controller_(): Address {
-    return this._call.inputValues[1].value.toAddress();
+    return this._call.inputValues[2].value.toAddress();
   }
 }
 
@@ -1910,6 +2016,40 @@ export class InitCall__Outputs {
   _call: InitCall;
 
   constructor(call: InitCall) {
+    this._call = call;
+  }
+}
+
+export class MergeCall extends ethereum.Call {
+  get inputs(): MergeCall__Inputs {
+    return new MergeCall__Inputs(this);
+  }
+
+  get outputs(): MergeCall__Outputs {
+    return new MergeCall__Outputs(this);
+  }
+}
+
+export class MergeCall__Inputs {
+  _call: MergeCall;
+
+  constructor(call: MergeCall) {
+    this._call = call;
+  }
+
+  get _from(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+
+  get _to(): BigInt {
+    return this._call.inputValues[1].value.toBigInt();
+  }
+}
+
+export class MergeCall__Outputs {
+  _call: MergeCall;
+
+  constructor(call: MergeCall) {
     this._call = call;
   }
 }
@@ -2028,6 +2168,40 @@ export class SetApprovalForAllCall__Outputs {
   }
 }
 
+export class SplitCall extends ethereum.Call {
+  get inputs(): SplitCall__Inputs {
+    return new SplitCall__Inputs(this);
+  }
+
+  get outputs(): SplitCall__Outputs {
+    return new SplitCall__Outputs(this);
+  }
+}
+
+export class SplitCall__Inputs {
+  _call: SplitCall;
+
+  constructor(call: SplitCall) {
+    this._call = call;
+  }
+
+  get _tokenId(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+
+  get percent(): BigInt {
+    return this._call.inputValues[1].value.toBigInt();
+  }
+}
+
+export class SplitCall__Outputs {
+  _call: SplitCall;
+
+  constructor(call: SplitCall) {
+    this._call = call;
+  }
+}
+
 export class VotingCall extends ethereum.Call {
   get inputs(): VotingCall__Inputs {
     return new VotingCall__Inputs(this);
@@ -2058,32 +2232,32 @@ export class VotingCall__Outputs {
   }
 }
 
-export class WhitelistPawnshopCall extends ethereum.Call {
-  get inputs(): WhitelistPawnshopCall__Inputs {
-    return new WhitelistPawnshopCall__Inputs(this);
+export class WhitelistTransferForCall extends ethereum.Call {
+  get inputs(): WhitelistTransferForCall__Inputs {
+    return new WhitelistTransferForCall__Inputs(this);
   }
 
-  get outputs(): WhitelistPawnshopCall__Outputs {
-    return new WhitelistPawnshopCall__Outputs(this);
+  get outputs(): WhitelistTransferForCall__Outputs {
+    return new WhitelistTransferForCall__Outputs(this);
   }
 }
 
-export class WhitelistPawnshopCall__Inputs {
-  _call: WhitelistPawnshopCall;
+export class WhitelistTransferForCall__Inputs {
+  _call: WhitelistTransferForCall;
 
-  constructor(call: WhitelistPawnshopCall) {
+  constructor(call: WhitelistTransferForCall) {
     this._call = call;
   }
 
-  get pawnshop(): Address {
+  get value(): Address {
     return this._call.inputValues[0].value.toAddress();
   }
 }
 
-export class WhitelistPawnshopCall__Outputs {
-  _call: WhitelistPawnshopCall;
+export class WhitelistTransferForCall__Outputs {
+  _call: WhitelistTransferForCall;
 
-  constructor(call: WhitelistPawnshopCall) {
+  constructor(call: WhitelistTransferForCall) {
     this._call = call;
   }
 }
@@ -2118,6 +2292,36 @@ export class WithdrawCall__Outputs {
   _call: WithdrawCall;
 
   constructor(call: WithdrawCall) {
+    this._call = call;
+  }
+}
+
+export class WithdrawAllCall extends ethereum.Call {
+  get inputs(): WithdrawAllCall__Inputs {
+    return new WithdrawAllCall__Inputs(this);
+  }
+
+  get outputs(): WithdrawAllCall__Outputs {
+    return new WithdrawAllCall__Outputs(this);
+  }
+}
+
+export class WithdrawAllCall__Inputs {
+  _call: WithdrawAllCall;
+
+  constructor(call: WithdrawAllCall) {
+    this._call = call;
+  }
+
+  get _tokenId(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class WithdrawAllCall__Outputs {
+  _call: WithdrawAllCall;
+
+  constructor(call: WithdrawAllCall) {
     this._call = call;
   }
 }

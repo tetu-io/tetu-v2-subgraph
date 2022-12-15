@@ -18,7 +18,6 @@ export function getOrCreateBribe(bribeCtr: MultiBribeAbi, proxy: ProxyAbi): Brib
     bribe.ve = bribeCtr.ve().toHexString();
     bribe.controller = bribeCtr.controller().toHexString();
 
-    bribe.operator = bribeCtr.operator().toHexString();
     bribe.defaultRewardToken = bribeCtr.defaultRewardToken().toHexString()
 
     MultiBribeTemplate.create(bribeCtr._address);

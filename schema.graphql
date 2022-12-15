@@ -350,7 +350,6 @@ type GaugeEntity @entity {
     controller: ControllerEntity!
 
     #attributes
-    operator: String!
     defaultRewardToken: TokenEntity!
 
     vaults: [GaugeVaultEntity!]! @derivedFrom(field: "gauge")
@@ -470,7 +469,6 @@ type BribeEntity @entity {
     controller: ControllerEntity!
 
     #attributes
-    operator: String!
     defaultRewardToken: TokenEntity!
 
     vaults: [BribeVaultEntity!]! @derivedFrom(field: "bribe")

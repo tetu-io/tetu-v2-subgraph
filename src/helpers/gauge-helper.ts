@@ -16,7 +16,6 @@ export function getOrCreateGauge(gaugeCtr: MultiGaugeAbi, proxy: ProxyAbi): Gaug
     gauge.implementations = [proxy.implementation().toHexString()]
     gauge.ve = gaugeCtr.ve().toHexString();
     gauge.controller = gaugeCtr.controller().toHexString();
-    gauge.operator = gaugeCtr.operator().toHexString();
     gauge.defaultRewardToken = gaugeCtr.defaultRewardToken().toHexString()
 
     MultiGaugeTemplate.create(gaugeCtr._address);

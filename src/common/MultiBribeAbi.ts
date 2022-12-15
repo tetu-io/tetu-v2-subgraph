@@ -192,6 +192,72 @@ export class ContractInitialized__Params {
   }
 }
 
+export class DelayedRewardsNotified extends ethereum.Event {
+  get params(): DelayedRewardsNotified__Params {
+    return new DelayedRewardsNotified__Params(this);
+  }
+}
+
+export class DelayedRewardsNotified__Params {
+  _event: DelayedRewardsNotified;
+
+  constructor(event: DelayedRewardsNotified) {
+    this._event = event;
+  }
+
+  get vault(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get token(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+
+  get epoch(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[3].value.toBigInt();
+  }
+}
+
+export class EpochIncreased extends ethereum.Event {
+  get params(): EpochIncreased__Params {
+    return new EpochIncreased__Params(this);
+  }
+}
+
+export class EpochIncreased__Params {
+  _event: EpochIncreased;
+
+  constructor(event: EpochIncreased) {
+    this._event = event;
+  }
+
+  get epoch(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+}
+
+export class EpochOperatorChanged extends ethereum.Event {
+  get params(): EpochOperatorChanged__Params {
+    return new EpochOperatorChanged__Params(this);
+  }
+}
+
+export class EpochOperatorChanged__Params {
+  _event: EpochOperatorChanged;
+
+  constructor(event: EpochOperatorChanged) {
+    this._event = event;
+  }
+
+  get value(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
 export class Initialized extends ethereum.Event {
   get params(): Initialized__Params {
     return new Initialized__Params(this);
@@ -262,103 +328,33 @@ export class RevisionIncreased__Params {
   }
 }
 
-export class MultiBribeAbi__checkpointsResult {
-  value0: BigInt;
-  value1: BigInt;
-
-  constructor(value0: BigInt, value1: BigInt) {
-    this.value0 = value0;
-    this.value1 = value1;
-  }
-
-  toMap(): TypedMap<string, ethereum.Value> {
-    let map = new TypedMap<string, ethereum.Value>();
-    map.set("value0", ethereum.Value.fromUnsignedBigInt(this.value0));
-    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
-    return map;
-  }
-
-  getTimestamp(): BigInt {
-    return this.value0;
-  }
-
-  getValue(): BigInt {
-    return this.value1;
+export class RewardsForNextEpoch extends ethereum.Event {
+  get params(): RewardsForNextEpoch__Params {
+    return new RewardsForNextEpoch__Params(this);
   }
 }
 
-export class MultiBribeAbi__getPriorRewardPerTokenResult {
-  value0: BigInt;
-  value1: BigInt;
+export class RewardsForNextEpoch__Params {
+  _event: RewardsForNextEpoch;
 
-  constructor(value0: BigInt, value1: BigInt) {
-    this.value0 = value0;
-    this.value1 = value1;
+  constructor(event: RewardsForNextEpoch) {
+    this._event = event;
   }
 
-  toMap(): TypedMap<string, ethereum.Value> {
-    let map = new TypedMap<string, ethereum.Value>();
-    map.set("value0", ethereum.Value.fromUnsignedBigInt(this.value0));
-    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
-    return map;
+  get vault(): Address {
+    return this._event.parameters[0].value.toAddress();
   }
 
-  getValue0(): BigInt {
-    return this.value0;
+  get token(): Address {
+    return this._event.parameters[1].value.toAddress();
   }
 
-  getValue1(): BigInt {
-    return this.value1;
-  }
-}
-
-export class MultiBribeAbi__rewardPerTokenCheckpointsResult {
-  value0: BigInt;
-  value1: BigInt;
-
-  constructor(value0: BigInt, value1: BigInt) {
-    this.value0 = value0;
-    this.value1 = value1;
+  get epoch(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
   }
 
-  toMap(): TypedMap<string, ethereum.Value> {
-    let map = new TypedMap<string, ethereum.Value>();
-    map.set("value0", ethereum.Value.fromUnsignedBigInt(this.value0));
-    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
-    return map;
-  }
-
-  getTimestamp(): BigInt {
-    return this.value0;
-  }
-
-  getValue(): BigInt {
-    return this.value1;
-  }
-}
-
-export class MultiBribeAbi__supplyCheckpointsResult {
-  value0: BigInt;
-  value1: BigInt;
-
-  constructor(value0: BigInt, value1: BigInt) {
-    this.value0 = value0;
-    this.value1 = value1;
-  }
-
-  toMap(): TypedMap<string, ethereum.Value> {
-    let map = new TypedMap<string, ethereum.Value>();
-    map.set("value0", ethereum.Value.fromUnsignedBigInt(this.value0));
-    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
-    return map;
-  }
-
-  getTimestamp(): BigInt {
-    return this.value0;
-  }
-
-  getValue(): BigInt {
-    return this.value1;
+  get amount(): BigInt {
+    return this._event.parameters[3].value.toBigInt();
   }
 }
 
@@ -482,53 +478,6 @@ export class MultiBribeAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
-  checkpoints(
-    param0: Address,
-    param1: Address,
-    param2: BigInt
-  ): MultiBribeAbi__checkpointsResult {
-    let result = super.call(
-      "checkpoints",
-      "checkpoints(address,address,uint256):(uint256,uint256)",
-      [
-        ethereum.Value.fromAddress(param0),
-        ethereum.Value.fromAddress(param1),
-        ethereum.Value.fromUnsignedBigInt(param2)
-      ]
-    );
-
-    return new MultiBribeAbi__checkpointsResult(
-      result[0].toBigInt(),
-      result[1].toBigInt()
-    );
-  }
-
-  try_checkpoints(
-    param0: Address,
-    param1: Address,
-    param2: BigInt
-  ): ethereum.CallResult<MultiBribeAbi__checkpointsResult> {
-    let result = super.tryCall(
-      "checkpoints",
-      "checkpoints(address,address,uint256):(uint256,uint256)",
-      [
-        ethereum.Value.fromAddress(param0),
-        ethereum.Value.fromAddress(param1),
-        ethereum.Value.fromUnsignedBigInt(param2)
-      ]
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(
-      new MultiBribeAbi__checkpointsResult(
-        value[0].toBigInt(),
-        value[1].toBigInt()
-      )
-    );
-  }
-
   controller(): Address {
     let result = super.call("controller", "controller():(address)", []);
 
@@ -597,24 +546,30 @@ export class MultiBribeAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
-  derivedBalance(token: Address, account: Address): BigInt {
+  derivedBalance(stakingToken: Address, account: Address): BigInt {
     let result = super.call(
       "derivedBalance",
       "derivedBalance(address,address):(uint256)",
-      [ethereum.Value.fromAddress(token), ethereum.Value.fromAddress(account)]
+      [
+        ethereum.Value.fromAddress(stakingToken),
+        ethereum.Value.fromAddress(account)
+      ]
     );
 
     return result[0].toBigInt();
   }
 
   try_derivedBalance(
-    token: Address,
+    stakingToken: Address,
     account: Address
   ): ethereum.CallResult<BigInt> {
     let result = super.tryCall(
       "derivedBalance",
       "derivedBalance(address,address):(uint256)",
-      [ethereum.Value.fromAddress(token), ethereum.Value.fromAddress(account)]
+      [
+        ethereum.Value.fromAddress(stakingToken),
+        ethereum.Value.fromAddress(account)
+      ]
     );
     if (result.reverted) {
       return new ethereum.CallResult();
@@ -672,12 +627,31 @@ export class MultiBribeAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
-  earned(stakeToken: Address, rewardToken: Address, account: Address): BigInt {
+  duration(): BigInt {
+    let result = super.call("duration", "duration():(uint256)", []);
+
+    return result[0].toBigInt();
+  }
+
+  try_duration(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall("duration", "duration():(uint256)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  earned(
+    stakingToken: Address,
+    rewardToken: Address,
+    account: Address
+  ): BigInt {
     let result = super.call(
       "earned",
       "earned(address,address,address):(uint256)",
       [
-        ethereum.Value.fromAddress(stakeToken),
+        ethereum.Value.fromAddress(stakingToken),
         ethereum.Value.fromAddress(rewardToken),
         ethereum.Value.fromAddress(account)
       ]
@@ -687,7 +661,7 @@ export class MultiBribeAbi extends ethereum.SmartContract {
   }
 
   try_earned(
-    stakeToken: Address,
+    stakingToken: Address,
     rewardToken: Address,
     account: Address
   ): ethereum.CallResult<BigInt> {
@@ -695,7 +669,7 @@ export class MultiBribeAbi extends ethereum.SmartContract {
       "earned",
       "earned(address,address,address):(uint256)",
       [
-        ethereum.Value.fromAddress(stakeToken),
+        ethereum.Value.fromAddress(stakingToken),
         ethereum.Value.fromAddress(rewardToken),
         ethereum.Value.fromAddress(account)
       ]
@@ -707,38 +681,14 @@ export class MultiBribeAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
-  getPriorBalanceIndex(
-    stakingToken: Address,
-    account: Address,
-    timestamp: BigInt
-  ): BigInt {
-    let result = super.call(
-      "getPriorBalanceIndex",
-      "getPriorBalanceIndex(address,address,uint256):(uint256)",
-      [
-        ethereum.Value.fromAddress(stakingToken),
-        ethereum.Value.fromAddress(account),
-        ethereum.Value.fromUnsignedBigInt(timestamp)
-      ]
-    );
+  epoch(): BigInt {
+    let result = super.call("epoch", "epoch():(uint256)", []);
 
     return result[0].toBigInt();
   }
 
-  try_getPriorBalanceIndex(
-    stakingToken: Address,
-    account: Address,
-    timestamp: BigInt
-  ): ethereum.CallResult<BigInt> {
-    let result = super.tryCall(
-      "getPriorBalanceIndex",
-      "getPriorBalanceIndex(address,address,uint256):(uint256)",
-      [
-        ethereum.Value.fromAddress(stakingToken),
-        ethereum.Value.fromAddress(account),
-        ethereum.Value.fromUnsignedBigInt(timestamp)
-      ]
-    );
+  try_epoch(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall("epoch", "epoch():(uint256)", []);
     if (result.reverted) {
       return new ethereum.CallResult();
     }
@@ -746,83 +696,23 @@ export class MultiBribeAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
-  getPriorRewardPerToken(
-    stakingToken: Address,
-    rewardToken: Address,
-    timestamp: BigInt
-  ): MultiBribeAbi__getPriorRewardPerTokenResult {
-    let result = super.call(
-      "getPriorRewardPerToken",
-      "getPriorRewardPerToken(address,address,uint256):(uint256,uint256)",
-      [
-        ethereum.Value.fromAddress(stakingToken),
-        ethereum.Value.fromAddress(rewardToken),
-        ethereum.Value.fromUnsignedBigInt(timestamp)
-      ]
-    );
+  epochOperator(): Address {
+    let result = super.call("epochOperator", "epochOperator():(address)", []);
 
-    return new MultiBribeAbi__getPriorRewardPerTokenResult(
-      result[0].toBigInt(),
-      result[1].toBigInt()
-    );
+    return result[0].toAddress();
   }
 
-  try_getPriorRewardPerToken(
-    stakingToken: Address,
-    rewardToken: Address,
-    timestamp: BigInt
-  ): ethereum.CallResult<MultiBribeAbi__getPriorRewardPerTokenResult> {
+  try_epochOperator(): ethereum.CallResult<Address> {
     let result = super.tryCall(
-      "getPriorRewardPerToken",
-      "getPriorRewardPerToken(address,address,uint256):(uint256,uint256)",
-      [
-        ethereum.Value.fromAddress(stakingToken),
-        ethereum.Value.fromAddress(rewardToken),
-        ethereum.Value.fromUnsignedBigInt(timestamp)
-      ]
+      "epochOperator",
+      "epochOperator():(address)",
+      []
     );
     if (result.reverted) {
       return new ethereum.CallResult();
     }
     let value = result.value;
-    return ethereum.CallResult.fromValue(
-      new MultiBribeAbi__getPriorRewardPerTokenResult(
-        value[0].toBigInt(),
-        value[1].toBigInt()
-      )
-    );
-  }
-
-  getPriorSupplyIndex(stakingToken: Address, timestamp: BigInt): BigInt {
-    let result = super.call(
-      "getPriorSupplyIndex",
-      "getPriorSupplyIndex(address,uint256):(uint256)",
-      [
-        ethereum.Value.fromAddress(stakingToken),
-        ethereum.Value.fromUnsignedBigInt(timestamp)
-      ]
-    );
-
-    return result[0].toBigInt();
-  }
-
-  try_getPriorSupplyIndex(
-    stakingToken: Address,
-    timestamp: BigInt
-  ): ethereum.CallResult<BigInt> {
-    let result = super.tryCall(
-      "getPriorSupplyIndex",
-      "getPriorSupplyIndex(address,uint256):(uint256)",
-      [
-        ethereum.Value.fromAddress(stakingToken),
-        ethereum.Value.fromUnsignedBigInt(timestamp)
-      ]
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBigInt());
+    return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
   isController(_value: Address): boolean {
@@ -908,32 +798,32 @@ export class MultiBribeAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBoolean());
   }
 
-  lastEarn(param0: Address, param1: Address, param2: Address): BigInt {
+  lastTimeRewardApplicable(
+    stakingToken: Address,
+    rewardToken: Address
+  ): BigInt {
     let result = super.call(
-      "lastEarn",
-      "lastEarn(address,address,address):(uint256)",
+      "lastTimeRewardApplicable",
+      "lastTimeRewardApplicable(address,address):(uint256)",
       [
-        ethereum.Value.fromAddress(param0),
-        ethereum.Value.fromAddress(param1),
-        ethereum.Value.fromAddress(param2)
+        ethereum.Value.fromAddress(stakingToken),
+        ethereum.Value.fromAddress(rewardToken)
       ]
     );
 
     return result[0].toBigInt();
   }
 
-  try_lastEarn(
-    param0: Address,
-    param1: Address,
-    param2: Address
+  try_lastTimeRewardApplicable(
+    stakingToken: Address,
+    rewardToken: Address
   ): ethereum.CallResult<BigInt> {
     let result = super.tryCall(
-      "lastEarn",
-      "lastEarn(address,address,address):(uint256)",
+      "lastTimeRewardApplicable",
+      "lastTimeRewardApplicable(address,address):(uint256)",
       [
-        ethereum.Value.fromAddress(param0),
-        ethereum.Value.fromAddress(param1),
-        ethereum.Value.fromAddress(param2)
+        ethereum.Value.fromAddress(stakingToken),
+        ethereum.Value.fromAddress(rewardToken)
       ]
     );
     if (result.reverted) {
@@ -969,9 +859,9 @@ export class MultiBribeAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
-  left(stakeToken: Address, rewardToken: Address): BigInt {
+  left(stakingToken: Address, rewardToken: Address): BigInt {
     let result = super.call("left", "left(address,address):(uint256)", [
-      ethereum.Value.fromAddress(stakeToken),
+      ethereum.Value.fromAddress(stakingToken),
       ethereum.Value.fromAddress(rewardToken)
     ]);
 
@@ -979,11 +869,11 @@ export class MultiBribeAbi extends ethereum.SmartContract {
   }
 
   try_left(
-    stakeToken: Address,
+    stakingToken: Address,
     rewardToken: Address
   ): ethereum.CallResult<BigInt> {
     let result = super.tryCall("left", "left(address,address):(uint256)", [
-      ethereum.Value.fromAddress(stakeToken),
+      ethereum.Value.fromAddress(stakingToken),
       ethereum.Value.fromAddress(rewardToken)
     ]);
     if (result.reverted) {
@@ -991,47 +881,6 @@ export class MultiBribeAbi extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBigInt());
-  }
-
-  numCheckpoints(param0: Address, param1: Address): BigInt {
-    let result = super.call(
-      "numCheckpoints",
-      "numCheckpoints(address,address):(uint256)",
-      [ethereum.Value.fromAddress(param0), ethereum.Value.fromAddress(param1)]
-    );
-
-    return result[0].toBigInt();
-  }
-
-  try_numCheckpoints(
-    param0: Address,
-    param1: Address
-  ): ethereum.CallResult<BigInt> {
-    let result = super.tryCall(
-      "numCheckpoints",
-      "numCheckpoints(address,address):(uint256)",
-      [ethereum.Value.fromAddress(param0), ethereum.Value.fromAddress(param1)]
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBigInt());
-  }
-
-  operator(): Address {
-    let result = super.call("operator", "operator():(address)", []);
-
-    return result[0].toAddress();
-  }
-
-  try_operator(): ethereum.CallResult<Address> {
-    let result = super.tryCall("operator", "operator():(address)", []);
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
   periodFinish(param0: Address, param1: Address): BigInt {
@@ -1098,12 +947,12 @@ export class MultiBribeAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
-  rewardPerToken(stakeToken: Address, rewardToken: Address): BigInt {
+  rewardPerToken(stakingToken: Address, rewardToken: Address): BigInt {
     let result = super.call(
       "rewardPerToken",
       "rewardPerToken(address,address):(uint256)",
       [
-        ethereum.Value.fromAddress(stakeToken),
+        ethereum.Value.fromAddress(stakingToken),
         ethereum.Value.fromAddress(rewardToken)
       ]
     );
@@ -1112,89 +961,16 @@ export class MultiBribeAbi extends ethereum.SmartContract {
   }
 
   try_rewardPerToken(
-    stakeToken: Address,
+    stakingToken: Address,
     rewardToken: Address
   ): ethereum.CallResult<BigInt> {
     let result = super.tryCall(
       "rewardPerToken",
       "rewardPerToken(address,address):(uint256)",
       [
-        ethereum.Value.fromAddress(stakeToken),
+        ethereum.Value.fromAddress(stakingToken),
         ethereum.Value.fromAddress(rewardToken)
       ]
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBigInt());
-  }
-
-  rewardPerTokenCheckpoints(
-    param0: Address,
-    param1: Address,
-    param2: BigInt
-  ): MultiBribeAbi__rewardPerTokenCheckpointsResult {
-    let result = super.call(
-      "rewardPerTokenCheckpoints",
-      "rewardPerTokenCheckpoints(address,address,uint256):(uint256,uint256)",
-      [
-        ethereum.Value.fromAddress(param0),
-        ethereum.Value.fromAddress(param1),
-        ethereum.Value.fromUnsignedBigInt(param2)
-      ]
-    );
-
-    return new MultiBribeAbi__rewardPerTokenCheckpointsResult(
-      result[0].toBigInt(),
-      result[1].toBigInt()
-    );
-  }
-
-  try_rewardPerTokenCheckpoints(
-    param0: Address,
-    param1: Address,
-    param2: BigInt
-  ): ethereum.CallResult<MultiBribeAbi__rewardPerTokenCheckpointsResult> {
-    let result = super.tryCall(
-      "rewardPerTokenCheckpoints",
-      "rewardPerTokenCheckpoints(address,address,uint256):(uint256,uint256)",
-      [
-        ethereum.Value.fromAddress(param0),
-        ethereum.Value.fromAddress(param1),
-        ethereum.Value.fromUnsignedBigInt(param2)
-      ]
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(
-      new MultiBribeAbi__rewardPerTokenCheckpointsResult(
-        value[0].toBigInt(),
-        value[1].toBigInt()
-      )
-    );
-  }
-
-  rewardPerTokenNumCheckpoints(param0: Address, param1: Address): BigInt {
-    let result = super.call(
-      "rewardPerTokenNumCheckpoints",
-      "rewardPerTokenNumCheckpoints(address,address):(uint256)",
-      [ethereum.Value.fromAddress(param0), ethereum.Value.fromAddress(param1)]
-    );
-
-    return result[0].toBigInt();
-  }
-
-  try_rewardPerTokenNumCheckpoints(
-    param0: Address,
-    param1: Address
-  ): ethereum.CallResult<BigInt> {
-    let result = super.tryCall(
-      "rewardPerTokenNumCheckpoints",
-      "rewardPerTokenNumCheckpoints(address,address):(uint256)",
-      [ethereum.Value.fromAddress(param0), ethereum.Value.fromAddress(param1)]
     );
     if (result.reverted) {
       return new ethereum.CallResult();
@@ -1310,70 +1086,120 @@ export class MultiBribeAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
-  supplyCheckpoints(
-    param0: Address,
-    param1: BigInt
-  ): MultiBribeAbi__supplyCheckpointsResult {
+  rewards(param0: Address, param1: Address, param2: Address): BigInt {
     let result = super.call(
-      "supplyCheckpoints",
-      "supplyCheckpoints(address,uint256):(uint256,uint256)",
+      "rewards",
+      "rewards(address,address,address):(uint256)",
       [
         ethereum.Value.fromAddress(param0),
-        ethereum.Value.fromUnsignedBigInt(param1)
+        ethereum.Value.fromAddress(param1),
+        ethereum.Value.fromAddress(param2)
       ]
-    );
-
-    return new MultiBribeAbi__supplyCheckpointsResult(
-      result[0].toBigInt(),
-      result[1].toBigInt()
-    );
-  }
-
-  try_supplyCheckpoints(
-    param0: Address,
-    param1: BigInt
-  ): ethereum.CallResult<MultiBribeAbi__supplyCheckpointsResult> {
-    let result = super.tryCall(
-      "supplyCheckpoints",
-      "supplyCheckpoints(address,uint256):(uint256,uint256)",
-      [
-        ethereum.Value.fromAddress(param0),
-        ethereum.Value.fromUnsignedBigInt(param1)
-      ]
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(
-      new MultiBribeAbi__supplyCheckpointsResult(
-        value[0].toBigInt(),
-        value[1].toBigInt()
-      )
-    );
-  }
-
-  supplyNumCheckpoints(param0: Address): BigInt {
-    let result = super.call(
-      "supplyNumCheckpoints",
-      "supplyNumCheckpoints(address):(uint256)",
-      [ethereum.Value.fromAddress(param0)]
     );
 
     return result[0].toBigInt();
   }
 
-  try_supplyNumCheckpoints(param0: Address): ethereum.CallResult<BigInt> {
+  try_rewards(
+    param0: Address,
+    param1: Address,
+    param2: Address
+  ): ethereum.CallResult<BigInt> {
     let result = super.tryCall(
-      "supplyNumCheckpoints",
-      "supplyNumCheckpoints(address):(uint256)",
-      [ethereum.Value.fromAddress(param0)]
+      "rewards",
+      "rewards(address,address,address):(uint256)",
+      [
+        ethereum.Value.fromAddress(param0),
+        ethereum.Value.fromAddress(param1),
+        ethereum.Value.fromAddress(param2)
+      ]
     );
     if (result.reverted) {
       return new ethereum.CallResult();
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  rewardsQueue(param0: Address, param1: Address, param2: BigInt): BigInt {
+    let result = super.call(
+      "rewardsQueue",
+      "rewardsQueue(address,address,uint256):(uint256)",
+      [
+        ethereum.Value.fromAddress(param0),
+        ethereum.Value.fromAddress(param1),
+        ethereum.Value.fromUnsignedBigInt(param2)
+      ]
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_rewardsQueue(
+    param0: Address,
+    param1: Address,
+    param2: BigInt
+  ): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "rewardsQueue",
+      "rewardsQueue(address,address,uint256):(uint256)",
+      [
+        ethereum.Value.fromAddress(param0),
+        ethereum.Value.fromAddress(param1),
+        ethereum.Value.fromUnsignedBigInt(param2)
+      ]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  rewardsRedirect(param0: Address): Address {
+    let result = super.call(
+      "rewardsRedirect",
+      "rewardsRedirect(address):(address)",
+      [ethereum.Value.fromAddress(param0)]
+    );
+
+    return result[0].toAddress();
+  }
+
+  try_rewardsRedirect(param0: Address): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "rewardsRedirect",
+      "rewardsRedirect(address):(address)",
+      [ethereum.Value.fromAddress(param0)]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  supportsInterface(interfaceId: Bytes): boolean {
+    let result = super.call(
+      "supportsInterface",
+      "supportsInterface(bytes4):(bool)",
+      [ethereum.Value.fromFixedBytes(interfaceId)]
+    );
+
+    return result[0].toBoolean();
+  }
+
+  try_supportsInterface(interfaceId: Bytes): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "supportsInterface",
+      "supportsInterface(bytes4):(bool)",
+      [ethereum.Value.fromFixedBytes(interfaceId)]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
   }
 
   tokenIdToAddress(tokenId: BigInt): Address {
@@ -1420,14 +1246,14 @@ export class MultiBribeAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
-  userRewardPerTokenStored(
+  userRewardPerTokenPaid(
     param0: Address,
     param1: Address,
     param2: Address
   ): BigInt {
     let result = super.call(
-      "userRewardPerTokenStored",
-      "userRewardPerTokenStored(address,address,address):(uint256)",
+      "userRewardPerTokenPaid",
+      "userRewardPerTokenPaid(address,address,address):(uint256)",
       [
         ethereum.Value.fromAddress(param0),
         ethereum.Value.fromAddress(param1),
@@ -1438,14 +1264,14 @@ export class MultiBribeAbi extends ethereum.SmartContract {
     return result[0].toBigInt();
   }
 
-  try_userRewardPerTokenStored(
+  try_userRewardPerTokenPaid(
     param0: Address,
     param1: Address,
     param2: Address
   ): ethereum.CallResult<BigInt> {
     let result = super.tryCall(
-      "userRewardPerTokenStored",
-      "userRewardPerTokenStored(address,address,address):(uint256)",
+      "userRewardPerTokenPaid",
+      "userRewardPerTokenPaid(address,address,address):(uint256)",
       [
         ethereum.Value.fromAddress(param0),
         ethereum.Value.fromAddress(param1),
@@ -1487,44 +1313,6 @@ export class MultiBribeAbi extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toAddress());
-  }
-}
-
-export class BatchUpdateRewardPerTokenCall extends ethereum.Call {
-  get inputs(): BatchUpdateRewardPerTokenCall__Inputs {
-    return new BatchUpdateRewardPerTokenCall__Inputs(this);
-  }
-
-  get outputs(): BatchUpdateRewardPerTokenCall__Outputs {
-    return new BatchUpdateRewardPerTokenCall__Outputs(this);
-  }
-}
-
-export class BatchUpdateRewardPerTokenCall__Inputs {
-  _call: BatchUpdateRewardPerTokenCall;
-
-  constructor(call: BatchUpdateRewardPerTokenCall) {
-    this._call = call;
-  }
-
-  get stakingToken(): Address {
-    return this._call.inputValues[0].value.toAddress();
-  }
-
-  get rewardToken(): Address {
-    return this._call.inputValues[1].value.toAddress();
-  }
-
-  get maxRuns(): BigInt {
-    return this._call.inputValues[2].value.toBigInt();
-  }
-}
-
-export class BatchUpdateRewardPerTokenCall__Outputs {
-  _call: BatchUpdateRewardPerTokenCall;
-
-  constructor(call: BatchUpdateRewardPerTokenCall) {
-    this._call = call;
   }
 }
 
@@ -1672,6 +1460,32 @@ export class GetRewardCall__Outputs {
   }
 }
 
+export class IncreaseEpochCall extends ethereum.Call {
+  get inputs(): IncreaseEpochCall__Inputs {
+    return new IncreaseEpochCall__Inputs(this);
+  }
+
+  get outputs(): IncreaseEpochCall__Outputs {
+    return new IncreaseEpochCall__Outputs(this);
+  }
+}
+
+export class IncreaseEpochCall__Inputs {
+  _call: IncreaseEpochCall;
+
+  constructor(call: IncreaseEpochCall) {
+    this._call = call;
+  }
+}
+
+export class IncreaseEpochCall__Outputs {
+  _call: IncreaseEpochCall;
+
+  constructor(call: IncreaseEpochCall) {
+    this._call = call;
+  }
+}
+
 export class IncreaseRevisionCall extends ethereum.Call {
   get inputs(): IncreaseRevisionCall__Inputs {
     return new IncreaseRevisionCall__Inputs(this);
@@ -1723,16 +1537,12 @@ export class InitCall__Inputs {
     return this._call.inputValues[0].value.toAddress();
   }
 
-  get _operator(): Address {
+  get _ve(): Address {
     return this._call.inputValues[1].value.toAddress();
   }
 
-  get _ve(): Address {
-    return this._call.inputValues[2].value.toAddress();
-  }
-
   get _defaultReward(): Address {
-    return this._call.inputValues[3].value.toAddress();
+    return this._call.inputValues[2].value.toAddress();
   }
 }
 
@@ -1740,6 +1550,82 @@ export class InitCall__Outputs {
   _call: InitCall;
 
   constructor(call: InitCall) {
+    this._call = call;
+  }
+}
+
+export class NotifyDelayedRewardsCall extends ethereum.Call {
+  get inputs(): NotifyDelayedRewardsCall__Inputs {
+    return new NotifyDelayedRewardsCall__Inputs(this);
+  }
+
+  get outputs(): NotifyDelayedRewardsCall__Outputs {
+    return new NotifyDelayedRewardsCall__Outputs(this);
+  }
+}
+
+export class NotifyDelayedRewardsCall__Inputs {
+  _call: NotifyDelayedRewardsCall;
+
+  constructor(call: NotifyDelayedRewardsCall) {
+    this._call = call;
+  }
+
+  get vault(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+
+  get token(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+
+  get _epoch(): BigInt {
+    return this._call.inputValues[2].value.toBigInt();
+  }
+}
+
+export class NotifyDelayedRewardsCall__Outputs {
+  _call: NotifyDelayedRewardsCall;
+
+  constructor(call: NotifyDelayedRewardsCall) {
+    this._call = call;
+  }
+}
+
+export class NotifyForNextEpochCall extends ethereum.Call {
+  get inputs(): NotifyForNextEpochCall__Inputs {
+    return new NotifyForNextEpochCall__Inputs(this);
+  }
+
+  get outputs(): NotifyForNextEpochCall__Outputs {
+    return new NotifyForNextEpochCall__Outputs(this);
+  }
+}
+
+export class NotifyForNextEpochCall__Inputs {
+  _call: NotifyForNextEpochCall;
+
+  constructor(call: NotifyForNextEpochCall) {
+    this._call = call;
+  }
+
+  get vault(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+
+  get token(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+
+  get amount(): BigInt {
+    return this._call.inputValues[2].value.toBigInt();
+  }
+}
+
+export class NotifyForNextEpochCall__Outputs {
+  _call: NotifyForNextEpochCall;
+
+  constructor(call: NotifyForNextEpochCall) {
     this._call = call;
   }
 }
@@ -1846,6 +1732,70 @@ export class RemoveRewardTokenCall__Outputs {
   _call: RemoveRewardTokenCall;
 
   constructor(call: RemoveRewardTokenCall) {
+    this._call = call;
+  }
+}
+
+export class SetEpochOperatorCall extends ethereum.Call {
+  get inputs(): SetEpochOperatorCall__Inputs {
+    return new SetEpochOperatorCall__Inputs(this);
+  }
+
+  get outputs(): SetEpochOperatorCall__Outputs {
+    return new SetEpochOperatorCall__Outputs(this);
+  }
+}
+
+export class SetEpochOperatorCall__Inputs {
+  _call: SetEpochOperatorCall;
+
+  constructor(call: SetEpochOperatorCall) {
+    this._call = call;
+  }
+
+  get value(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class SetEpochOperatorCall__Outputs {
+  _call: SetEpochOperatorCall;
+
+  constructor(call: SetEpochOperatorCall) {
+    this._call = call;
+  }
+}
+
+export class SetRewardsRedirectCall extends ethereum.Call {
+  get inputs(): SetRewardsRedirectCall__Inputs {
+    return new SetRewardsRedirectCall__Inputs(this);
+  }
+
+  get outputs(): SetRewardsRedirectCall__Outputs {
+    return new SetRewardsRedirectCall__Outputs(this);
+  }
+}
+
+export class SetRewardsRedirectCall__Inputs {
+  _call: SetRewardsRedirectCall;
+
+  constructor(call: SetRewardsRedirectCall) {
+    this._call = call;
+  }
+
+  get account(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+
+  get recipient(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+}
+
+export class SetRewardsRedirectCall__Outputs {
+  _call: SetRewardsRedirectCall;
+
+  constructor(call: SetRewardsRedirectCall) {
     this._call = call;
   }
 }

@@ -16,8 +16,10 @@ export function getUSDC(): Address {
     return Address.fromString("0x0C27719A3EdC8F3F1E530213c33548456f379892");
   } else if (dataSource.network() == 'mainnet') {
     return Address.fromString("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
-  }else if (dataSource.network() == 'goerli') {
+  } else if (dataSource.network() == 'goerli') {
     return Address.fromString("0x308A756B4f9aa3148CaD7ccf8e72c18C758b2EF2");
+  } else if (dataSource.network() == 'matic') {
+    return Address.fromString("0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174");
   }
   log.critical("WRONG_NETWORK {}", [dataSource.network()]);
   return Address.fromString(ADDRESS_ZERO)
