@@ -1,10 +1,12 @@
 import {VeTetuEntity, VeTetuTokenEntity} from "../types/schema";
-import {Address, BigDecimal, BigInt, ByteArray, crypto} from "@graphprotocol/graph-ts";
+import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {VeTetuTemplate} from "../types/templates";
 import {ZERO_BD} from "../constants";
 import {ProxyAbi} from "../common/ProxyAbi";
 import {VeTetuAbi} from "../common/VeTetuAbi";
 import {generateVeTetuTokenEntityId} from "./id-helper";
+import {getOrCreateToken} from "./common-helper";
+import {VaultAbi} from "../common/VaultAbi";
 
 export function getOrCreateVe(veCtr: VeTetuAbi, proxy: ProxyAbi): VeTetuEntity {
   let ve = VeTetuEntity.load(veCtr._address.toHexString());
@@ -27,16 +29,23 @@ export function getOrCreateVe(veCtr: VeTetuAbi, proxy: ProxyAbi): VeTetuEntity {
     ve.save();
 
     const tokenAdr = veCtr.tokens(BigInt.fromI32(0));
-    const tokenInfoId = generateVeTetuTokenEntityId(ve.id, tokenAdr.toHexString());
-    let tokenInfo = VeTetuTokenEntity.load(tokenInfoId);
-    if (!tokenInfo) {
-      tokenInfo = new VeTetuTokenEntity(tokenInfoId);
-      tokenInfo.ve = ve.id;
-      tokenInfo.address = tokenAdr.toHexString();
-      tokenInfo.weight = ZERO_BD;
-      tokenInfo.supply = ZERO_BD;
-      tokenInfo.save();
-    }
+    getOrCreateVeTetuTokenEntity(ve.id, tokenAdr);
   }
   return ve;
+}
+
+export function getOrCreateVeTetuTokenEntity(veId: string, tokenAdr: Address): VeTetuTokenEntity {
+  getOrCreateToken(VaultAbi.bind(tokenAdr))
+  const tokenInfoId = generateVeTetuTokenEntityId(veId, tokenAdr.toHexString());
+  let tokenInfo = VeTetuTokenEntity.load(tokenInfoId);
+  if (!tokenInfo) {
+    tokenInfo = new VeTetuTokenEntity(tokenInfoId);
+    tokenInfo.ve = veId;
+    tokenInfo.address = tokenAdr.toHexString();
+    tokenInfo.weight = ZERO_BD;
+    tokenInfo.supply = ZERO_BD;
+    tokenInfo.save();
+  }
+
+  return tokenInfo;
 }

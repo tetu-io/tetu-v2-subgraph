@@ -28,7 +28,7 @@ import {LiquidatorAbi} from "./types/templates/VeTetuTemplate/LiquidatorAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 import {generateVeNFTId} from "./helpers/id-helper";
-import {getOrCreateVe} from "./helpers/ve-helper";
+import {getOrCreateVe, getOrCreateVeTetuTokenEntity} from "./helpers/ve-helper";
 import {VeTetuAbi as VeTetuAbiCommon} from "./common/VeTetuAbi";
 import {ProxyAbi as ProxyAbiCommon} from "./common/ProxyAbi";
 
@@ -131,6 +131,7 @@ function updateUser(
   const veNFT = getOrCreateVeNFT(veId, veAdr);
 
   if (token != ADDRESS_ZERO) {
+    getOrCreateVeTetuTokenEntity(ve.id, Address.fromString(token));
     const controller = ControllerEntity.load(ve.controller) as ControllerEntity;
     const tokenEntity = getOrCreateVeToken(veNFT.id, veAdr, token);
     const decimals = BigInt.fromI32(tokenEntity.decimals)
