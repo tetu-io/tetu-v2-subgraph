@@ -8,7 +8,7 @@ import {
   Transfer,
   Upgraded,
   VeTetuAbi,
-  Withdraw
+  Withdraw, Split
 } from "./types/templates/VeTetuTemplate/VeTetuAbi";
 import {
   ControllerEntity,
@@ -63,6 +63,51 @@ export function handleMerged(event: Merged): void {
     event.block.timestamp,
     event.params.stakingToken.toHexString()
   );
+  updateUser(
+    event.params.to,
+    event.address.toHexString(),
+    event.block.timestamp,
+    event.params.stakingToken.toHexString()
+  );
+  updateVeTokensInfo(event.address.toHexString());
+}
+
+export function handleSplit(event: Split): void {
+  updateUser(
+    event.params.parentTokenId,
+    event.address.toHexString(),
+    event.block.timestamp,
+    ADDRESS_ZERO
+  );
+  updateUser(
+    event.params.newTokenId,
+    event.address.toHexString(),
+    event.block.timestamp,
+    ADDRESS_ZERO
+  );
+  const veAdr = event.address.toHexString()
+  const time = event.block.timestamp
+  const ve = _getOrCreateVe(veAdr);
+  const veCtr = VeTetuAbi.bind(Address.fromString(veAdr));
+
+  updateStakingTokenInfoForAll(
+    veAdr,
+    event.params.parentTokenId,
+    time,
+    ve,
+    getOrCreateVeNFT(event.params.parentTokenId, veAdr),
+    veCtr
+  );
+
+  updateStakingTokenInfoForAll(
+    veAdr,
+    event.params.newTokenId,
+    time,
+    ve,
+    getOrCreateVeNFT(event.params.newTokenId, veAdr),
+    veCtr
+  );
+
   updateVeTokensInfo(event.address.toHexString());
 }
 
@@ -120,6 +165,57 @@ export function handleUpgraded(event: Upgraded): void {
 //                     HELPERS
 // ***************************************************
 
+
+function updateStakingTokenInfoForAll(
+  veAdr: string,
+  veId: BigInt,
+  time: BigInt,
+  ve: VeTetuEntity,
+  veNFT: VeNFTEntity,
+  veCtr: VeTetuAbi
+): void {
+  const length = veCtr.tokensLength().toI32()
+  for (let i = 0; i < length; i++) {
+    const token = veCtr.tokens(BigInt.fromI32(i));
+    updateStakingTokenInfo(
+      veAdr,
+      veId,
+      time,
+      token.toHexString(),
+      ve,
+      veNFT,
+      veCtr
+    )
+  }
+
+}
+
+function updateStakingTokenInfo(
+  veAdr: string,
+  veId: BigInt,
+  time: BigInt,
+  token: string,
+  ve: VeTetuEntity,
+  veNFT: VeNFTEntity,
+  veCtr: VeTetuAbi
+): void {
+  getOrCreateVeTetuTokenEntity(ve.id, Address.fromString(token));
+  const controller = ControllerEntity.load(ve.controller) as ControllerEntity;
+  const tokenEntity = getOrCreateVeToken(veNFT.id, veAdr, token);
+  const decimals = BigInt.fromI32(tokenEntity.decimals)
+  veNFT.derivedAmount = formatUnits(veCtr.lockedDerivedAmount(veId), decimals);
+  const tokenPrice = _tryGetUsdPrice(controller.liquidator, token, decimals);
+  tokenEntity.amount = formatUnits(veCtr.lockedAmounts(veId, Address.fromString(token)), decimals);
+  tokenEntity.amountUSD = tokenEntity.amount.times(tokenPrice);
+  saveTokenHistory(tokenEntity, time);
+  tokenEntity.save();
+
+  ve.lockedAmountUSD = ve.lockedAmountUSD.minus(veNFT.lockedAmountUSD);
+  veNFT.lockedAmountUSD = veNFT.lockedAmountUSD.minus(tokenEntity.amountUSD);
+  veNFT.lockedAmountUSD = veNFT.lockedAmountUSD.plus(tokenEntity.amountUSD);
+  ve.lockedAmountUSD = ve.lockedAmountUSD.plus(veNFT.lockedAmountUSD);
+}
+
 function updateUser(
   veId: BigInt,
   veAdr: string,
@@ -131,21 +227,15 @@ function updateUser(
   const veNFT = getOrCreateVeNFT(veId, veAdr);
 
   if (token != ADDRESS_ZERO) {
-    getOrCreateVeTetuTokenEntity(ve.id, Address.fromString(token));
-    const controller = ControllerEntity.load(ve.controller) as ControllerEntity;
-    const tokenEntity = getOrCreateVeToken(veNFT.id, veAdr, token);
-    const decimals = BigInt.fromI32(tokenEntity.decimals)
-    veNFT.derivedAmount = formatUnits(veCtr.lockedDerivedAmount(veId), decimals);
-    const tokenPrice = _tryGetUsdPrice(controller.liquidator, token, decimals);
-    tokenEntity.amount = formatUnits(veCtr.lockedAmounts(veId, Address.fromString(token)), decimals);
-    tokenEntity.amountUSD = tokenEntity.amount.times(tokenPrice);
-    saveTokenHistory(tokenEntity, time);
-    tokenEntity.save();
-
-    ve.lockedAmountUSD = ve.lockedAmountUSD.minus(veNFT.lockedAmountUSD);
-    veNFT.lockedAmountUSD = veNFT.lockedAmountUSD.minus(tokenEntity.amountUSD);
-    veNFT.lockedAmountUSD = veNFT.lockedAmountUSD.plus(tokenEntity.amountUSD);
-    ve.lockedAmountUSD = ve.lockedAmountUSD.plus(veNFT.lockedAmountUSD);
+    updateStakingTokenInfo(
+      veAdr,
+      veId,
+      time,
+      token,
+      ve,
+      veNFT,
+      veCtr
+    );
   }
 
   veNFT.lockedEnd = veCtr.lockedEnd(veId).toI32();
@@ -205,7 +295,7 @@ function _getOrCreateVe(veAdr: string): VeTetuEntity {
 function updateVeTokensInfo(ve: string): void {
   const veCtr = VeTetuAbi.bind(Address.fromString(ve));
   const length = veCtr.tokensLength().toI32()
-  const weightDenominator = parseUnits(BigDecimal.fromString('100'), BigInt.fromI32(18)).toBigDecimal();
+  const weightDenominator = parseUnits(BigDecimal.fromString('1'), BigInt.fromI32(18)).toBigDecimal();
 
   for (let i = 0; i < length; i++) {
     const token = veCtr.tokens(BigInt.fromI32(i));

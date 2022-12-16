@@ -20,6 +20,8 @@ export function getUSDC(): Address {
     return Address.fromString("0x308A756B4f9aa3148CaD7ccf8e72c18C758b2EF2");
   } else if (dataSource.network() == 'matic') {
     return Address.fromString("0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174");
+  }else if (dataSource.network() == 'sepolia') {
+    return Address.fromString("0x27af55366a339393865FC5943C04bc2600F55C9F");
   }
   log.critical("WRONG_NETWORK {}", [dataSource.network()]);
   return Address.fromString(ADDRESS_ZERO)

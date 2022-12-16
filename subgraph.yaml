@@ -329,6 +329,8 @@ templates:
           handler: handleUpgraded
         - event: Merged(indexed address,indexed address,uint256,uint256)
           handler: handleMerged
+        - event: Split(uint256,uint256,uint256)
+          handler: handleSplit
 
   - name: ForwarderTemplate
     kind: ethereum/contract
