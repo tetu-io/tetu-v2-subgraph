@@ -20,7 +20,7 @@ import {
   UserGauge,
   UserGaugeReward,
   UserGaugeRewardHistory,
-  VaultEntity
+  VaultEntity, VeNFTEntity
 } from "./types/schema";
 import {Address, BigDecimal, BigInt, ByteArray, crypto} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/templates/MultiGaugeTemplate/ProxyAbi";
@@ -96,6 +96,11 @@ export function handleVeTokenLocked(event: VeTokenLocked): void {
   const gaugeCtr = MultiGaugeAbi.bind(event.address);
   const ve = gaugeCtr.ve();
   const nftId = generateVeNFTId(event.params.tokenId.toString(), ve.toHexString());
+
+  let veNFT = VeNFTEntity.load(nftId) as VeNFTEntity;
+  veNFT.attachments = veNFT.attachments + 1;
+  veNFT.save();
+
   const gaugeVaultId = generateGaugeVaultId(event.params.stakingToken.toHexString(), event.address.toHexString())
   const user = getOrCreateGaugeUser(gaugeVaultId, event.params.account.toHexString());
   user.veNFT = nftId;
@@ -112,6 +117,13 @@ export function handleVeTokenLocked(event: VeTokenLocked): void {
 }
 
 export function handleVeTokenUnlocked(event: VeTokenUnlocked): void {
+  const gaugeCtr = MultiGaugeAbi.bind(event.address);
+  const ve = gaugeCtr.ve();
+  const nftId = generateVeNFTId(event.params.tokenId.toString(), ve.toHexString());
+  let veNFT = VeNFTEntity.load(nftId) as VeNFTEntity;
+  veNFT.attachments = veNFT.attachments - 1;
+  veNFT.save();
+
   const gaugeVaultId = generateGaugeVaultId(event.params.stakingToken.toHexString(), event.address.toHexString())
   const user = getOrCreateGaugeUser(gaugeVaultId, event.params.account.toHexString());
   user.veNFT = null;

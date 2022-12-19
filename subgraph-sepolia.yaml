@@ -4,11 +4,11 @@ schema:
 dataSources:
   - name: ControllerData
     kind: ethereum/contract
-    network: goerli
+    network: sepolia
     source:
-      address: "0x0EFc2D2D054383462F2cD72eA2526Ef7687E1016"
+      address: "0xbf1fc29668e5f5Eaa819948599c9Ac1B1E03E75F"
       abi: ControllerAbi
-      startBlock: 7385027
+      startBlock: 2491363
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -70,11 +70,11 @@ dataSources:
 
   - name: VaultFactoryData
     kind: ethereum/contract
-    network: goerli
+    network: sepolia
     source:
-      address: "0xCF66857b468740d6dbF9cE11929A9c03DDA12988"
+      address: "0xFC9b894D0b4a34AB41278Df5F2aBEEb5de95c9e4"
       abi: VaultFactoryAbi
-      startBlock: 7387751
+      startBlock: 2491363
     mapping:
       file: ./src/vault-factory.ts
       kind: ethereum/events
@@ -114,7 +114,7 @@ dataSources:
 templates:
   - name: PlatformVoterTemplate
     kind: ethereum/contract
-    network: goerli
+    network: sepolia
     source:
       abi: PlatformVoterAbi
     mapping:
@@ -147,7 +147,7 @@ templates:
 
   - name: MultiBribeTemplate
     kind: ethereum/contract
-    network: goerli
+    network: sepolia
     source:
       abi: MultiBribeAbi
     mapping:
@@ -182,7 +182,7 @@ templates:
 
   - name: MultiGaugeTemplate
     kind: ethereum/contract
-    network: goerli
+    network: sepolia
     source:
       abi: MultiGaugeAbi
     mapping:
@@ -225,7 +225,7 @@ templates:
 
   - name: TetuVoterTemplate
     kind: ethereum/contract
-    network: goerli
+    network: sepolia
     source:
       abi: TetuVoterAbi
     mapping:
@@ -264,7 +264,7 @@ templates:
 
   - name: VeDistributorTemplate
     kind: ethereum/contract
-    network: goerli
+    network: sepolia
     source:
       abi: VeDistributorAbi
     mapping:
@@ -295,7 +295,7 @@ templates:
 
   - name: VeTetuTemplate
     kind: ethereum/contract
-    network: goerli
+    network: sepolia
     source:
       abi: VeTetuAbi
     mapping:
@@ -317,8 +317,8 @@ templates:
       eventHandlers:
         - event: Deposit(indexed address,indexed address,uint256,uint256,indexed uint256,uint8,uint256)
           handler: handleDeposit
-        - event: PawnshopWhitelisted(address)
-          handler: handlePawnshopWhitelisted
+        - event: TransferWhitelisted(address)
+          handler: handleTransferWhitelisted
         - event: RevisionIncreased(uint256,address)
           handler: handleRevisionIncreased
         - event: Transfer(indexed address,indexed address,indexed uint256)
@@ -329,10 +329,12 @@ templates:
           handler: handleUpgraded
         - event: Merged(indexed address,indexed address,uint256,uint256)
           handler: handleMerged
+        - event: Split(uint256,uint256,uint256)
+          handler: handleSplit
 
   - name: ForwarderTemplate
     kind: ethereum/contract
-    network: goerli
+    network: sepolia
     source:
       abi: ForwarderAbi
     mapping:
@@ -371,7 +373,7 @@ templates:
 
   - name: InvestFundTemplate
     kind: ethereum/contract
-    network: goerli
+    network: sepolia
     source:
       abi: InvestFundAbi
     mapping:
@@ -396,7 +398,7 @@ templates:
 
   - name: VaultTemplate
     kind: ethereum/contract
-    network: goerli
+    network: sepolia
     source:
       abi: VaultAbi
     mapping:
@@ -444,7 +446,7 @@ templates:
 
   - name: StrategySplitterTemplate
     kind: ethereum/contract
-    network: goerli
+    network: sepolia
     source:
       abi: StrategySplitterAbi
     mapping:
@@ -505,7 +507,7 @@ templates:
 
   - name: StrategyTemplate
     kind: ethereum/contract
-    network: goerli
+    network: sepolia
     source:
       abi: StrategyAbi
     mapping:

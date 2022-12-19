@@ -4,11 +4,11 @@ schema:
 dataSources:
   - name: ControllerData
     kind: ethereum/contract
-    network: sepolia
+    network: matic
     source:
-      address: "0xbf1fc29668e5f5Eaa819948599c9Ac1B1E03E75F"
+      address: "0x33b27e0A2506a4A2FBc213a01C51d0451745343a"
       abi: ControllerAbi
-      startBlock: 2491363
+      startBlock: 36865497
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -70,11 +70,11 @@ dataSources:
 
   - name: VaultFactoryData
     kind: ethereum/contract
-    network: sepolia
+    network: matic
     source:
-      address: "0xFC9b894D0b4a34AB41278Df5F2aBEEb5de95c9e4"
+      address: "0xaAd7a2517b0d0d15E3Da5C37C5371F7283cCc074"
       abi: VaultFactoryAbi
-      startBlock: 2491363
+      startBlock: 36865497
     mapping:
       file: ./src/vault-factory.ts
       kind: ethereum/events
@@ -114,7 +114,7 @@ dataSources:
 templates:
   - name: PlatformVoterTemplate
     kind: ethereum/contract
-    network: sepolia
+    network: matic
     source:
       abi: PlatformVoterAbi
     mapping:
@@ -147,7 +147,7 @@ templates:
 
   - name: MultiBribeTemplate
     kind: ethereum/contract
-    network: sepolia
+    network: matic
     source:
       abi: MultiBribeAbi
     mapping:
@@ -182,7 +182,7 @@ templates:
 
   - name: MultiGaugeTemplate
     kind: ethereum/contract
-    network: sepolia
+    network: matic
     source:
       abi: MultiGaugeAbi
     mapping:
@@ -225,7 +225,7 @@ templates:
 
   - name: TetuVoterTemplate
     kind: ethereum/contract
-    network: sepolia
+    network: matic
     source:
       abi: TetuVoterAbi
     mapping:
@@ -264,7 +264,7 @@ templates:
 
   - name: VeDistributorTemplate
     kind: ethereum/contract
-    network: sepolia
+    network: matic
     source:
       abi: VeDistributorAbi
     mapping:
@@ -295,7 +295,7 @@ templates:
 
   - name: VeTetuTemplate
     kind: ethereum/contract
-    network: sepolia
+    network: matic
     source:
       abi: VeTetuAbi
     mapping:
@@ -334,7 +334,7 @@ templates:
 
   - name: ForwarderTemplate
     kind: ethereum/contract
-    network: sepolia
+    network: matic
     source:
       abi: ForwarderAbi
     mapping:
@@ -373,7 +373,7 @@ templates:
 
   - name: InvestFundTemplate
     kind: ethereum/contract
-    network: sepolia
+    network: matic
     source:
       abi: InvestFundAbi
     mapping:
@@ -398,7 +398,7 @@ templates:
 
   - name: VaultTemplate
     kind: ethereum/contract
-    network: sepolia
+    network: matic
     source:
       abi: VaultAbi
     mapping:
@@ -446,7 +446,7 @@ templates:
 
   - name: StrategySplitterTemplate
     kind: ethereum/contract
-    network: sepolia
+    network: matic
     source:
       abi: StrategySplitterAbi
     mapping:
@@ -507,7 +507,7 @@ templates:
 
   - name: StrategyTemplate
     kind: ethereum/contract
-    network: sepolia
+    network: matic
     source:
       abi: StrategyAbi
     mapping:
