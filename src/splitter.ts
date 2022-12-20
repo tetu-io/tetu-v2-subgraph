@@ -89,8 +89,10 @@ export function handleLoss(event: Loss): void {
   const splitter = SplitterEntity.load(event.address.toHexString()) as SplitterEntity;
   const strategy = getOrCreateStrategy(event.params.strategy.toHexString());
 
-  splitter.loss = splitter.loss.plus(event.params.amount.toBigDecimal());
-  strategy.loss = strategy.loss.plus(event.params.amount.toBigDecimal());
+  const loss = formatUnits(event.params.amount, BigInt.fromI32(strategy.assetDecimals));
+
+  splitter.loss = splitter.loss.plus(loss);
+  strategy.loss = strategy.loss.plus(loss);
 
   splitter.save();
   strategy.save();

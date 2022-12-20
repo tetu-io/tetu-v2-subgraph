@@ -30,7 +30,7 @@ import {ControllerAbi} from "./types/templates/MultiGaugeTemplate/ControllerAbi"
 import {LiquidatorAbi} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
-import {ADDRESS_ZERO, ZERO_BD} from "./constants";
+import {ADDRESS_ZERO, ZERO_BD, ZERO_BI} from "./constants";
 import {generateGaugeVaultId, generateVeNFTId} from "./helpers/id-helper";
 import {getOrCreateGauge} from "./helpers/gauge-helper";
 import {MultiGaugeAbi as MultiGaugeAbiCommon} from "./common/MultiGaugeAbi";
@@ -83,8 +83,8 @@ export function handleNotifyReward(event: NotifyReward): void {
     event.params.token.toHexString(),
     ADDRESS_ZERO,
     event.block.timestamp,
-    event.params.reward.toHexString(),
-    event.params.amount
+    ADDRESS_ZERO,
+    ZERO_BI
   );
 }
 
