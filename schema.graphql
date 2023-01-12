@@ -957,6 +957,7 @@ type VeTetuTokenEntity @entity {
     ve: VeTetuEntity!
 
     address: String!
+    token: TokenEntity
     weight: BigDecimal!
     supply: BigDecimal!
 }

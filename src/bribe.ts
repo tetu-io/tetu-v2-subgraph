@@ -10,7 +10,8 @@ import {
   Upgraded
 } from "./types/templates/MultiBribeTemplate/MultiBribeAbi";
 import {
-  BribeEntity, BribeRewardNotification,
+  BribeEntity,
+  BribeRewardNotification,
   BribeVaultEntity,
   BribeVaultReward,
   BribeVaultRewardHistory,
@@ -20,25 +21,25 @@ import {
   VeBribeReward,
   VeBribeRewardHistory
 } from "./types/schema";
-import {Address, BigDecimal, BigInt, ethereum} from "@graphprotocol/graph-ts";
+import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/templates/MultiBribeTemplate/ProxyAbi";
-import {
-  calculateApr,
-  formatUnits, getOrCreateToken,
-  tryGetUsdPrice
-} from "./helpers/common-helper";
-import {ADDRESS_ZERO} from "./constants";
+import {calculateApr, formatUnits, getOrCreateToken, tryGetUsdPrice} from "./helpers/common-helper";
+import {ADDRESS_ZERO, getPriceCalculator} from "./constants";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
+import {PriceCalculatorAbi as PriceCalculatorAbiCommon} from "./common/PriceCalculatorAbi";
 import {MultiBribeAbi as MultiBribeAbiCommon} from "./common/MultiBribeAbi";
 import {ProxyAbi as ProxyAbiCommon} from "./common/ProxyAbi";
-import {LiquidatorAbi} from "./types/VaultFactoryData/LiquidatorAbi";
 import {VaultAbi, VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 import {
   generateBribeVaultId,
   generateBribeVaultRewardId,
-  generateVeBribeId, generateVeBribeRewardId, generateVeNFTId
+  generateVeBribeId,
+  generateVeBribeRewardId,
+  generateVeNFTId
 } from "./helpers/id-helper";
 import {getOrCreateBribe} from "./helpers/bribe-helper";
+import {LiquidatorAbi} from "./types/templates/MultiBribeTemplate/LiquidatorAbi";
+import {PriceCalculatorAbi} from "./types/templates/MultiBribeTemplate/PriceCalculatorAbi";
 
 // ***************************************************
 //                     DEPOSIT/WITHDRAW
@@ -364,6 +365,7 @@ function _tryGetUsdPrice(
 ): BigDecimal {
   return tryGetUsdPrice(
     changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(liquidatorAdr))),
+    changetype<PriceCalculatorAbiCommon>(PriceCalculatorAbi.bind(getPriceCalculator())),
     changetype<VaultAbiCommon>(VaultAbi.bind(Address.fromString(asset))),
     decimals
   );

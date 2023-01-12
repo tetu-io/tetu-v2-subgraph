@@ -3,6 +3,7 @@ import {DAY, getUSDC, ONE_BI, ZERO_BD, ZERO_BI} from "../constants";
 import {TokenEntity} from "../types/schema";
 import {VaultAbi} from "../common/VaultAbi";
 import {LiquidatorAbi} from "../common/LiquidatorAbi";
+import {PriceCalculatorAbi} from "../common/PriceCalculatorAbi";
 
 
 export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
@@ -39,6 +40,7 @@ export function calculateApr(
 
 export function tryGetUsdPrice(
   liquidator: LiquidatorAbi,
+  priceCalculator: PriceCalculatorAbi,
   tokenCtr: VaultAbi,
   decimals: BigInt
 ): BigDecimal {
@@ -46,19 +48,34 @@ export function tryGetUsdPrice(
     getOrCreateToken(tokenCtr);
     return BigDecimal.fromString('1');
   }
-  const p = liquidator.try_getPrice(
+  const liquidatorPrice = liquidator.try_getPrice(
     Address.fromString(tokenCtr._address.toHexString()),
     getUSDC(),
     parseUnits(BigDecimal.fromString('1'), decimals)
   );
-  if (!p.reverted) {
+
+  if (!liquidatorPrice.reverted) {
     let token = getOrCreateToken(tokenCtr);
-    token.usdPrice = formatUnits(p.value, BigInt.fromI32(6));
+    if (!liquidatorPrice.value.isZero()) {
+      token.usdPrice = formatUnits(liquidatorPrice.value, BigInt.fromI32(6));
+      token.save();
+      return token.usdPrice;
+    }
+  }
+
+  const calculatorPrice = priceCalculator.try_getPriceWithDefaultOutput(
+    Address.fromString(tokenCtr._address.toHexString()),
+  );
+
+  if (!calculatorPrice.reverted) {
+    let token = getOrCreateToken(tokenCtr);
+    token.usdPrice = formatUnits(calculatorPrice.value, BigInt.fromI32(18));
     token.save();
     return token.usdPrice;
   }
-  log.error("=== FAILED GET PRICE === liquidator: {} asset: {}",
-    [liquidator._address.toHexString(), tokenCtr._address.toHexString()]);
+
+  log.error("=== FAILED GET PRICE === liquidator: {} priceCalculator: {} asset: {}",
+    [liquidator._address.toHexString(), priceCalculator._address.toHexString(), tokenCtr._address.toHexString()]);
   return BigDecimal.fromString('0')
 }
 

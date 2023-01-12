@@ -27,14 +27,16 @@ import {ProxyAbi} from "./types/templates/MultiGaugeTemplate/ProxyAbi";
 import {calculateApr, formatUnits, tryGetUsdPrice} from "./helpers/common-helper";
 import {VaultAbi} from "./types/templates/MultiGaugeTemplate/VaultAbi";
 import {ControllerAbi} from "./types/templates/MultiGaugeTemplate/ControllerAbi";
-import {LiquidatorAbi} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";
+import {LiquidatorAbi,} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
-import {ADDRESS_ZERO, ZERO_BD, ZERO_BI} from "./constants";
+import {ADDRESS_ZERO, getPriceCalculator, ZERO_BD, ZERO_BI} from "./constants";
 import {generateGaugeVaultId, generateVeNFTId} from "./helpers/id-helper";
 import {getOrCreateGauge} from "./helpers/gauge-helper";
 import {MultiGaugeAbi as MultiGaugeAbiCommon} from "./common/MultiGaugeAbi";
 import {ProxyAbi as ProxyAbiCommon} from "./common/ProxyAbi";
+import {PriceCalculatorAbi as PriceCalculatorAbiCommon} from "./common/PriceCalculatorAbi";
+import {PriceCalculatorAbi} from "./types/templates/MultiGaugeTemplate/PriceCalculatorAbi";
 
 // ***************************************************
 //                     DEPOSIT/WITHDRAW
@@ -427,6 +429,7 @@ function _tryGetUsdPrice(
 ): BigDecimal {
   return tryGetUsdPrice(
     changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(liquidatorAdr))),
+    changetype<PriceCalculatorAbiCommon>(PriceCalculatorAbi.bind(getPriceCalculator())),
     changetype<VaultAbiCommon>(VaultAbi.bind(asset)),
     decimals
   );

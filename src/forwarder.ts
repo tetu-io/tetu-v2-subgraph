@@ -25,10 +25,13 @@ import {ForwarderAbi} from "./types/ControllerData/ForwarderAbi";
 import {formatUnits, tryGetUsdPrice} from "./helpers/common-helper";
 import {VaultAbi} from "./types/templates/ForwarderTemplate/VaultAbi";
 import {ControllerAbi} from "./types/templates/ForwarderTemplate/ControllerAbi";
-import {LiquidatorAbi} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 import {Upgraded} from "./types/templates/MultiBribeTemplate/MultiBribeAbi";
+import {PriceCalculatorAbi as PriceCalculatorAbiCommon} from "./common/PriceCalculatorAbi";
+import {getPriceCalculator} from "./constants";
+import {LiquidatorAbi} from "./types/templates/ForwarderTemplate/LiquidatorAbi";
+import {PriceCalculatorAbi} from "./types/templates/ForwarderTemplate/PriceCalculatorAbi";
 
 // ***************************************************
 //                 STATE CHANGES
@@ -181,6 +184,7 @@ function _tryGetUsdPrice(
 ): BigDecimal {
   return tryGetUsdPrice(
     changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(liquidatorAdr))),
+    changetype<PriceCalculatorAbiCommon>(PriceCalculatorAbi.bind(getPriceCalculator())),
     changetype<VaultAbiCommon>(VaultAbi.bind(Address.fromString(asset))),
     decimals
   );

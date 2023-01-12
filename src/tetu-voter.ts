@@ -24,7 +24,7 @@ import {Address, BigDecimal, BigInt, store} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/ControllerData/ProxyAbi";
 import {VaultAbi} from "./types/ControllerData/VaultAbi";
 import {calculateApr, formatUnits, tryGetUsdPrice} from "./helpers/common-helper";
-import {REWARD_TOKEN_DECIMALS, ZERO_BD} from "./constants";
+import {getPriceCalculator, REWARD_TOKEN_DECIMALS, ZERO_BD} from "./constants";
 import {VeTetuAbi} from "./types/templates/VeTetuTemplate/VeTetuAbi";
 import {MultiBribeAbi} from "./types/templates/TetuVoterTemplate/MultiBribeAbi";
 import {LiquidatorAbi} from "./types/templates/TetuVoterTemplate/LiquidatorAbi";
@@ -42,6 +42,8 @@ import {getOrCreateBribe} from "./helpers/bribe-helper";
 import {MultiBribeAbi as MultiBribeAbiCommon} from "./common/MultiBribeAbi";
 import {ProxyAbi as ProxyAbiCommon} from "./common/ProxyAbi";
 import {getOrCreateTetuVoter} from "./helpers/tetu-voter-helper";
+import {PriceCalculatorAbi as PriceCalculatorAbiCommon} from "./common/PriceCalculatorAbi";
+import {PriceCalculatorAbi} from "./types/templates/TetuVoterTemplate/PriceCalculatorAbi";
 
 // ***************************************************
 //                ATTACH/DETACH/VOTE
@@ -323,6 +325,7 @@ function _tryGetUsdPrice(
 ): BigDecimal {
   return tryGetUsdPrice(
     changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(liquidatorAdr))),
+    changetype<PriceCalculatorAbiCommon>(PriceCalculatorAbi.bind(getPriceCalculator())),
     changetype<VaultAbiCommon>(VaultAbi.bind(Address.fromString(asset))),
     decimals
   );

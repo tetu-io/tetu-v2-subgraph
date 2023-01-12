@@ -22,7 +22,7 @@ import {ControllerAbi} from "./types/VaultFactoryData/ControllerAbi";
 import {LiquidatorAbi} from "./types/VaultFactoryData/LiquidatorAbi";
 import {ProxyAbi} from "./types/VaultFactoryData/ProxyAbi";
 import {StrategySplitterTemplate, VaultTemplate} from './types/templates'
-import {RATIO_DENOMINATOR, ZERO_BD} from "./constants";
+import {getPriceCalculator, RATIO_DENOMINATOR, ZERO_BD} from "./constants";
 import {StrategySplitterAbi} from "./types/VaultFactoryData/StrategySplitterAbi";
 import {MultiGaugeAbi} from "./types/VaultFactoryData/MultiGaugeAbi";
 import {VeTetuAbi} from "./types/VaultFactoryData/VeTetuAbi";
@@ -33,6 +33,8 @@ import {MultiGaugeAbi as MultiGaugeAbiCommon} from "./common/MultiGaugeAbi";
 import {VeTetuAbi as VeTetuAbiCommon} from "./common/VeTetuAbi";
 import {getOrCreateGauge} from "./helpers/gauge-helper";
 import {getOrCreateVe} from "./helpers/ve-helper";
+import {PriceCalculatorAbi as PriceCalculatorAbiCommon} from "./common/PriceCalculatorAbi";
+import {PriceCalculatorAbi} from "./types/VaultFactoryData/PriceCalculatorAbi";
 
 export function handleVaultDeployed(event: VaultDeployed): void {
   const factory = createOrGetFactory(event.address.toHexString())
@@ -219,6 +221,7 @@ function _tryGetUsdPrice(
 ): BigDecimal {
   return tryGetUsdPrice(
     changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(liquidatorAdr))),
+    changetype<PriceCalculatorAbiCommon>(PriceCalculatorAbi.bind(getPriceCalculator())),
     changetype<VaultAbiCommon>(VaultAbi.bind(Address.fromString(asset))),
     decimals
   );

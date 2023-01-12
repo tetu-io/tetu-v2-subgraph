@@ -26,11 +26,13 @@ import {
 } from "./types/templates/VaultTemplate/VaultAbi";
 import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
 import {calculateApr, formatUnits, tryGetUsdPrice} from "./helpers/common-helper";
-import {ADDRESS_ZERO, ZERO_BD} from "./constants";
+import {ADDRESS_ZERO, getPriceCalculator, ZERO_BD} from "./constants";
 import {ControllerAbi} from "./types/templates/VaultTemplate/ControllerAbi";
 import {LiquidatorAbi} from "./types/templates/VaultTemplate/LiquidatorAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
+import {PriceCalculatorAbi as PriceCalculatorAbiCommon} from "./common/PriceCalculatorAbi";
+import {PriceCalculatorAbi} from "./types/templates/VaultTemplate/PriceCalculatorAbi";
 
 // *****************************************
 //            MAIN LOGIC
@@ -396,6 +398,7 @@ function _tryGetUsdPrice(
 ): BigDecimal {
   return tryGetUsdPrice(
     changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(liquidatorAdr))),
+    changetype<PriceCalculatorAbiCommon>(PriceCalculatorAbi.bind(getPriceCalculator())),
     changetype<VaultAbiCommon>(VaultAbi.bind(Address.fromString(asset))),
     decimals
   );

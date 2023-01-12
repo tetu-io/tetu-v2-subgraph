@@ -17,11 +17,13 @@ import {
 import {calculateApr, formatUnits, tryGetUsdPrice} from "./helpers/common-helper";
 import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {VaultAbi} from "./types/ControllerData/VaultAbi";
-import {ADDRESS_ZERO, WEEK} from "./constants";
+import {ADDRESS_ZERO, getPriceCalculator, WEEK} from "./constants";
 import {LiquidatorAbi} from "./types/templates/VeDistributorTemplate/LiquidatorAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 import {generateVeNFTId} from "./helpers/id-helper";
+import {PriceCalculatorAbi as PriceCalculatorAbiCommon} from "./common/PriceCalculatorAbi";
+import {PriceCalculatorAbi} from "./types/templates/VeDistributorTemplate/PriceCalculatorAbi";
 
 // ***************************************************
 //                    MAIN LOGIC
@@ -126,6 +128,7 @@ function _tryGetUsdPrice(
 ): BigDecimal {
   return tryGetUsdPrice(
     changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(liquidatorAdr))),
+    changetype<PriceCalculatorAbiCommon>(PriceCalculatorAbi.bind(getPriceCalculator())),
     changetype<VaultAbiCommon>(VaultAbi.bind(Address.fromString(asset))),
     decimals
   );

@@ -25,6 +25,8 @@ dataSources:
           file: ./abis/Proxy.json
         - name: LiquidatorAbi
           file: ./abis/TetuLiquidator.json
+        - name: PriceCalculatorAbi
+          file: ./abis/PriceCalculator.json
         - name: InvestFundAbi
           file: ./abis/InvestFundV2.json
         - name: ForwarderAbi
@@ -93,6 +95,8 @@ dataSources:
           file: ./abis/Proxy.json
         - name: LiquidatorAbi
           file: ./abis/TetuLiquidator.json
+        - name: PriceCalculatorAbi
+          file: ./abis/PriceCalculator.json
         - name: StrategySplitterAbi
           file: ./abis/StrategySplitterV2.json
         - name: MultiBribeAbi
@@ -133,6 +137,8 @@ templates:
           file: ./abis/Proxy.json
         - name: LiquidatorAbi
           file: ./abis/TetuLiquidator.json
+        - name: PriceCalculatorAbi
+          file: ./abis/PriceCalculator.json
       eventHandlers:
         - event: RevisionIncreased(uint256,address)
           handler: handleRevisionIncreased
@@ -166,6 +172,8 @@ templates:
           file: ./abis/Proxy.json
         - name: LiquidatorAbi
           file: ./abis/TetuLiquidator.json
+        - name: PriceCalculatorAbi
+          file: ./abis/PriceCalculator.json
       eventHandlers:
         - event: BribeDeposit(indexed address,indexed uint256,uint256)
           handler: handleBribeDeposit
@@ -203,6 +211,8 @@ templates:
           file: ./abis/TetuLiquidator.json
         - name: ControllerAbi
           file: ./abis/ControllerV2.json
+        - name: PriceCalculatorAbi
+          file: ./abis/PriceCalculator.json
       eventHandlers:
         - event: ClaimRewards(indexed address,address,indexed address,uint256,address)
           handler: handleClaimRewards
@@ -248,6 +258,8 @@ templates:
           file: ./abis/TetuLiquidator.json
         - name: VeTetuAbi
           file: ./abis/VeTetu.json
+        - name: PriceCalculatorAbi
+          file: ./abis/PriceCalculator.json
       eventHandlers:
         - event: Abstained(uint256,int256,address)
           handler: handleAbstained
@@ -283,6 +295,8 @@ templates:
           file: ./abis/Proxy.json
         - name: LiquidatorAbi
           file: ./abis/TetuLiquidator.json
+        - name: PriceCalculatorAbi
+          file: ./abis/PriceCalculator.json
       eventHandlers:
         - event: CheckpointToken(uint256,uint256)
           handler: handleCheckpointToken
@@ -314,6 +328,8 @@ templates:
           file: ./abis/TetuVaultV2.json
         - name: LiquidatorAbi
           file: ./abis/TetuLiquidator.json
+        - name: PriceCalculatorAbi
+          file: ./abis/PriceCalculator.json
       eventHandlers:
         - event: Deposit(indexed address,indexed address,uint256,uint256,indexed uint256,uint8,uint256)
           handler: handleDeposit
@@ -355,6 +371,8 @@ templates:
           file: ./abis/InvestFundV2.json
         - name: LiquidatorAbi
           file: ./abis/TetuLiquidator.json
+        - name: PriceCalculatorAbi
+          file: ./abis/PriceCalculator.json
       eventHandlers:
         - event: Distributed(address,address,uint256,uint256,uint256,uint256,uint256,uint256)
           handler: handleDistributed
@@ -390,6 +408,8 @@ templates:
           file: ./abis/TetuVaultV2.json
         - name: LiquidatorAbi
           file: ./abis/TetuLiquidator.json
+        - name: PriceCalculatorAbi
+          file: ./abis/PriceCalculator.json
       eventHandlers:
         - event: FundDeposit(indexed address,uint256)
           handler: handleFundDeposit
@@ -420,6 +440,8 @@ templates:
           file: ./abis/ControllerV2.json
         - name: LiquidatorAbi
           file: ./abis/TetuLiquidator.json
+        - name: PriceCalculatorAbi
+          file: ./abis/PriceCalculator.json
       eventHandlers:
         - event: Approval(indexed address,indexed address,uint256)
           handler: handleApproval
@@ -471,6 +493,8 @@ templates:
           file: ./abis/Proxy.json
         - name: ForwarderAbi
           file: ./abis/ForwarderV3.json
+        - name: PriceCalculatorAbi
+          file: ./abis/PriceCalculator.json
       eventHandlers:
         - event: ContinueInvesting(address,uint256,address)
           handler: handleContinueInvesting
@@ -528,6 +552,8 @@ templates:
           file: ./abis/StrategySplitterV2.json
         - name: LiquidatorAbi
           file: ./abis/TetuLiquidator.json
+        - name: PriceCalculatorAbi
+          file: ./abis/PriceCalculator.json
       eventHandlers:
         - event: Upgraded(indexed address)
           handler: handleUpgraded

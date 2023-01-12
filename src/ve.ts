@@ -21,9 +21,8 @@ import {
 } from "./types/schema";
 import {Address, BigDecimal, BigInt, ByteArray, crypto} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/templates/VeTetuTemplate/ProxyAbi";
-import {formatUnits, parseUnits, tryGetUsdPrice} from "./helpers/common-helper";
-import {ADDRESS_ZERO} from "./constants";
-import {VaultAbi} from "./types/templates/VeTetuTemplate/VaultAbi";
+import {formatUnits, getOrCreateToken, parseUnits, tryGetUsdPrice} from "./helpers/common-helper";
+import {ADDRESS_ZERO, getPriceCalculator} from "./constants";
 import {LiquidatorAbi} from "./types/templates/VeTetuTemplate/LiquidatorAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
@@ -31,6 +30,9 @@ import {generateVeNFTId} from "./helpers/id-helper";
 import {getOrCreateVe, getOrCreateVeTetuTokenEntity} from "./helpers/ve-helper";
 import {VeTetuAbi as VeTetuAbiCommon} from "./common/VeTetuAbi";
 import {ProxyAbi as ProxyAbiCommon} from "./common/ProxyAbi";
+import {PriceCalculatorAbi as PriceCalculatorAbiCommon} from "./common/PriceCalculatorAbi";
+import {PriceCalculatorAbi} from "./types/templates/VeTetuTemplate/PriceCalculatorAbi";
+import {VaultAbi} from "./types/templates/VeTetuTemplate/VaultAbi";
 
 // ***************************************************
 //                   DEPOSIT/WITHDRAW
@@ -187,7 +189,8 @@ function updateStakingTokenInfoForAll(
       veCtr
     )
   }
-
+  ve.save();
+  veNFT.save();
 }
 
 function updateStakingTokenInfo(
@@ -202,6 +205,10 @@ function updateStakingTokenInfo(
   getOrCreateVeTetuTokenEntity(ve.id, Address.fromString(token));
   const controller = ControllerEntity.load(ve.controller) as ControllerEntity;
   const tokenEntity = getOrCreateVeToken(veNFT.id, veAdr, token);
+
+  // minus old value
+  veNFT.lockedAmountUSD = veNFT.lockedAmountUSD.minus(tokenEntity.amountUSD);
+
   const decimals = BigInt.fromI32(tokenEntity.decimals)
   veNFT.derivedAmount = formatUnits(veCtr.lockedDerivedAmount(veId), decimals);
   const tokenPrice = _tryGetUsdPrice(controller.liquidator, token, decimals);
@@ -211,8 +218,10 @@ function updateStakingTokenInfo(
   tokenEntity.save();
 
   ve.lockedAmountUSD = ve.lockedAmountUSD.minus(veNFT.lockedAmountUSD);
-  veNFT.lockedAmountUSD = veNFT.lockedAmountUSD.minus(tokenEntity.amountUSD);
+
+  // plus new amount
   veNFT.lockedAmountUSD = veNFT.lockedAmountUSD.plus(tokenEntity.amountUSD);
+
   ve.lockedAmountUSD = ve.lockedAmountUSD.plus(veNFT.lockedAmountUSD);
 }
 
@@ -314,6 +323,9 @@ function updateVeTokensInfo(ve: string): void {
     tokenInfo.weight = veCtr.tokenWeights(token).toBigDecimal().div(weightDenominator);
     tokenInfo.supply = formatUnits(tokenCtr.balanceOf(Address.fromString(ve)), tokenDecimals);
 
+    const tokenEntity = getOrCreateToken(VaultAbiCommon.bind(token));
+    tokenInfo.token = tokenEntity.id;
+
     tokenInfo.save();
   }
 
@@ -360,6 +372,7 @@ function _tryGetUsdPrice(
 ): BigDecimal {
   return tryGetUsdPrice(
     changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(liquidatorAdr))),
+    changetype<PriceCalculatorAbiCommon>(PriceCalculatorAbi.bind(getPriceCalculator())),
     changetype<VaultAbiCommon>(VaultAbi.bind(Address.fromString(asset))),
     decimals
   );
