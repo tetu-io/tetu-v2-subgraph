@@ -53,9 +53,9 @@ export function tryGetUsdPrice(
   );
   if (!p.reverted) {
     let token = getOrCreateToken(tokenCtr);
-    token.usdPrice = formatUnits(p.value, decimals);
+    token.usdPrice = formatUnits(p.value, BigInt.fromI32(6));
     token.save();
-    return formatUnits(p.value, decimals);
+    return token.usdPrice;
   }
   log.error("=== FAILED GET PRICE === liquidator: {} asset: {}",
     [liquidator._address.toHexString(), tokenCtr._address.toHexString()]);
