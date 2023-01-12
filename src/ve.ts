@@ -207,6 +207,7 @@ function updateStakingTokenInfo(
   const tokenEntity = getOrCreateVeToken(veNFT.id, veAdr, token);
 
   // minus old value
+  ve.lockedAmountUSD = ve.lockedAmountUSD.minus(veNFT.lockedAmountUSD);
   veNFT.lockedAmountUSD = veNFT.lockedAmountUSD.minus(tokenEntity.amountUSD);
 
   const decimals = BigInt.fromI32(tokenEntity.decimals)
@@ -217,11 +218,8 @@ function updateStakingTokenInfo(
   saveTokenHistory(tokenEntity, time);
   tokenEntity.save();
 
-  ve.lockedAmountUSD = ve.lockedAmountUSD.minus(veNFT.lockedAmountUSD);
-
   // plus new amount
   veNFT.lockedAmountUSD = veNFT.lockedAmountUSD.plus(tokenEntity.amountUSD);
-
   ve.lockedAmountUSD = ve.lockedAmountUSD.plus(veNFT.lockedAmountUSD);
 }
 
