@@ -89,7 +89,7 @@ export function handleLoss(event: Loss): void {
   const splitter = SplitterEntity.load(event.address.toHexString()) as SplitterEntity;
   const strategy = getOrCreateStrategy(event.params.strategy.toHexString());
 
-  const loss = formatUnits(event.params.amount, BigInt.fromI32(strategy.assetDecimals));
+  const loss = formatUnits(event.params.amount, BigInt.fromI32(strategy.assetTokenDecimals));
 
   splitter.loss = splitter.loss.plus(loss);
   strategy.loss = strategy.loss.plus(loss);
@@ -150,9 +150,9 @@ export function handleHardWork(event: HardWork): void {
   const splitterCtr = StrategySplitterAbi.bind(event.address);
   const aprDenominator = BigDecimal.fromString('100_000');
 
-  const earned = formatUnits(event.params.earned, BigInt.fromI32(strategy.assetDecimals));
-  const lost = formatUnits(event.params.lost, BigInt.fromI32(strategy.assetDecimals));
-  const tvl = formatUnits(event.params.tvl, BigInt.fromI32(strategy.assetDecimals));
+  const earned = formatUnits(event.params.earned, BigInt.fromI32(strategy.assetTokenDecimals));
+  const lost = formatUnits(event.params.lost, BigInt.fromI32(strategy.assetTokenDecimals));
+  const tvl = formatUnits(event.params.tvl, BigInt.fromI32(strategy.assetTokenDecimals));
   const apr = event.params.apr.toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator);
   const avgApr = event.params.avgApr.toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator);
 
@@ -164,7 +164,7 @@ export function handleHardWork(event: HardWork): void {
   strategy.tvl = tvl;
   strategy.apr = apr;
   strategy.averageApr = avgApr;
-  const totalAssets = formatUnits(splitterCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals));
+  const totalAssets = formatUnits(splitterCtr.totalAssets(), BigInt.fromI32(strategy.assetTokenDecimals));
   if (totalAssets.equals(ZERO_BD)) {
     strategy.tvlAllocationPercent = ZERO_BD;
   } else {
@@ -212,7 +212,7 @@ function getOrCreateStrategy(address: string): StrategyEntity {
     strategy.implementations = [proxy.implementation().toHexString()];
     strategy.splitter = splitterAdr.toHexString();
     strategy.asset = strategyCtr.asset().toHexString();
-    strategy.assetDecimals = vaultCtr.decimals();
+    strategy.assetTokenDecimals = vaultCtr.decimals();
 
     strategy.name = strategyCtr.NAME();
     strategy.platform = strategyCtr.PLATFORM();
@@ -222,7 +222,7 @@ function getOrCreateStrategy(address: string): StrategyEntity {
     strategy.apr = splitterCtr.strategiesAPR(Address.fromString(address)).toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator);
     strategy.averageApr = splitterCtr.averageApr(Address.fromString(address)).toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator);
     strategy.lastHardWork = splitterCtr.lastHardWorks(Address.fromString(address)).toI32();
-    strategy.tvl = formatUnits(strategyCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals));
+    strategy.tvl = formatUnits(strategyCtr.totalAssets(), BigInt.fromI32(strategy.assetTokenDecimals));
     strategy.profit = BigDecimal.fromString('0');
     strategy.loss = BigDecimal.fromString('0');
     strategy.capacity = BigDecimal.fromString('0');

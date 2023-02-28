@@ -26,8 +26,8 @@ export function updateStrategyData(
   splitterCtr: StrategySplitterAbi,
   strategyCtr: StrategyAbi
 ): void {
-  strategy.tvl = formatUnits(strategyCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals));
-  const totalAssets = formatUnits(splitterCtr.totalAssets(), BigInt.fromI32(strategy.assetDecimals));
+  strategy.tvl = formatUnits(strategyCtr.totalAssets(), BigInt.fromI32(strategy.assetTokenDecimals));
+  const totalAssets = formatUnits(splitterCtr.totalAssets(), BigInt.fromI32(strategy.assetTokenDecimals));
   if (totalAssets.equals(ZERO_BD)) {
     strategy.tvlAllocationPercent = ZERO_BD;
   } else {

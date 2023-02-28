@@ -336,7 +336,7 @@ function getOrCreateVeNFT(veId: BigInt, veAdr: string): VeNFTEntity {
     veNFT = new VeNFTEntity(veNftId);
     const veCtr = VeTetuAbi.bind(Address.fromString(veAdr))
 
-    veNFT.veId = veId.toI32();
+    veNFT.veNFTId = veId.toI32();
     veNFT.ve = veAdr;
     veNFT.derivedAmount = formatUnits(veCtr.lockedDerivedAmount(veId), BigInt.fromI32(18));
     veNFT.lockedEnd = veCtr.lockedEnd(veId).toI32();

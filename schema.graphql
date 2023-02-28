@@ -301,7 +301,7 @@ type StrategyEntity @entity {
     name: String!
     platform: String!
     asset: TokenEntity!
-    assetDecimals: Int!
+    assetTokenDecimals: Int!
     compoundRatio: BigDecimal!
     paused: Boolean!
     lastHardWork: Int!
@@ -895,7 +895,7 @@ type VeNFTEntity @entity {
     # we can not determinate user at deposit action
     user: UserEntity
 
-    veId: Int!
+    veNFTId: Int!
 
     derivedAmount: BigDecimal!
     lockedEnd: Int!
