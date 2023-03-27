@@ -10,6 +10,24 @@ import {
   BigInt
 } from "@graphprotocol/graph-ts";
 
+export class Upgraded extends ethereum.Event {
+  get params(): Upgraded__Params {
+    return new Upgraded__Params(this);
+  }
+}
+
+export class Upgraded__Params {
+  _event: Upgraded;
+
+  constructor(event: Upgraded) {
+    this._event = event;
+  }
+
+  get implementation(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
 export class ContinueInvesting extends ethereum.Event {
   get params(): ContinueInvesting__Params {
     return new ContinueInvesting__Params(this);
@@ -119,6 +137,50 @@ export class Initialized__Params {
 
   get version(): i32 {
     return this._event.parameters[0].value.toI32();
+  }
+}
+
+export class Invested extends ethereum.Event {
+  get params(): Invested__Params {
+    return new Invested__Params(this);
+  }
+}
+
+export class Invested__Params {
+  _event: Invested;
+
+  constructor(event: Invested) {
+    this._event = event;
+  }
+
+  get strategy(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+}
+
+export class Loss extends ethereum.Event {
+  get params(): Loss__Params {
+    return new Loss__Params(this);
+  }
+}
+
+export class Loss__Params {
+  _event: Loss;
+
+  constructor(event: Loss) {
+    this._event = event;
+  }
+
+  get strategy(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
   }
 }
 
@@ -252,6 +314,46 @@ export class ScheduledStrategyRemove__Params {
   }
 }
 
+export class ScheduledStrategyRemove1 extends ethereum.Event {
+  get params(): ScheduledStrategyRemove1__Params {
+    return new ScheduledStrategyRemove1__Params(this);
+  }
+}
+
+export class ScheduledStrategyRemove1__Params {
+  _event: ScheduledStrategyRemove1;
+
+  constructor(event: ScheduledStrategyRemove1) {
+    this._event = event;
+  }
+
+  get strategy(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
+export class SetStrategyCapacity extends ethereum.Event {
+  get params(): SetStrategyCapacity__Params {
+    return new SetStrategyCapacity__Params(this);
+  }
+}
+
+export class SetStrategyCapacity__Params {
+  _event: SetStrategyCapacity;
+
+  constructor(event: SetStrategyCapacity) {
+    this._event = event;
+  }
+
+  get strategy(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get capacity(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+}
+
 export class StrategyAdded extends ethereum.Event {
   get params(): StrategyAdded__Params {
     return new StrategyAdded__Params(this);
@@ -270,28 +372,6 @@ export class StrategyAdded__Params {
   }
 
   get apr(): BigInt {
-    return this._event.parameters[1].value.toBigInt();
-  }
-}
-
-export class StrategyRatioChanged extends ethereum.Event {
-  get params(): StrategyRatioChanged__Params {
-    return new StrategyRatioChanged__Params(this);
-  }
-}
-
-export class StrategyRatioChanged__Params {
-  _event: StrategyRatioChanged;
-
-  constructor(event: StrategyRatioChanged) {
-    this._event = event;
-  }
-
-  get strategy(): Address {
-    return this._event.parameters[0].value.toAddress();
-  }
-
-  get ratio(): BigInt {
     return this._event.parameters[1].value.toBigInt();
   }
 }
@@ -340,68 +420,6 @@ export class StrategyScheduled__Params {
   }
 }
 
-export class Upgraded extends ethereum.Event {
-  get params(): Upgraded__Params {
-    return new Upgraded__Params(this);
-  }
-}
-
-export class Upgraded__Params {
-  _event: Upgraded;
-
-  constructor(event: Upgraded) {
-    this._event = event;
-  }
-
-  get implementation(): Address {
-    return this._event.parameters[0].value.toAddress();
-  }
-}
-
-export class Loss extends ethereum.Event {
-  get params(): Loss__Params {
-    return new Loss__Params(this);
-  }
-}
-
-export class Loss__Params {
-  _event: Loss;
-
-  constructor(event: Loss) {
-    this._event = event;
-  }
-
-  get strategy(): Address {
-    return this._event.parameters[0].value.toAddress();
-  }
-
-  get amount(): BigInt {
-    return this._event.parameters[1].value.toBigInt();
-  }
-}
-
-export class Invested extends ethereum.Event {
-  get params(): Invested__Params {
-    return new Invested__Params(this);
-  }
-}
-
-export class Invested__Params {
-  _event: Invested;
-
-  constructor(event: Invested) {
-    this._event = event;
-  }
-
-  get strategy(): Address {
-    return this._event.parameters[0].value.toAddress();
-  }
-
-  get amount(): BigInt {
-    return this._event.parameters[1].value.toBigInt();
-  }
-}
-
 export class WithdrawFromStrategy extends ethereum.Event {
   get params(): WithdrawFromStrategy__Params {
     return new WithdrawFromStrategy__Params(this);
@@ -420,16 +438,96 @@ export class WithdrawFromStrategy__Params {
   }
 }
 
-export class SetStrategyCapacity extends ethereum.Event {
-  get params(): SetStrategyCapacity__Params {
-    return new SetStrategyCapacity__Params(this);
+export class Upgraded1 extends ethereum.Event {
+  get params(): Upgraded1__Params {
+    return new Upgraded1__Params(this);
   }
 }
 
-export class SetStrategyCapacity__Params {
-  _event: SetStrategyCapacity;
+export class Upgraded1__Params {
+  _event: Upgraded1;
 
-  constructor(event: SetStrategyCapacity) {
+  constructor(event: Upgraded1) {
+    this._event = event;
+  }
+
+  get implementation(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
+export class Loss1 extends ethereum.Event {
+  get params(): Loss1__Params {
+    return new Loss1__Params(this);
+  }
+}
+
+export class Loss1__Params {
+  _event: Loss1;
+
+  constructor(event: Loss1) {
+    this._event = event;
+  }
+
+  get strategy(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+}
+
+export class Invested1 extends ethereum.Event {
+  get params(): Invested1__Params {
+    return new Invested1__Params(this);
+  }
+}
+
+export class Invested1__Params {
+  _event: Invested1;
+
+  constructor(event: Invested1) {
+    this._event = event;
+  }
+
+  get strategy(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+}
+
+export class WithdrawFromStrategy1 extends ethereum.Event {
+  get params(): WithdrawFromStrategy1__Params {
+    return new WithdrawFromStrategy1__Params(this);
+  }
+}
+
+export class WithdrawFromStrategy1__Params {
+  _event: WithdrawFromStrategy1;
+
+  constructor(event: WithdrawFromStrategy1) {
+    this._event = event;
+  }
+
+  get strategy(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
+export class SetStrategyCapacity1 extends ethereum.Event {
+  get params(): SetStrategyCapacity1__Params {
+    return new SetStrategyCapacity1__Params(this);
+  }
+}
+
+export class SetStrategyCapacity1__Params {
+  _event: SetStrategyCapacity1;
+
+  constructor(event: SetStrategyCapacity1) {
     this._event = event;
   }
 
@@ -443,6 +541,31 @@ export class SetStrategyCapacity__Params {
 }
 
 export class StrategySplitterAbi__scheduledStrategiesResult {
+  value0: Array<Address>;
+  value1: Array<BigInt>;
+
+  constructor(value0: Array<Address>, value1: Array<BigInt>) {
+    this.value0 = value0;
+    this.value1 = value1;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromAddressArray(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigIntArray(this.value1));
+    return map;
+  }
+
+  get_strategies(): Array<Address> {
+    return this.value0;
+  }
+
+  getLocks(): Array<BigInt> {
+    return this.value1;
+  }
+}
+
+export class StrategySplitterAbi__scheduledStrategies1Result {
   value0: Array<Address>;
   value1: Array<BigInt>;
 
@@ -916,6 +1039,39 @@ export class StrategySplitterAbi extends ethereum.SmartContract {
     );
   }
 
+  scheduledStrategies1(): StrategySplitterAbi__scheduledStrategies1Result {
+    let result = super.call(
+      "scheduledStrategies",
+      "scheduledStrategies():(address[],uint256[])",
+      []
+    );
+
+    return new StrategySplitterAbi__scheduledStrategies1Result(
+      result[0].toAddressArray(),
+      result[1].toBigIntArray()
+    );
+  }
+
+  try_scheduledStrategies1(): ethereum.CallResult<
+    StrategySplitterAbi__scheduledStrategies1Result
+  > {
+    let result = super.tryCall(
+      "scheduledStrategies",
+      "scheduledStrategies():(address[],uint256[])",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new StrategySplitterAbi__scheduledStrategies1Result(
+        value[0].toAddressArray(),
+        value[1].toBigIntArray()
+      )
+    );
+  }
+
   strategies(param0: BigInt): Address {
     let result = super.call("strategies", "strategies(uint256):(address)", [
       ethereum.Value.fromUnsignedBigInt(param0)
@@ -1011,6 +1167,52 @@ export class StrategySplitterAbi extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  strategyCapacity(param0: Address): BigInt {
+    let result = super.call(
+      "strategyCapacity",
+      "strategyCapacity(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)]
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_strategyCapacity(param0: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "strategyCapacity",
+      "strategyCapacity(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  supportsInterface(interfaceId: Bytes): boolean {
+    let result = super.call(
+      "supportsInterface",
+      "supportsInterface(bytes4):(bool)",
+      [ethereum.Value.fromFixedBytes(interfaceId)]
+    );
+
+    return result[0].toBoolean();
+  }
+
+  try_supportsInterface(interfaceId: Bytes): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "supportsInterface",
+      "supportsInterface(bytes4):(bool)",
+      [ethereum.Value.fromFixedBytes(interfaceId)]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
   }
 
   strategyAPRHistoryLength(strategy: Address): BigInt {
@@ -1383,6 +1585,36 @@ export class RemoveScheduledStrategiesCall__Outputs {
   }
 }
 
+export class RemoveScheduledStrategies1Call extends ethereum.Call {
+  get inputs(): RemoveScheduledStrategies1Call__Inputs {
+    return new RemoveScheduledStrategies1Call__Inputs(this);
+  }
+
+  get outputs(): RemoveScheduledStrategies1Call__Outputs {
+    return new RemoveScheduledStrategies1Call__Outputs(this);
+  }
+}
+
+export class RemoveScheduledStrategies1Call__Inputs {
+  _call: RemoveScheduledStrategies1Call;
+
+  constructor(call: RemoveScheduledStrategies1Call) {
+    this._call = call;
+  }
+
+  get _strategies(): Array<Address> {
+    return this._call.inputValues[0].value.toAddressArray();
+  }
+}
+
+export class RemoveScheduledStrategies1Call__Outputs {
+  _call: RemoveScheduledStrategies1Call;
+
+  constructor(call: RemoveScheduledStrategies1Call) {
+    this._call = call;
+  }
+}
+
 export class RemoveStrategiesCall extends ethereum.Call {
   get inputs(): RemoveStrategiesCall__Inputs {
     return new RemoveStrategiesCall__Inputs(this);
@@ -1499,6 +1731,40 @@ export class WithdrawAllToVaultCall__Outputs {
   _call: WithdrawAllToVaultCall;
 
   constructor(call: WithdrawAllToVaultCall) {
+    this._call = call;
+  }
+}
+
+export class SetStrategyCapacityCall extends ethereum.Call {
+  get inputs(): SetStrategyCapacityCall__Inputs {
+    return new SetStrategyCapacityCall__Inputs(this);
+  }
+
+  get outputs(): SetStrategyCapacityCall__Outputs {
+    return new SetStrategyCapacityCall__Outputs(this);
+  }
+}
+
+export class SetStrategyCapacityCall__Inputs {
+  _call: SetStrategyCapacityCall;
+
+  constructor(call: SetStrategyCapacityCall) {
+    this._call = call;
+  }
+
+  get strategy(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+
+  get capacity(): BigInt {
+    return this._call.inputValues[1].value.toBigInt();
+  }
+}
+
+export class SetStrategyCapacityCall__Outputs {
+  _call: SetStrategyCapacityCall;
+
+  constructor(call: SetStrategyCapacityCall) {
     this._call = call;
   }
 }

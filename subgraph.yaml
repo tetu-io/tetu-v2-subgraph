@@ -512,8 +512,6 @@ templates:
           handler: handleRevisionIncreased
         - event: StrategyAdded(address,uint256)
           handler: handleStrategyAdded
-        - event: StrategyRatioChanged(address,uint256)
-          handler: handleStrategyRatioChanged
         - event: StrategyRemoved(address)
           handler: handleStrategyRemoved
         - event: StrategyScheduled(address,uint256,uint256)
@@ -567,8 +565,6 @@ templates:
           handler: handleWithdrawAllToSplitter
         - event: WithdrawToSplitter(uint256,uint256,uint256)
           handler: handleWithdrawToSplitter
-        - event: SentToForwarder(address,address,uint256)
-          handler: handleSentToForwarder
 
 
 

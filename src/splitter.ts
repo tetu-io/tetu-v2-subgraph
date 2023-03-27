@@ -22,7 +22,7 @@ import {StrategyTemplate} from './types/templates'
 import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {StrategyAbi} from "./types/templates/StrategyTemplate/StrategyAbi";
 import {ProxyAbi} from "./types/templates/StrategySplitterTemplate/ProxyAbi";
-import {ADDRESS_ZERO, HUNDRED_BD, ZERO_BD} from "./constants";
+import {ADDRESS_ZERO, HUNDRED_BD, RATIO_DENOMINATOR, ZERO_BD} from "./constants";
 import {VaultAbi} from "./types/templates/StrategySplitterTemplate/VaultAbi";
 import {formatUnits} from "./helpers/common-helper";
 import {saveStrategyHistory, updateStrategyData} from "./helpers/strategy-helper";
@@ -148,7 +148,7 @@ export function handleHardWork(event: HardWork): void {
   const splitter = SplitterEntity.load(event.address.toHexString()) as SplitterEntity;
   const strategy = getOrCreateStrategy(event.params.strategy.toHexString());
   const splitterCtr = StrategySplitterAbi.bind(event.address);
-  const aprDenominator = BigDecimal.fromString('100_000');
+  const aprDenominator = RATIO_DENOMINATOR.toBigDecimal();
 
   const earned = formatUnits(event.params.earned, BigInt.fromI32(strategy.assetTokenDecimals));
   const lost = formatUnits(event.params.lost, BigInt.fromI32(strategy.assetTokenDecimals));
@@ -202,8 +202,8 @@ function getOrCreateStrategy(address: string): StrategyEntity {
     const vaultAdr = splitterCtr.vault();
     const vaultCtr = VaultAbi.bind(vaultAdr);
     const proxy = ProxyAbi.bind(Address.fromString(address))
-    const compoundDenominator = strategyCtr.COMPOUND_DENOMINATOR();
-    const aprDenominator = BigDecimal.fromString('100000');
+    const compoundDenominator = RATIO_DENOMINATOR.toBigDecimal();
+    const aprDenominator = RATIO_DENOMINATOR.toBigDecimal();
 
     strategy.version = strategyCtr.STRATEGY_VERSION();
     strategy.revision = strategyCtr.revision().toI32();
@@ -217,7 +217,7 @@ function getOrCreateStrategy(address: string): StrategyEntity {
     strategy.name = strategyCtr.NAME();
     strategy.platform = strategyCtr.PLATFORM();
 
-    strategy.compoundRatio = strategyCtr.compoundRatio().toBigDecimal().times(BigDecimal.fromString('100')).div(compoundDenominator.toBigDecimal());
+    strategy.compoundRatio = strategyCtr.compoundRatio().toBigDecimal().times(BigDecimal.fromString('100')).div(compoundDenominator);
     strategy.paused = splitterCtr.pausedStrategies(Address.fromString(address));
     strategy.apr = splitterCtr.strategiesAPR(Address.fromString(address)).toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator);
     strategy.averageApr = splitterCtr.averageApr(Address.fromString(address)).toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator);

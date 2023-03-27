@@ -4,21 +4,18 @@ import {
   CompoundRatioChanged,
   EmergencyExit,
   RevisionIncreased,
-  SentToForwarder,
   StrategyAbi,
   Upgraded,
   WithdrawAllToSplitter,
   WithdrawToSplitter
 } from "./types/templates/StrategyTemplate/StrategyAbi";
-import {ForwarderTokenInfo, StrategyEntity} from "./types/schema";
-import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
-import {formatUnits} from "./helpers/common-helper";
-import {VaultAbi} from "./types/templates/StrategyTemplate/VaultAbi";
-import {ForwarderAbi} from "./types/templates/StrategyTemplate/ForwarderAbi";
+import {StrategyEntity} from "./types/schema";
+import {Address, BigDecimal} from "@graphprotocol/graph-ts";
 import {StrategySplitterAbi} from "./types/templates/StrategySplitterTemplate/StrategySplitterAbi";
 import {updateStrategyData} from "./helpers/strategy-helper";
 import {StrategySplitterAbi as StrategySplitterAbiCommon} from "./common/StrategySplitterAbi";
 import {StrategyAbi as StrategyAbiCommon} from "./common/StrategyAbi";
+import {RATIO_DENOMINATOR} from "./constants";
 
 // ***************************************************
 //                 STATE CHANGES
@@ -34,9 +31,8 @@ export function handleUpgraded(event: Upgraded): void {
 
 export function handleCompoundRatioChanged(event: CompoundRatioChanged): void {
   const strategy = StrategyEntity.load(event.address.toHexString()) as StrategyEntity;
-  const strategyCtr = StrategyAbi.bind(event.address);
-  const compoundDenominator = strategyCtr.COMPOUND_DENOMINATOR();
-  strategy.compoundRatio = event.params.newValue.toBigDecimal().times(BigDecimal.fromString('100')).div(compoundDenominator.toBigDecimal());
+  const compoundDenominator = RATIO_DENOMINATOR.toBigDecimal();
+  strategy.compoundRatio = event.params.newValue.toBigDecimal().times(BigDecimal.fromString('100')).div(compoundDenominator);
   strategy.save()
 }
 
@@ -63,22 +59,22 @@ export function handleWithdrawAllToSplitter(
 export function handleWithdrawToSplitter(event: WithdrawToSplitter): void {
   _updateStrategyData(event.address.toHexString(), event.block.timestamp.toI32());
 }
-
-export function handleSentToForwarder(event: SentToForwarder): void {
-  let info = ForwarderTokenInfo.load(event.params.token.toHexString());
-  if (!info) {
-    info = new ForwarderTokenInfo(event.params.token.toHexString());
-    const forwarderCtr = ForwarderAbi.bind(event.params.forwarder);
-
-    info.forwarder = event.params.forwarder.toHexString();
-    info.slippage = forwarderCtr.DEFAULT_SLIPPAGE().toBigDecimal().div(BigDecimal.fromString('1000'));
-    info.balance = BigDecimal.fromString('0');
-  }
-  const tokenCtr = VaultAbi.bind(event.params.token);
-  info.balance = info.balance.plus(formatUnits(event.params.amount, BigInt.fromI32(tokenCtr.decimals())));
-  info.lastUpdate = event.block.timestamp.toI32();
-  info.save();
-}
+//
+// export function handleSentToForwarder(event: SentToForwarder): void {
+//   let info = ForwarderTokenInfo.load(event.params.token.toHexString());
+//   if (!info) {
+//     info = new ForwarderTokenInfo(event.params.token.toHexString());
+//     const forwarderCtr = ForwarderAbi.bind(event.params.forwarder);
+//
+//     info.forwarder = event.params.forwarder.toHexString();
+//     info.slippage = forwarderCtr.DEFAULT_SLIPPAGE().toBigDecimal().div(BigDecimal.fromString('1000'));
+//     info.balance = BigDecimal.fromString('0');
+//   }
+//   const tokenCtr = VaultAbi.bind(event.params.token);
+//   info.balance = info.balance.plus(formatUnits(event.params.amount, BigInt.fromI32(tokenCtr.decimals())));
+//   info.lastUpdate = event.block.timestamp.toI32();
+//   info.save();
+// }
 
 // ***************************************************
 //                    HELPERS
