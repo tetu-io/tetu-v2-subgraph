@@ -312,7 +312,7 @@ function updateUser(
   }
 }
 
-function updateVaultAttributes(address: string, time: i32): VaultEntity {
+export function updateVaultAttributes(address: string, time: i32): VaultEntity {
   const vault = VaultEntity.load(address);
   if (!vault) {
     log.critical("Vault not found {}", [address]);

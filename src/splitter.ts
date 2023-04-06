@@ -28,6 +28,7 @@ import {formatUnits} from "./helpers/common-helper";
 import {saveStrategyHistory, updateStrategyData} from "./helpers/strategy-helper";
 import {StrategySplitterAbi as StrategySplitterAbiCommon} from "./common/StrategySplitterAbi";
 import {StrategyAbi as StrategyAbiCommon} from "./common/StrategyAbi";
+import {updateVaultAttributes} from "./vault";
 
 // ***************************************************
 //             ADD/REMOVE STRATEGIES
@@ -176,6 +177,11 @@ export function handleHardWork(event: HardWork): void {
   saveStrategyHistory(strategy, event.block.timestamp.toI32());
   splitter.save();
   strategy.save();
+
+  // TRY TO UPDATE vault stats
+
+  const vault = updateVaultAttributes(splitter.vault, event.block.timestamp.toI32());
+  vault.save();
 }
 
 // ***************************************************
