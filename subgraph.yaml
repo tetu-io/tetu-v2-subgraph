@@ -565,6 +565,8 @@ templates:
           handler: handleWithdrawAllToSplitter
         - event: WithdrawToSplitter(uint256,uint256,uint256)
           handler: handleWithdrawToSplitter
+        - event: StrategySpecificNameChanged(string)
+          handler: handleStrategySpecificNameChanged
 
 
 

@@ -299,6 +299,7 @@ type StrategyEntity @entity {
 
     #attributes
     name: String!
+    specificName: String #could be empty
     platform: String!
     asset: TokenEntity!
     assetTokenDecimals: Int!

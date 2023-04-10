@@ -170,18 +170,12 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "address",
-        "name": "asset",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "int256",
-        "name": "amount",
-        "type": "int256"
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
       }
     ],
-    "name": "UpdateBaseAmounts",
+    "name": "StrategySpecificNameChanged",
     "type": "event"
   },
   {
@@ -327,25 +321,6 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "baseAmounts",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "capacity",
     "outputs": [
@@ -459,7 +434,7 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "amount_",
+        "name": "",
         "type": "uint256"
       },
       {
@@ -471,9 +446,9 @@
     "name": "investAll",
     "outputs": [
       {
-        "internalType": "int256",
-        "name": "totalAssetsDelta",
-        "type": "int256"
+        "internalType": "uint256",
+        "name": "strategyLoss",
+        "type": "uint256"
       }
     ],
     "stateMutability": "nonpayable",
@@ -583,19 +558,6 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address[]",
-        "name": "tokens_",
-        "type": "address[]"
-      }
-    ],
-    "name": "resetBaseAmounts",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "revision",
     "outputs": [
@@ -617,6 +579,19 @@
       }
     ],
     "name": "setCompoundRatio",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      }
+    ],
+    "name": "setStrategySpecificName",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -647,6 +622,19 @@
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "strategySpecificName",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -689,9 +677,9 @@
     "name": "withdrawAllToSplitter",
     "outputs": [
       {
-        "internalType": "int256",
-        "name": "",
-        "type": "int256"
+        "internalType": "uint256",
+        "name": "strategyLoss",
+        "type": "uint256"
       }
     ],
     "stateMutability": "nonpayable",
@@ -708,9 +696,9 @@
     "name": "withdrawToSplitter",
     "outputs": [
       {
-        "internalType": "int256",
-        "name": "totalAssetsDelta",
-        "type": "int256"
+        "internalType": "uint256",
+        "name": "strategyLoss",
+        "type": "uint256"
       }
     ],
     "stateMutability": "nonpayable",

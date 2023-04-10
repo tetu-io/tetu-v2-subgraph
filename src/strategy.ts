@@ -4,7 +4,7 @@ import {
   CompoundRatioChanged,
   EmergencyExit,
   RevisionIncreased,
-  StrategyAbi,
+  StrategyAbi, StrategySpecificNameChanged,
   Upgraded,
   WithdrawAllToSplitter,
   WithdrawToSplitter
@@ -39,6 +39,12 @@ export function handleCompoundRatioChanged(event: CompoundRatioChanged): void {
 export function handleRevisionIncreased(event: RevisionIncreased): void {
   const strategy = StrategyEntity.load(event.address.toHexString()) as StrategyEntity;
   strategy.revision = event.params.value.toI32();
+  strategy.save()
+}
+
+export function handleStrategySpecificNameChanged(event: StrategySpecificNameChanged): void {
+  const strategy = StrategyEntity.load(event.address.toHexString()) as StrategyEntity;
+  strategy.specificName = event.params.name;
   strategy.save()
 }
 
