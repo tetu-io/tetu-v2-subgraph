@@ -10,6 +10,24 @@ import {
   BigInt
 } from "@graphprotocol/graph-ts";
 
+export class Upgraded extends ethereum.Event {
+  get params(): Upgraded__Params {
+    return new Upgraded__Params(this);
+  }
+}
+
+export class Upgraded__Params {
+  _event: Upgraded;
+
+  constructor(event: Upgraded) {
+    this._event = event;
+  }
+
+  get implementation(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
 export class Claimed extends ethereum.Event {
   get params(): Claimed__Params {
     return new Claimed__Params(this);
@@ -29,24 +47,6 @@ export class Claimed__Params {
 
   get amount(): BigInt {
     return this._event.parameters[1].value.toBigInt();
-  }
-}
-
-export class Upgraded extends ethereum.Event {
-  get params(): Upgraded__Params {
-    return new Upgraded__Params(this);
-  }
-}
-
-export class Upgraded__Params {
-  _event: Upgraded;
-
-  constructor(event: Upgraded) {
-    this._event = event;
-  }
-
-  get implementation(): Address {
-    return this._event.parameters[0].value.toAddress();
   }
 }
 
@@ -214,6 +214,24 @@ export class RevisionIncreased__Params {
   }
 }
 
+export class StrategySpecificNameChanged extends ethereum.Event {
+  get params(): StrategySpecificNameChanged__Params {
+    return new StrategySpecificNameChanged__Params(this);
+  }
+}
+
+export class StrategySpecificNameChanged__Params {
+  _event: StrategySpecificNameChanged;
+
+  constructor(event: StrategySpecificNameChanged) {
+    this._event = event;
+  }
+
+  get name(): string {
+    return this._event.parameters[0].value.toString();
+  }
+}
+
 export class WithdrawAllFromPool extends ethereum.Event {
   get params(): WithdrawAllFromPool__Params {
     return new WithdrawAllFromPool__Params(this);
@@ -294,32 +312,6 @@ export class WithdrawToSplitter__Params {
   }
 }
 
-export class SentToForwarder extends ethereum.Event {
-  get params(): SentToForwarder__Params {
-    return new SentToForwarder__Params(this);
-  }
-}
-
-export class SentToForwarder__Params {
-  _event: SentToForwarder;
-
-  constructor(event: SentToForwarder) {
-    this._event = event;
-  }
-
-  get forwarder(): Address {
-    return this._event.parameters[0].value.toAddress();
-  }
-
-  get token(): Address {
-    return this._event.parameters[1].value.toAddress();
-  }
-
-  get amount(): BigInt {
-    return this._event.parameters[2].value.toBigInt();
-  }
-}
-
 export class StrategyAbi__doHardWorkResult {
   value0: BigInt;
   value1: BigInt;
@@ -348,29 +340,6 @@ export class StrategyAbi__doHardWorkResult {
 export class StrategyAbi extends ethereum.SmartContract {
   static bind(address: Address): StrategyAbi {
     return new StrategyAbi("StrategyAbi", address);
-  }
-
-  COMPOUND_DENOMINATOR(): BigInt {
-    let result = super.call(
-      "COMPOUND_DENOMINATOR",
-      "COMPOUND_DENOMINATOR():(uint256)",
-      []
-    );
-
-    return result[0].toBigInt();
-  }
-
-  try_COMPOUND_DENOMINATOR(): ethereum.CallResult<BigInt> {
-    let result = super.tryCall(
-      "COMPOUND_DENOMINATOR",
-      "COMPOUND_DENOMINATOR():(uint256)",
-      []
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
   CONTROLLABLE_VERSION(): string {
@@ -487,6 +456,21 @@ export class StrategyAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
+  capacity(): BigInt {
+    let result = super.call("capacity", "capacity():(uint256)", []);
+
+    return result[0].toBigInt();
+  }
+
+  try_capacity(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall("capacity", "capacity():(uint256)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
   compoundRatio(): BigInt {
     let result = super.call("compoundRatio", "compoundRatio():(uint256)", []);
 
@@ -578,6 +562,34 @@ export class StrategyAbi extends ethereum.SmartContract {
     );
   }
 
+  investAll(param0: BigInt, updateTotalAssetsBeforeInvest_: boolean): BigInt {
+    let result = super.call("investAll", "investAll(uint256,bool):(uint256)", [
+      ethereum.Value.fromUnsignedBigInt(param0),
+      ethereum.Value.fromBoolean(updateTotalAssetsBeforeInvest_)
+    ]);
+
+    return result[0].toBigInt();
+  }
+
+  try_investAll(
+    param0: BigInt,
+    updateTotalAssetsBeforeInvest_: boolean
+  ): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "investAll",
+      "investAll(uint256,bool):(uint256)",
+      [
+        ethereum.Value.fromUnsignedBigInt(param0),
+        ethereum.Value.fromBoolean(updateTotalAssetsBeforeInvest_)
+      ]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
   investedAssets(): BigInt {
     let result = super.call("investedAssets", "investedAssets():(uint256)", []);
 
@@ -658,6 +670,48 @@ export class StrategyAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBoolean());
   }
 
+  performanceFee(): BigInt {
+    let result = super.call("performanceFee", "performanceFee():(uint256)", []);
+
+    return result[0].toBigInt();
+  }
+
+  try_performanceFee(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "performanceFee",
+      "performanceFee():(uint256)",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  performanceReceiver(): Address {
+    let result = super.call(
+      "performanceReceiver",
+      "performanceReceiver():(address)",
+      []
+    );
+
+    return result[0].toAddress();
+  }
+
+  try_performanceReceiver(): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "performanceReceiver",
+      "performanceReceiver():(address)",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
   previousImplementation(): Address {
     let result = super.call(
       "previousImplementation",
@@ -711,6 +765,52 @@ export class StrategyAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
+  strategySpecificName(): string {
+    let result = super.call(
+      "strategySpecificName",
+      "strategySpecificName():(string)",
+      []
+    );
+
+    return result[0].toString();
+  }
+
+  try_strategySpecificName(): ethereum.CallResult<string> {
+    let result = super.tryCall(
+      "strategySpecificName",
+      "strategySpecificName():(string)",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toString());
+  }
+
+  supportsInterface(interfaceId: Bytes): boolean {
+    let result = super.call(
+      "supportsInterface",
+      "supportsInterface(bytes4):(bool)",
+      [ethereum.Value.fromFixedBytes(interfaceId)]
+    );
+
+    return result[0].toBoolean();
+  }
+
+  try_supportsInterface(interfaceId: Bytes): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "supportsInterface",
+      "supportsInterface(bytes4):(bool)",
+      [ethereum.Value.fromFixedBytes(interfaceId)]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
   totalAssets(): BigInt {
     let result = super.call("totalAssets", "totalAssets():(uint256)", []);
 
@@ -725,39 +825,51 @@ export class StrategyAbi extends ethereum.SmartContract {
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
-}
 
-export class __StrategyBase_initCall extends ethereum.Call {
-  get inputs(): __StrategyBase_initCall__Inputs {
-    return new __StrategyBase_initCall__Inputs(this);
+  withdrawAllToSplitter(): BigInt {
+    let result = super.call(
+      "withdrawAllToSplitter",
+      "withdrawAllToSplitter():(uint256)",
+      []
+    );
+
+    return result[0].toBigInt();
   }
 
-  get outputs(): __StrategyBase_initCall__Outputs {
-    return new __StrategyBase_initCall__Outputs(this);
-  }
-}
-
-export class __StrategyBase_initCall__Inputs {
-  _call: __StrategyBase_initCall;
-
-  constructor(call: __StrategyBase_initCall) {
-    this._call = call;
-  }
-
-  get controller_(): Address {
-    return this._call.inputValues[0].value.toAddress();
+  try_withdrawAllToSplitter(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "withdrawAllToSplitter",
+      "withdrawAllToSplitter():(uint256)",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
-  get _splitter(): Address {
-    return this._call.inputValues[1].value.toAddress();
+  withdrawToSplitter(amount: BigInt): BigInt {
+    let result = super.call(
+      "withdrawToSplitter",
+      "withdrawToSplitter(uint256):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(amount)]
+    );
+
+    return result[0].toBigInt();
   }
-}
 
-export class __StrategyBase_initCall__Outputs {
-  _call: __StrategyBase_initCall;
-
-  constructor(call: __StrategyBase_initCall) {
-    this._call = call;
+  try_withdrawToSplitter(amount: BigInt): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "withdrawToSplitter",
+      "withdrawToSplitter(uint256):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(amount)]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 }
 
@@ -893,6 +1005,14 @@ export class InvestAllCall__Inputs {
   constructor(call: InvestAllCall) {
     this._call = call;
   }
+
+  get value0(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+
+  get updateTotalAssetsBeforeInvest_(): boolean {
+    return this._call.inputValues[1].value.toBoolean();
+  }
 }
 
 export class InvestAllCall__Outputs {
@@ -900,6 +1020,10 @@ export class InvestAllCall__Outputs {
 
   constructor(call: InvestAllCall) {
     this._call = call;
+  }
+
+  get strategyLoss(): BigInt {
+    return this._call.outputValues[0].value.toBigInt();
   }
 }
 
@@ -933,6 +1057,70 @@ export class SetCompoundRatioCall__Outputs {
   }
 }
 
+export class SetStrategySpecificNameCall extends ethereum.Call {
+  get inputs(): SetStrategySpecificNameCall__Inputs {
+    return new SetStrategySpecificNameCall__Inputs(this);
+  }
+
+  get outputs(): SetStrategySpecificNameCall__Outputs {
+    return new SetStrategySpecificNameCall__Outputs(this);
+  }
+}
+
+export class SetStrategySpecificNameCall__Inputs {
+  _call: SetStrategySpecificNameCall;
+
+  constructor(call: SetStrategySpecificNameCall) {
+    this._call = call;
+  }
+
+  get name(): string {
+    return this._call.inputValues[0].value.toString();
+  }
+}
+
+export class SetStrategySpecificNameCall__Outputs {
+  _call: SetStrategySpecificNameCall;
+
+  constructor(call: SetStrategySpecificNameCall) {
+    this._call = call;
+  }
+}
+
+export class SetupPerformanceFeeCall extends ethereum.Call {
+  get inputs(): SetupPerformanceFeeCall__Inputs {
+    return new SetupPerformanceFeeCall__Inputs(this);
+  }
+
+  get outputs(): SetupPerformanceFeeCall__Outputs {
+    return new SetupPerformanceFeeCall__Outputs(this);
+  }
+}
+
+export class SetupPerformanceFeeCall__Inputs {
+  _call: SetupPerformanceFeeCall;
+
+  constructor(call: SetupPerformanceFeeCall) {
+    this._call = call;
+  }
+
+  get fee_(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+
+  get receiver_(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+}
+
+export class SetupPerformanceFeeCall__Outputs {
+  _call: SetupPerformanceFeeCall;
+
+  constructor(call: SetupPerformanceFeeCall) {
+    this._call = call;
+  }
+}
+
 export class WithdrawAllToSplitterCall extends ethereum.Call {
   get inputs(): WithdrawAllToSplitterCall__Inputs {
     return new WithdrawAllToSplitterCall__Inputs(this);
@@ -956,6 +1144,10 @@ export class WithdrawAllToSplitterCall__Outputs {
 
   constructor(call: WithdrawAllToSplitterCall) {
     this._call = call;
+  }
+
+  get strategyLoss(): BigInt {
+    return this._call.outputValues[0].value.toBigInt();
   }
 }
 
@@ -986,5 +1178,9 @@ export class WithdrawToSplitterCall__Outputs {
 
   constructor(call: WithdrawToSplitterCall) {
     this._call = call;
+  }
+
+  get strategyLoss(): BigInt {
+    return this._call.outputValues[0].value.toBigInt();
   }
 }

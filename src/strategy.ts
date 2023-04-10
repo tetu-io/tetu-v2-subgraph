@@ -12,7 +12,7 @@ import {
 import {StrategyEntity} from "./types/schema";
 import {Address, BigDecimal} from "@graphprotocol/graph-ts";
 import {StrategySplitterAbi} from "./types/templates/StrategySplitterTemplate/StrategySplitterAbi";
-import {updateStrategyData} from "./helpers/strategy-helper";
+import {getOrCreateStrategy, updateStrategyData} from "./helpers/strategy-helper";
 import {StrategySplitterAbi as StrategySplitterAbiCommon} from "./common/StrategySplitterAbi";
 import {StrategyAbi as StrategyAbiCommon} from "./common/StrategyAbi";
 import {RATIO_DENOMINATOR} from "./constants";
@@ -22,7 +22,7 @@ import {RATIO_DENOMINATOR} from "./constants";
 // ***************************************************
 
 export function handleUpgraded(event: Upgraded): void {
-  const strategy = StrategyEntity.load(event.address.toHexString()) as StrategyEntity;
+  const strategy = getOrCreateStrategy(event.address.toHexString());
   const implementations = strategy.implementations;
   implementations.push(event.params.implementation.toHexString())
   strategy.implementations = implementations;
@@ -30,20 +30,20 @@ export function handleUpgraded(event: Upgraded): void {
 }
 
 export function handleCompoundRatioChanged(event: CompoundRatioChanged): void {
-  const strategy = StrategyEntity.load(event.address.toHexString()) as StrategyEntity;
+  const strategy = getOrCreateStrategy(event.address.toHexString());
   const compoundDenominator = RATIO_DENOMINATOR.toBigDecimal();
   strategy.compoundRatio = event.params.newValue.toBigDecimal().times(BigDecimal.fromString('100')).div(compoundDenominator);
   strategy.save()
 }
 
 export function handleRevisionIncreased(event: RevisionIncreased): void {
-  const strategy = StrategyEntity.load(event.address.toHexString()) as StrategyEntity;
+  const strategy = getOrCreateStrategy(event.address.toHexString());
   strategy.revision = event.params.value.toI32();
   strategy.save()
 }
 
 export function handleStrategySpecificNameChanged(event: StrategySpecificNameChanged): void {
-  const strategy = StrategyEntity.load(event.address.toHexString()) as StrategyEntity;
+  const strategy = getOrCreateStrategy(event.address.toHexString());
   strategy.specificName = event.params.name;
   strategy.save()
 }
@@ -87,7 +87,7 @@ export function handleWithdrawToSplitter(event: WithdrawToSplitter): void {
 // ***************************************************
 
 function _updateStrategyData(strategyAdr: string, time: i32): void {
-  const strategy = StrategyEntity.load(strategyAdr) as StrategyEntity;
+  const strategy = getOrCreateStrategy(strategyAdr);
   updateStrategyData(
     strategy,
     time,

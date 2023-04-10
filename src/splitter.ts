@@ -25,7 +25,11 @@ import {ProxyAbi} from "./types/templates/StrategySplitterTemplate/ProxyAbi";
 import {ADDRESS_ZERO, HUNDRED_BD, RATIO_DENOMINATOR, ZERO_BD} from "./constants";
 import {VaultAbi} from "./types/templates/StrategySplitterTemplate/VaultAbi";
 import {formatUnits} from "./helpers/common-helper";
-import {saveStrategyHistory, updateStrategyData} from "./helpers/strategy-helper";
+import {
+  getOrCreateStrategy,
+  saveStrategyHistory,
+  updateStrategyData
+} from "./helpers/strategy-helper";
 import {StrategySplitterAbi as StrategySplitterAbiCommon} from "./common/StrategySplitterAbi";
 import {StrategyAbi as StrategyAbiCommon} from "./common/StrategyAbi";
 import {updateVaultAttributes} from "./vault";
@@ -197,49 +201,6 @@ export function handleRebalance(event: Rebalance): void {
 //                    HELPERS
 // ***************************************************
 
-function getOrCreateStrategy(address: string): StrategyEntity {
-  let strategy = StrategyEntity.load(address);
-
-  if (!strategy) {
-    strategy = new StrategyEntity(address);
-    const strategyCtr = StrategyAbi.bind(Address.fromString(address));
-    const splitterAdr = strategyCtr.splitter();
-    const splitterCtr = StrategySplitterAbi.bind(splitterAdr);
-    const vaultAdr = splitterCtr.vault();
-    const vaultCtr = VaultAbi.bind(vaultAdr);
-    const proxy = ProxyAbi.bind(Address.fromString(address))
-    const compoundDenominator = RATIO_DENOMINATOR.toBigDecimal();
-    const aprDenominator = RATIO_DENOMINATOR.toBigDecimal();
-
-    strategy.version = strategyCtr.STRATEGY_VERSION();
-    strategy.revision = strategyCtr.revision().toI32();
-    strategy.createdTs = strategyCtr.created().toI32();
-    strategy.createdBlock = strategyCtr.createdBlock().toI32();
-    strategy.implementations = [proxy.implementation().toHexString()];
-    strategy.splitter = splitterAdr.toHexString();
-    strategy.asset = strategyCtr.asset().toHexString();
-    strategy.assetTokenDecimals = vaultCtr.decimals();
-
-    strategy.name = strategyCtr.NAME();
-    strategy.platform = strategyCtr.PLATFORM();
-
-    strategy.compoundRatio = strategyCtr.compoundRatio().toBigDecimal().times(BigDecimal.fromString('100')).div(compoundDenominator);
-    strategy.paused = splitterCtr.pausedStrategies(Address.fromString(address));
-    strategy.apr = splitterCtr.strategiesAPR(Address.fromString(address)).toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator);
-    strategy.averageApr = splitterCtr.averageApr(Address.fromString(address)).toBigDecimal().times(BigDecimal.fromString('100')).div(aprDenominator);
-    strategy.lastHardWork = splitterCtr.lastHardWorks(Address.fromString(address)).toI32();
-    strategy.tvl = formatUnits(strategyCtr.totalAssets(), BigInt.fromI32(strategy.assetTokenDecimals));
-    strategy.profit = BigDecimal.fromString('0');
-    strategy.loss = BigDecimal.fromString('0');
-    strategy.capacity = BigDecimal.fromString('0');
-    strategy.tvlAllocationPercent = BigDecimal.fromString('0');
-
-    StrategyTemplate.create(Address.fromString(address));
-    strategy.save();
-  }
-
-  return strategy;
-}
 
 function _updateStrategyData(strategyAdr: string, time: i32): void {
   const strategy = getOrCreateStrategy(strategyAdr);
