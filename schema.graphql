@@ -123,6 +123,7 @@ type VaultEntity @entity {
     depositFee: BigDecimal!
     withdrawFee: BigDecimal!
     doHardWorkOnInvest: Boolean!
+    withdrawRequestBlocks: Int!
 
     # stats
     totalAssets: BigDecimal!

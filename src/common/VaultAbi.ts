@@ -10,6 +10,24 @@ import {
   BigInt
 } from "@graphprotocol/graph-ts";
 
+export class Upgraded extends ethereum.Event {
+  get params(): Upgraded__Params {
+    return new Upgraded__Params(this);
+  }
+}
+
+export class Upgraded__Params {
+  _event: Upgraded;
+
+  constructor(event: Upgraded) {
+    this._event = event;
+  }
+
+  get implementation(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
 export class Approval extends ethereum.Event {
   get params(): Approval__Params {
     return new Approval__Params(this);
@@ -33,24 +51,6 @@ export class Approval__Params {
 
   get value(): BigInt {
     return this._event.parameters[2].value.toBigInt();
-  }
-}
-
-export class Upgraded extends ethereum.Event {
-  get params(): Upgraded__Params {
-    return new Upgraded__Params(this);
-  }
-}
-
-export class Upgraded__Params {
-  _event: Upgraded;
-
-  constructor(event: Upgraded) {
-    this._event = event;
-  }
-
-  get implementation(): Address {
-    return this._event.parameters[0].value.toAddress();
   }
 }
 
@@ -115,7 +115,7 @@ export class Deposit__Params {
     this._event = event;
   }
 
-  get caller(): Address {
+  get sender(): Address {
     return this._event.parameters[0].value.toAddress();
   }
 
@@ -356,25 +356,21 @@ export class RevisionIncreased__Params {
   }
 }
 
-export class SplitterChanged extends ethereum.Event {
-  get params(): SplitterChanged__Params {
-    return new SplitterChanged__Params(this);
+export class SplitterSetup extends ethereum.Event {
+  get params(): SplitterSetup__Params {
+    return new SplitterSetup__Params(this);
   }
 }
 
-export class SplitterChanged__Params {
-  _event: SplitterChanged;
+export class SplitterSetup__Params {
+  _event: SplitterSetup;
 
-  constructor(event: SplitterChanged) {
+  constructor(event: SplitterSetup) {
     this._event = event;
   }
 
-  get oldValue(): Address {
+  get splitter(): Address {
     return this._event.parameters[0].value.toAddress();
-  }
-
-  get newValue(): Address {
-    return this._event.parameters[1].value.toAddress();
   }
 }
 
@@ -417,7 +413,7 @@ export class Withdraw__Params {
     this._event = event;
   }
 
-  get caller(): Address {
+  get sender(): Address {
     return this._event.parameters[0].value.toAddress();
   }
 
@@ -438,9 +434,72 @@ export class Withdraw__Params {
   }
 }
 
+export class WithdrawRequestBlocks extends ethereum.Event {
+  get params(): WithdrawRequestBlocks__Params {
+    return new WithdrawRequestBlocks__Params(this);
+  }
+}
+
+export class WithdrawRequestBlocks__Params {
+  _event: WithdrawRequestBlocks;
+
+  constructor(event: WithdrawRequestBlocks) {
+    this._event = event;
+  }
+
+  get blocks(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+}
+
+export class WithdrawRequested extends ethereum.Event {
+  get params(): WithdrawRequested__Params {
+    return new WithdrawRequested__Params(this);
+  }
+}
+
+export class WithdrawRequested__Params {
+  _event: WithdrawRequested;
+
+  constructor(event: WithdrawRequested) {
+    this._event = event;
+  }
+
+  get sender(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get startBlock(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+}
+
 export class VaultAbi extends ethereum.SmartContract {
   static bind(address: Address): VaultAbi {
     return new VaultAbi("VaultAbi", address);
+  }
+
+  BUFFER_DENOMINATOR(): BigInt {
+    let result = super.call(
+      "BUFFER_DENOMINATOR",
+      "BUFFER_DENOMINATOR():(uint256)",
+      []
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_BUFFER_DENOMINATOR(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "BUFFER_DENOMINATOR",
+      "BUFFER_DENOMINATOR():(uint256)",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
   CONTROLLABLE_VERSION(): string {
@@ -955,6 +1014,29 @@ export class VaultAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
+  maxDepositAssets(): BigInt {
+    let result = super.call(
+      "maxDepositAssets",
+      "maxDepositAssets():(uint256)",
+      []
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_maxDepositAssets(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "maxDepositAssets",
+      "maxDepositAssets():(uint256)",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
   maxMint(param0: Address): BigInt {
     let result = super.call("maxMint", "maxMint(address):(uint256)", [
       ethereum.Value.fromAddress(param0)
@@ -967,6 +1049,25 @@ export class VaultAbi extends ethereum.SmartContract {
     let result = super.tryCall("maxMint", "maxMint(address):(uint256)", [
       ethereum.Value.fromAddress(param0)
     ]);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  maxMintShares(): BigInt {
+    let result = super.call("maxMintShares", "maxMintShares():(uint256)", []);
+
+    return result[0].toBigInt();
+  }
+
+  try_maxMintShares(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "maxMintShares",
+      "maxMintShares():(uint256)",
+      []
+    );
     if (result.reverted) {
       return new ethereum.CallResult();
     }
@@ -993,6 +1094,29 @@ export class VaultAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
+  maxRedeemShares(): BigInt {
+    let result = super.call(
+      "maxRedeemShares",
+      "maxRedeemShares():(uint256)",
+      []
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_maxRedeemShares(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "maxRedeemShares",
+      "maxRedeemShares():(uint256)",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
   maxWithdraw(owner: Address): BigInt {
     let result = super.call("maxWithdraw", "maxWithdraw(address):(uint256)", [
       ethereum.Value.fromAddress(owner)
@@ -1006,6 +1130,29 @@ export class VaultAbi extends ethereum.SmartContract {
       "maxWithdraw",
       "maxWithdraw(address):(uint256)",
       [ethereum.Value.fromAddress(owner)]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  maxWithdrawAssets(): BigInt {
+    let result = super.call(
+      "maxWithdrawAssets",
+      "maxWithdrawAssets():(uint256)",
+      []
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_maxWithdrawAssets(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "maxWithdrawAssets",
+      "maxWithdrawAssets():(uint256)",
+      []
     );
     if (result.reverted) {
       return new ethereum.CallResult();
@@ -1050,17 +1197,17 @@ export class VaultAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toString());
   }
 
-  nonces(param0: Address): BigInt {
+  nonces(owner: Address): BigInt {
     let result = super.call("nonces", "nonces(address):(uint256)", [
-      ethereum.Value.fromAddress(param0)
+      ethereum.Value.fromAddress(owner)
     ]);
 
     return result[0].toBigInt();
   }
 
-  try_nonces(param0: Address): ethereum.CallResult<BigInt> {
+  try_nonces(owner: Address): ethereum.CallResult<BigInt> {
     let result = super.tryCall("nonces", "nonces(address):(uint256)", [
-      ethereum.Value.fromAddress(param0)
+      ethereum.Value.fromAddress(owner)
     ]);
     if (result.reverted) {
       return new ethereum.CallResult();
@@ -1281,6 +1428,29 @@ export class VaultAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
+  supportsInterface(interfaceId: Bytes): boolean {
+    let result = super.call(
+      "supportsInterface",
+      "supportsInterface(bytes4):(bool)",
+      [ethereum.Value.fromFixedBytes(interfaceId)]
+    );
+
+    return result[0].toBoolean();
+  }
+
+  try_supportsInterface(interfaceId: Bytes): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "supportsInterface",
+      "supportsInterface(bytes4):(bool)",
+      [ethereum.Value.fromFixedBytes(interfaceId)]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
   symbol(): string {
     let result = super.call("symbol", "symbol():(string)", []);
 
@@ -1432,20 +1602,20 @@ export class VaultAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
-  maxWithdrawAssets(): BigInt {
+  withdrawRequestBlocks(): BigInt {
     let result = super.call(
-      "maxWithdrawAssets",
-      "maxWithdrawAssets():(uint256)",
+      "withdrawRequestBlocks",
+      "withdrawRequestBlocks():(uint256)",
       []
     );
 
     return result[0].toBigInt();
   }
 
-  try_maxWithdrawAssets(): ethereum.CallResult<BigInt> {
+  try_withdrawRequestBlocks(): ethereum.CallResult<BigInt> {
     let result = super.tryCall(
-      "maxWithdrawAssets",
-      "maxWithdrawAssets():(uint256)",
+      "withdrawRequestBlocks",
+      "withdrawRequestBlocks():(uint256)",
       []
     );
     if (result.reverted) {
@@ -1455,86 +1625,21 @@ export class VaultAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
-  maxRedeemShares(): BigInt {
+  withdrawRequests(param0: Address): BigInt {
     let result = super.call(
-      "maxRedeemShares",
-      "maxRedeemShares():(uint256)",
-      []
+      "withdrawRequests",
+      "withdrawRequests(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)]
     );
 
     return result[0].toBigInt();
   }
 
-  try_maxRedeemShares(): ethereum.CallResult<BigInt> {
+  try_withdrawRequests(param0: Address): ethereum.CallResult<BigInt> {
     let result = super.tryCall(
-      "maxRedeemShares",
-      "maxRedeemShares():(uint256)",
-      []
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBigInt());
-  }
-
-  maxMintShares(): BigInt {
-    let result = super.call("maxMintShares", "maxMintShares():(uint256)", []);
-
-    return result[0].toBigInt();
-  }
-
-  try_maxMintShares(): ethereum.CallResult<BigInt> {
-    let result = super.tryCall(
-      "maxMintShares",
-      "maxMintShares():(uint256)",
-      []
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBigInt());
-  }
-
-  maxDepositAssets(): BigInt {
-    let result = super.call(
-      "maxDepositAssets",
-      "maxDepositAssets():(uint256)",
-      []
-    );
-
-    return result[0].toBigInt();
-  }
-
-  try_maxDepositAssets(): ethereum.CallResult<BigInt> {
-    let result = super.tryCall(
-      "maxDepositAssets",
-      "maxDepositAssets():(uint256)",
-      []
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBigInt());
-  }
-
-  BUFFER_DENOMINATOR(): BigInt {
-    let result = super.call(
-      "BUFFER_DENOMINATOR",
-      "BUFFER_DENOMINATOR():(uint256)",
-      []
-    );
-
-    return result[0].toBigInt();
-  }
-
-  try_BUFFER_DENOMINATOR(): ethereum.CallResult<BigInt> {
-    let result = super.tryCall(
-      "BUFFER_DENOMINATOR",
-      "BUFFER_DENOMINATOR():(uint256)",
-      []
+      "withdrawRequests",
+      "withdrawRequests(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)]
     );
     if (result.reverted) {
       return new ethereum.CallResult();
@@ -1777,7 +1882,7 @@ export class InitCall__Inputs {
     return this._call.inputValues[0].value.toAddress();
   }
 
-  get _asset(): Address {
+  get asset_(): Address {
     return this._call.inputValues[1].value.toAddress();
   }
 
@@ -1970,6 +2075,32 @@ export class RedeemCall__Outputs {
   }
 }
 
+export class RequestWithdrawCall extends ethereum.Call {
+  get inputs(): RequestWithdrawCall__Inputs {
+    return new RequestWithdrawCall__Inputs(this);
+  }
+
+  get outputs(): RequestWithdrawCall__Outputs {
+    return new RequestWithdrawCall__Outputs(this);
+  }
+}
+
+export class RequestWithdrawCall__Inputs {
+  _call: RequestWithdrawCall;
+
+  constructor(call: RequestWithdrawCall) {
+    this._call = call;
+  }
+}
+
+export class RequestWithdrawCall__Outputs {
+  _call: RequestWithdrawCall;
+
+  constructor(call: RequestWithdrawCall) {
+    this._call = call;
+  }
+}
+
 export class SetBufferCall extends ethereum.Call {
   get inputs(): SetBufferCall__Inputs {
     return new SetBufferCall__Inputs(this);
@@ -2158,6 +2289,36 @@ export class SetSplitterCall__Outputs {
   _call: SetSplitterCall;
 
   constructor(call: SetSplitterCall) {
+    this._call = call;
+  }
+}
+
+export class SetWithdrawRequestBlocksCall extends ethereum.Call {
+  get inputs(): SetWithdrawRequestBlocksCall__Inputs {
+    return new SetWithdrawRequestBlocksCall__Inputs(this);
+  }
+
+  get outputs(): SetWithdrawRequestBlocksCall__Outputs {
+    return new SetWithdrawRequestBlocksCall__Outputs(this);
+  }
+}
+
+export class SetWithdrawRequestBlocksCall__Inputs {
+  _call: SetWithdrawRequestBlocksCall;
+
+  constructor(call: SetWithdrawRequestBlocksCall) {
+    this._call = call;
+  }
+
+  get blocks(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class SetWithdrawRequestBlocksCall__Outputs {
+  _call: SetWithdrawRequestBlocksCall;
+
+  constructor(call: SetWithdrawRequestBlocksCall) {
     this._call = call;
   }
 }

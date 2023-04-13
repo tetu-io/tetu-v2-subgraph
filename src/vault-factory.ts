@@ -13,7 +13,8 @@ import {
   SplitterEntity,
   VaultEntity,
   VaultFactoryEntity,
-  VaultVoteEntity, VeTetuEntity
+  VaultVoteEntity,
+  VeTetuEntity
 } from "./types/schema";
 import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {formatUnits, getOrCreateToken, tryGetUsdPrice} from "./helpers/common-helper";
@@ -84,6 +85,14 @@ export function handleVaultDeployed(event: VaultDeployed): void {
   vault.sharePrice = BigDecimal.fromString('1');
   vault.totalSupply = ZERO_BD;
   vault.usersCount = 0;
+
+  const withdrawRequestBlocksResult = vaultCtr.try_withdrawRequestBlocks();
+  if (!withdrawRequestBlocksResult.reverted) {
+    vault.withdrawRequestBlocks = withdrawRequestBlocksResult.value.toI32();
+  } else {
+    vault.withdrawRequestBlocks = 0;
+  }
+
 
   // create token entity
   const token = getOrCreateToken(changetype<VaultAbiCommon>(VaultAbi.bind(event.params.asset)));

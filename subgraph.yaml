@@ -465,6 +465,8 @@ templates:
           handler: handleRevisionIncreased
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
+        - event: WithdrawRequestBlocks(uint256)
+          handler: handleWithdrawRequestBlocks
 
   - name: StrategySplitterTemplate
     kind: ethereum/contract

@@ -5,6 +5,19 @@
       {
         "indexed": true,
         "internalType": "address",
+        "name": "implementation",
+        "type": "address"
+      }
+    ],
+    "name": "Upgraded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
         "name": "owner",
         "type": "address"
       },
@@ -22,19 +35,6 @@
       }
     ],
     "name": "Approval",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "implementation",
-        "type": "address"
-      }
-    ],
-    "name": "Upgraded",
     "type": "event"
   },
   {
@@ -87,7 +87,7 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "caller",
+        "name": "sender",
         "type": "address"
       },
       {
@@ -314,17 +314,11 @@
       {
         "indexed": false,
         "internalType": "address",
-        "name": "oldValue",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "newValue",
+        "name": "splitter",
         "type": "address"
       }
     ],
-    "name": "SplitterChanged",
+    "name": "SplitterSetup",
     "type": "event"
   },
   {
@@ -358,7 +352,7 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "caller",
+        "name": "sender",
         "type": "address"
       },
       {
@@ -388,6 +382,51 @@
     ],
     "name": "Withdraw",
     "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "blocks",
+        "type": "uint256"
+      }
+    ],
+    "name": "WithdrawRequestBlocks",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "startBlock",
+        "type": "uint256"
+      }
+    ],
+    "name": "WithdrawRequested",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "BUFFER_DENOMINATOR",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
     "inputs": [],
@@ -507,7 +546,7 @@
     "name": "asset",
     "outputs": [
       {
-        "internalType": "contract IERC20",
+        "internalType": "address",
         "name": "",
         "type": "address"
       }
@@ -783,7 +822,7 @@
       },
       {
         "internalType": "contract IERC20",
-        "name": "_asset",
+        "name": "asset_",
         "type": "address"
       },
       {
@@ -896,6 +935,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "maxDepositAssets",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -904,6 +956,19 @@
       }
     ],
     "name": "maxMint",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "maxMintShares",
     "outputs": [
       {
         "internalType": "uint256",
@@ -934,6 +999,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "maxRedeemShares",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -942,6 +1020,19 @@
       }
     ],
     "name": "maxWithdraw",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "maxWithdrawAssets",
     "outputs": [
       {
         "internalType": "uint256",
@@ -993,7 +1084,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "",
+        "name": "owner",
         "type": "address"
       }
     ],
@@ -1171,6 +1262,13 @@
   },
   {
     "inputs": [],
+    "name": "requestWithdraw",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "revision",
     "outputs": [
       {
@@ -1276,6 +1374,19 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "blocks",
+        "type": "uint256"
+      }
+    ],
+    "name": "setWithdrawRequestBlocks",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "sharePrice",
     "outputs": [
@@ -1309,6 +1420,25 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes4",
+        "name": "interfaceId",
+        "type": "bytes4"
+      }
+    ],
+    "name": "supportsInterface",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -1457,7 +1587,7 @@
   },
   {
     "inputs": [],
-    "name": "maxWithdrawAssets",
+    "name": "withdrawRequestBlocks",
     "outputs": [
       {
         "internalType": "uint256",
@@ -1469,47 +1599,14 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "maxRedeemShares",
-    "outputs": [
+    "inputs": [
       {
-        "internalType": "uint256",
+        "internalType": "address",
         "name": "",
-        "type": "uint256"
+        "type": "address"
       }
     ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "maxMintShares",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "maxDepositAssets",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "BUFFER_DENOMINATOR",
+    "name": "withdrawRequests",
     "outputs": [
       {
         "internalType": "uint256",

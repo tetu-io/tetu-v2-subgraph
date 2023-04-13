@@ -22,7 +22,7 @@ import {
   RevisionIncreased,
   Transfer,
   Upgraded,
-  VaultAbi,
+  VaultAbi, WithdrawRequestBlocks,
 } from "./types/templates/VaultTemplate/VaultAbi";
 import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
 import {calculateApr, formatUnits, tryGetUsdPrice} from "./helpers/common-helper";
@@ -164,6 +164,15 @@ export function handleBufferChanged(event: BufferChanged): void {
   }
   const vaultCtr = VaultAbi.bind(event.address)
   vault.buffer = event.params.newValue.toBigDecimal().times(BigDecimal.fromString('100')).div(vaultCtr.BUFFER_DENOMINATOR().toBigDecimal());
+  vault.save();
+}
+
+export function handleWithdrawRequestBlocks(event: WithdrawRequestBlocks): void {
+  const vault = VaultEntity.load(event.address.toHexString());
+  if (!vault) {
+    return;
+  }
+  vault.withdrawRequestBlocks = event.params.blocks.toI32();
   vault.save();
 }
 
