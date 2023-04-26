@@ -20,7 +20,8 @@ import {
   UserGauge,
   UserGaugeReward,
   UserGaugeRewardHistory,
-  VaultEntity, VeNFTEntity
+  VaultEntity,
+  VeNFTEntity
 } from "./types/schema";
 import {Address, BigDecimal, BigInt, ByteArray, crypto} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/templates/MultiGaugeTemplate/ProxyAbi";
@@ -250,20 +251,58 @@ function updateAll(
     user.save();
   }
 
-  const rewardTokensLength = gaugeCtr.rewardTokensLength(Address.fromString(vaultAdr)).toI32()
+  const rewardTokensLength = gaugeCtr.rewardTokensLength(Address.fromString(vaultAdr)).toI32();
+  let isDefaultTokenUpdated = false;
   for (let i = 0; i < rewardTokensLength; i++) {
     const rewardAdr = gaugeCtr.rewardTokens(Address.fromString(vaultAdr), BigInt.fromI32(i));
-    const reward = getOrCreateReward(gaugeVault.id, rewardAdr.toHexString());
-    const rewardTokenCtr = VaultAbi.bind(rewardAdr);
-    const rewardTokenDecimals = BigInt.fromI32(rewardTokenCtr.decimals())
-    const rewardTokenPrice = _tryGetUsdPrice(liquidatorAdr, asset, rewardTokenDecimals);
-    updateRewardInfoAndSave(reward, gauge.id, gaugeVault.vault, gaugeVault.totalSupply, totalSupplyUSD, time, rewardTokenPrice, rewardTokenDecimals);
-    saveRewardHistory(reward, time, gaugeVault);
+    if (rewardAdr.equals(Address.fromString(gauge.defaultRewardToken))) {
+      isDefaultTokenUpdated = true;
+    }
+    updateRewardInfo(
+      gaugeAdr,
+      vaultAdr,
+      rewardAdr,
+      liquidatorAdr,
+      asset,
+      gaugeVault,
+      totalSupplyUSD,
+      time
+    );
   }
 
+  if(!isDefaultTokenUpdated) {
+    updateRewardInfo(
+      gaugeAdr,
+      vaultAdr,
+      Address.fromString(gauge.defaultRewardToken),
+      liquidatorAdr,
+      asset,
+      gaugeVault,
+      totalSupplyUSD,
+      time
+    );
+  }
 
   gauge.save();
   gaugeVault.save();
+}
+
+function updateRewardInfo(
+  gaugeAdr: string,
+  vaultAdr: string,
+  rewardAdr: Address,
+  liquidatorAdr: string,
+  asset: Address,
+  gaugeVault: GaugeVaultEntity,
+  totalSupplyUSD: BigDecimal,
+  time: BigInt
+): void {
+  const reward = getOrCreateReward(gaugeVault.id, rewardAdr.toHexString());
+  const rewardTokenCtr = VaultAbi.bind(rewardAdr);
+  const rewardTokenDecimals = BigInt.fromI32(rewardTokenCtr.decimals())
+  const rewardTokenPrice = _tryGetUsdPrice(liquidatorAdr, asset, rewardTokenDecimals);
+  updateRewardInfoAndSave(reward, gaugeAdr, gaugeVault.vault, gaugeVault.totalSupply, totalSupplyUSD, time, rewardTokenPrice, rewardTokenDecimals);
+  saveRewardHistory(reward, time, gaugeVault);
 }
 
 function getOrCreateGaugeVault(vaultAdr: string, gaugeAdr: string): GaugeVaultEntity {
