@@ -129,6 +129,7 @@ export function handleLossCovered(event: LossCovered): void {
   }
 
   insurance.balance = insurance.balance.minus(formatUnits(event.params.amount, BigInt.fromI32(vault.decimals)));
+  insurance.balanceUsd = insurance.balance.times(vault.assetPrice);
   insurance.covered = insurance.covered.plus(formatUnits(event.params.amount, BigInt.fromI32(vault.decimals)));
   insurance.save();
 }
