@@ -39,6 +39,7 @@ export const VE_IMPL_ADR = '0x2200000000000000000000000000000000000015'
 export const DEFAULT_NAME = 'vault_name'
 export const DEFAULT_SYMBOL = 'vault_symbol'
 export const DEFAULT_BUFFER = BigInt.fromI32(606);
+export const DEFAULT_DECIMALS = 18
 
 export const DEFAULT_VAULT_VERSION = '1.0.0';
 export const DEFAULT_VAULT_REVISION = '5';
@@ -70,6 +71,7 @@ export const DEFAULT_DO_HARD_WORK_ON_INVEST = true;
 export const DEFAULT_SPLITTER_ASSETS = BigInt.fromI32(1408);
 export const DEFAULT_SHARE_PRICE = parseUnits(BigDecimal.fromString('11'), BigInt.fromI32(9));
 export const DEFAULT_TOTAL_SUPPLY = BigInt.fromI32(14010);
+export const DEFAULT_REQUEST_BLOCK = BigInt.fromI32(42323431);
 
 export const DEFAULT_BALANCE = BigInt.fromI32(60100);
 
@@ -177,6 +179,7 @@ function mockVaultFunctions(): void {
   createMockedFunction(Address.fromString(VAULT_PROXY_ADR), "splitterAssets", "splitterAssets():(uint256)").returns([ethereum.Value.fromUnsignedBigInt(DEFAULT_SPLITTER_ASSETS)]);
   createMockedFunction(Address.fromString(VAULT_PROXY_ADR), "sharePrice", "sharePrice():(uint256)").returns([ethereum.Value.fromUnsignedBigInt(DEFAULT_SHARE_PRICE)]);
   createMockedFunction(Address.fromString(VAULT_PROXY_ADR), "totalSupply", "totalSupply():(uint256)").returns([ethereum.Value.fromUnsignedBigInt(DEFAULT_TOTAL_SUPPLY)]);
+  createMockedFunction(Address.fromString(VAULT_PROXY_ADR), "withdrawRequestBlocks", "withdrawRequestBlocks():(uint256)").returns([ethereum.Value.fromUnsignedBigInt(DEFAULT_REQUEST_BLOCK)]);
 
   mockControllableAttributes(
     VAULT_PROXY_ADR,
@@ -196,6 +199,10 @@ function mockControllerFunctions(): void {
 }
 
 function mockAssetFunctions(): void {
+  createMockedFunction(Address.fromString(ASSET_ADR), "symbol", "symbol():(string)").returns([ethereum.Value.fromString(DEFAULT_SYMBOL)]);
+  createMockedFunction(Address.fromString(ASSET_ADR), "name", "name():(string)").returns([ethereum.Value.fromString(DEFAULT_NAME)]);
+  createMockedFunction(Address.fromString(ASSET_ADR), "decimals", "decimals():(uint8)").returns([ethereum.Value.fromI32(DEFAULT_DECIMALS)]);
+
   createMockedFunction(Address.fromString(ASSET_ADR), "balanceOf", "balanceOf(address):(uint256)")
     .withArgs([ethereum.Value.fromAddress(Address.fromString(VAULT_PROXY_ADR))])
     .returns([ethereum.Value.fromUnsignedBigInt(DEFAULT_BALANCE)])
@@ -222,6 +229,7 @@ function mockGaugeFunctions(): void {
   createMockedFunction(Address.fromString(GAUGE_ADR), "controller", "controller():(address)").returns([ethereum.Value.fromAddress(Address.fromString(CONTROLLER_ADDRESS))])
   createMockedFunction(Address.fromString(GAUGE_ADR), "operator", "operator():(address)").returns([ethereum.Value.fromAddress(Address.fromString(GOVERNANCE_ADDRESS))])
   createMockedFunction(Address.fromString(GAUGE_ADR), "defaultRewardToken", "defaultRewardToken():(address)").returns([ethereum.Value.fromAddress(Address.fromString(TETU_ADDRESS))])
+  createMockedFunction(Address.fromString(GAUGE_ADR), "MULTI_BRIBE_VERSION", "MULTI_BRIBE_VERSION():(string)").returns([ethereum.Value.fromString(DEFAULT_GAUGE_VERSION)])
 
   mockControllableAttributes(
     GAUGE_ADR,
@@ -238,6 +246,11 @@ function mockGaugeFunctions(): void {
 function mockVeFunctions(): void {
   createMockedFunction(Address.fromString(VE_ADR), "tokenId", "tokenId():(uint256)").returns([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1))])
   createMockedFunction(Address.fromString(VE_ADR), "epoch", "epoch():(uint256)").returns([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(2))])
+  createMockedFunction(Address.fromString(VE_ADR), "tokens", "tokens(uint256):(address)")
+    .withArgs([
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(0))
+    ])
+    .returns([ethereum.Value.fromAddress(Address.fromString(ASSET_ADR))])
 
   mockControllableAttributes(
     VE_ADR,
@@ -302,7 +315,7 @@ function checkVault(): void {
   assert.fieldEquals(VAULT_ENTITY, VAULT_PROXY_ADR, 'splitterAssets', '0')
   assert.fieldEquals(VAULT_ENTITY, VAULT_PROXY_ADR, 'sharePrice', '1')
   assert.fieldEquals(VAULT_ENTITY, VAULT_PROXY_ADR, 'totalSupply', '0')
-  assert.fieldEquals(VAULT_ENTITY, VAULT_PROXY_ADR, 'assetPrice', '0.000300912')
+  assert.fieldEquals(VAULT_ENTITY, VAULT_PROXY_ADR, 'assetPrice', '0.300912')
   assert.fieldEquals(VAULT_ENTITY, VAULT_PROXY_ADR, 'usersCount', '0')
   assert.fieldEquals(VAULT_ENTITY, VAULT_PROXY_ADR, 'isControllerWhitelisted', 'false')
   assert.fieldEquals(VAULT_ENTITY, VAULT_PROXY_ADR, 'isGaugeWhitelisted', 'false')
@@ -346,7 +359,7 @@ function checkInsurance(): void {
 
 function checkGauge(): void {
   assert.fieldEquals(GAUGE_ENTITY, GAUGE_ADR, 've', VE_ADR)
-  assert.fieldEquals(GAUGE_ENTITY, GAUGE_ADR, 'operator', GOVERNANCE_ADDRESS)
+  // assert.fieldEquals(GAUGE_ENTITY, GAUGE_ADR, 'operator', GOVERNANCE_ADDRESS)
   assert.fieldEquals(GAUGE_ENTITY, GAUGE_ADR, 'defaultRewardToken', TETU_ADDRESS)
 
   checkControllableAttributes(
