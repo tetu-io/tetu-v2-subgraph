@@ -47,7 +47,7 @@ export function handleClaimed(event: Claimed): void {
   const rewardPrice = _tryGetUsdPrice(controller.liquidator, veDist.rewardToken, decimals);
   const claimedUSD = claimed.times(rewardPrice);
   veNFT.veDistRewardsTotal = veNFT.veDistRewardsTotal.plus(claimed);
-  veNFT.veDistLastApr = calculateApr(BigInt.fromI32(veNFT.veDistLastClaim), event.block.timestamp, claimedUSD, veNFT.lockedAmountUSD);
+  veNFT.veDistLastApr = calculateApr(event.block.timestamp, BigInt.fromI32(veNFT.veDistLastClaim), claimedUSD, veNFT.lockedAmountUSD);
   veNFT.veDistLastClaim = event.block.timestamp.toI32();
   saveRewardHistory(veNFT, event.block.timestamp, claimed, claimedUSD);
   veNFT.save();

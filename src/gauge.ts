@@ -365,7 +365,6 @@ function updateRewardInfoAndSave(
   reward.left = formatUnits(gaugeCtr.left(Address.fromString(vaultAdr), Address.fromString(reward.rewardToken)), rewardTokenDecimals);
   reward.leftUSD = reward.left.times(rewardTokenPrice);
 
-  // TODO now logic periodFinish - timestamp now
   reward.apr = calculateApr(now, BigInt.fromI32(reward.periodFinish), reward.leftUSD, totalSupplyUSD);
   reward.rewardTokenPrice = rewardTokenPrice;
 

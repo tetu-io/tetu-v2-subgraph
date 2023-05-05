@@ -175,7 +175,7 @@ function updateAll(
       const rewardTokenPrice = _tryGetUsdPrice(controller.liquidator, rewardToken, rewardDecimals);
       const earnedUsd = _earned.times(rewardTokenPrice);
 
-      veBribeReward.apr = calculateApr(BigInt.fromI32(veBribeReward.lastEarnedUpdate), time, earnedUsd, veBribe.stakedBalanceUSD)
+      veBribeReward.apr = calculateApr(time, BigInt.fromI32(veBribeReward.lastEarnedUpdate), earnedUsd, veBribe.stakedBalanceUSD)
 
       veBribeReward.earnedTotal = veBribeReward.earnedTotal.plus(_earned);
       veBribeReward.earnedTotalUSD = veBribeReward.earnedTotalUSD.plus(earnedUsd);
@@ -264,7 +264,7 @@ function updateRewardInfoAndSave(
   reward.left = formatUnits(bribeCtr.left(Address.fromString(vaultAdr), Address.fromString(reward.rewardToken)), rewardDecimals);
   reward.leftUSD = reward.left.times(rewardTokenPrice);
 
-  reward.apr = calculateApr(BigInt.fromI32(reward.periodFinish), now, reward.leftUSD, totalSupplyUSD);
+  reward.apr = calculateApr(now, BigInt.fromI32(reward.periodFinish), reward.leftUSD, totalSupplyUSD);
   reward.rewardTokenPrice = rewardTokenPrice;
 
   reward.save();
