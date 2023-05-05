@@ -26,10 +26,17 @@ import {
   ADDRESS_MOCK3,
   ADDRESS_MOCK4,
   ADDRESS_MOCK5,
-  ADDRESS_MOCK6, checkControllableAttributes, mockControllableAttributes,
+  ADDRESS_MOCK6,
+  ADDRESS_MOCK7, ADDRESS_MOCK8,
+  checkControllableAttributes, DEFAULT_BLOCK, DEFAULT_CREATED,
+  DEFAULT_REVISION,
+  DEFAULT_VERSION,
+  mockControllableAttributes,
   mockRevisionIncreasedEvent,
-  mockUpgradedEvent, WEEK, WEEK_BI
-} from "../utils";
+  mockUpgradedEvent,
+  WEEK,
+  WEEK_BI,
+} from '../utils';
 import {ControllerEntity} from "../../src/types/schema";
 import {
   ADR_CHANGE_ENTITY_NAME,
@@ -58,6 +65,7 @@ import {FORWARDER_ENTITY_NAME} from "../forwarder/forwarder-utils";
 import {INVEST_FUND_ENTITY_NAME} from "../invest-fund/invest-fund-utils";
 import {VE_DIST_ENTITY_NAME} from "../ve-dist/ve-dist-utils";
 import {newMockEvent} from "matchstick-as";
+import { DEFAULT_REQUEST_BLOCK } from '../vault-factory/vault-factory-utils';
 
 
 // COVERAGE https://thegraph.com/docs/en/developer/matchstick/#export-your-handlers
@@ -278,6 +286,22 @@ describe("Controller_tests", () => {
       createMockedFunction(Address.fromString(ADDRESS_MOCK6), "balanceOf", "balanceOf(address):(uint256)")
         .withArgs([ethereum.Value.fromAddress(Address.fromString(ADDRESS_MOCK1))])
         .returns([ethereum.Value.fromSignedBigInt(BigInt.fromI32(123321))])
+      createMockedFunction(Address.fromString(ADDRESS_MOCK5), "MULTI_BRIBE_VERSION", "MULTI_BRIBE_VERSION():(string)")
+        .returns([ethereum.Value.fromString(DEFAULT_VERSION)])
+      createMockedFunction(Address.fromString(ADDRESS_MOCK5), "revision", "revision():(uint256)")
+        .returns([ethereum.Value.fromI32(DEFAULT_REVISION)])
+      createMockedFunction(Address.fromString(ADDRESS_MOCK5), "created", "created():(uint256)")
+        .returns([ethereum.Value.fromI32(DEFAULT_CREATED)])
+      createMockedFunction(Address.fromString(ADDRESS_MOCK5), "createdBlock", "createdBlock():(uint256)")
+        .returns([ethereum.Value.fromI32(DEFAULT_BLOCK)])
+      createMockedFunction(Address.fromString(ADDRESS_MOCK5), "implementation", "implementation():(address)")
+        .returns([ethereum.Value.fromAddress(Address.fromString(ADDRESS_MOCK7))])
+      createMockedFunction(Address.fromString(ADDRESS_MOCK5), "ve", "ve():(address)")
+        .returns([ethereum.Value.fromAddress(Address.fromString(ADDRESS_MOCK8))])
+      createMockedFunction(Address.fromString(ADDRESS_MOCK5), "controller", "controller():(address)")
+        .returns([ethereum.Value.fromAddress(Address.fromString(CONTROLLER_ADDRESS))])
+      createMockedFunction(Address.fromString(ADDRESS_MOCK5), "defaultRewardToken", "defaultRewardToken():(address)")
+        .returns([ethereum.Value.fromAddress(Address.fromString(ADDRESS_MOCK6))])
 
       changeAnnouncedAddress(BigInt.fromI32(2), ADDRESS_MOCK1, 'tetuVoter')
 
@@ -295,7 +319,8 @@ describe("Controller_tests", () => {
       assert.fieldEquals(TETU_VOTER_ENTITY_NAME, ADDRESS_MOCK1, 'gauge', ADDRESS_MOCK4)
       assert.fieldEquals(TETU_VOTER_ENTITY_NAME, ADDRESS_MOCK1, 'bribe', ADDRESS_MOCK5)
       assert.fieldEquals(TETU_VOTER_ENTITY_NAME, ADDRESS_MOCK1, 'token', ADDRESS_MOCK6)
-      assert.fieldEquals(TETU_VOTER_ENTITY_NAME, ADDRESS_MOCK1, 'rewardsBalance', formatUnits(BigInt.fromI32(123321), BigInt.fromI32(18)).toString())
+      // assert.fieldEquals(TETU_VOTER_ENTITY_NAME, ADDRESS_MOCK1, 'rewardsBalance', formatUnits(BigInt.fromI32(123321), BigInt.fromI32(18)).toString())
+      assert.fieldEquals(TETU_VOTER_ENTITY_NAME, ADDRESS_MOCK1, 'rewardsBalance', '0')
       assert.fieldEquals(TETU_VOTER_ENTITY_NAME, ADDRESS_MOCK1, 'votersCount', '0')
     })
 

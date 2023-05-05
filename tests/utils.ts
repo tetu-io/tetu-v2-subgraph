@@ -17,7 +17,10 @@ export const ADDRESS_MOCK9 = '0x0000000000000000000000000000000000000009'
 
 export const WEEK = 60 * 60 * 24 * 7;
 export const WEEK_BI = BigInt.fromI32(WEEK);
-
+export const DEFAULT_VERSION = '1.0.1';
+export const DEFAULT_REVISION = 100;
+export const DEFAULT_CREATED = 68149212;
+export const DEFAULT_BLOCK = 42323431;
 
 export function checkRevision(
   entity: string,
