@@ -175,7 +175,7 @@ function updateAll(
       const rewardTokenPrice = _tryGetUsdPrice(controller.liquidator, rewardToken, rewardDecimals);
       const earnedUsd = _earned.times(rewardTokenPrice);
 
-      veBribeReward.apr = calculateApr(time, BigInt.fromI32(veBribeReward.lastEarnedUpdate), earnedUsd, veBribe.stakedBalanceUSD)
+      veBribeReward.apr = calculateApr(BigInt.fromI32(veBribeReward.lastEarnedUpdate), time, earnedUsd, veBribe.stakedBalanceUSD)
 
       veBribeReward.earnedTotal = veBribeReward.earnedTotal.plus(_earned);
       veBribeReward.earnedTotalUSD = veBribeReward.earnedTotalUSD.plus(earnedUsd);
