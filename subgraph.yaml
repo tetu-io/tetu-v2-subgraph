@@ -142,8 +142,8 @@ templates:
       eventHandlers:
         - event: RevisionIncreased(uint256,address)
           handler: handleRevisionIncreased
-        - event: VoteReset(uint256,uint256,address,uint256,uint256,uint256)
-          handler: handleVoteReset
+#        - event: VoteReset(uint256,uint256,address,uint256,uint256,uint256)
+#          handler: handleVoteReset
         - event: Voted(uint256,uint256,uint256,address,uint256,uint256,uint256,uint256,uint256)
           handler: handleVoted
         - event: Upgraded(indexed address)
