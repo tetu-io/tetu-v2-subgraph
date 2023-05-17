@@ -63,6 +63,13 @@ export function handleClaimed(event: Claimed): void {
 export function handleRevisionIncreased(event: RevisionIncreased): void {
   const veDist = getVeDist(event.address.toHexString());
   veDist.revision = event.params.value.toI32();
+
+  const ctr = VeDistributorAbi.bind(event.address);
+  const v = ctr.try_VE_DIST_VERSION();
+  if (!v.reverted) {
+    veDist.version = v.value;
+  }
+
   veDist.save();
 }
 

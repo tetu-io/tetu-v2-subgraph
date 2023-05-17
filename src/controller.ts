@@ -83,6 +83,13 @@ export function handleRevisionIncreased(event: RevisionIncreased): void {
     return;
   }
   controller.revision = event.params.value.toI32();
+
+  const ctr = ControllerAbi.bind(event.address);
+  const v = ctr.try_CONTROLLER_VERSION();
+  if (!v.reverted) {
+    controller.version = v.value;
+  }
+
   controller.save()
 }
 

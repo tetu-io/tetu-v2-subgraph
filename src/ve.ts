@@ -3,12 +3,13 @@
 import {
   Deposit,
   Merged,
-  TransferWhitelisted,
   RevisionIncreased,
+  Split,
   Transfer,
+  TransferWhitelisted,
   Upgraded,
   VeTetuAbi,
-  Withdraw, Split
+  Withdraw
 } from "./types/templates/VeTetuTemplate/VeTetuAbi";
 import {
   ControllerEntity,
@@ -151,6 +152,13 @@ export function handleTransferWhitelisted(event: TransferWhitelisted): void {
 export function handleRevisionIncreased(event: RevisionIncreased): void {
   const ve = _getOrCreateVe(event.address.toHexString());
   ve.revision = event.params.value.toI32();
+
+  const ctr = VeTetuAbi.bind(event.address);
+  const v = ctr.try_VE_VERSION();
+  if (!v.reverted) {
+    ve.version = v.value;
+  }
+
   ve.save();
 }
 

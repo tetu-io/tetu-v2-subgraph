@@ -16,7 +16,8 @@ import {
   TetuVoterRewardHistory,
   TetuVoterUser,
   TetuVoterUserVote,
-  TetuVoterUserVoteHistory, VaultEntity,
+  TetuVoterUserVoteHistory,
+  VaultEntity,
   VaultVoteEntity
 } from "./types/schema";
 import {TetuVoterAbi} from "./types/ControllerData/TetuVoterAbi";
@@ -148,6 +149,13 @@ export function handleDistributeReward(event: DistributeReward): void {
 export function handleRevisionIncreased(event: RevisionIncreased): void {
   const voter = _getOrCreateTetuVoter(event.address.toHexString());
   voter.revision = event.params.value.toI32();
+
+  const ctr = TetuVoterAbi.bind(event.address);
+  const v = ctr.try_VOTER_VERSION();
+  if (!v.reverted) {
+    voter.version = v.value;
+  }
+
   voter.save();
 }
 

@@ -17,11 +17,9 @@ import {
   Upgraded,
   WithdrawFromStrategy
 } from "./types/templates/StrategySplitterTemplate/StrategySplitterAbi";
-import {SplitterEntity, StrategyEntity, StrategyHistory, TokenEntity} from "./types/schema";
-import {StrategyTemplate} from './types/templates'
+import {SplitterEntity, TokenEntity} from "./types/schema";
 import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {StrategyAbi} from "./types/templates/StrategyTemplate/StrategyAbi";
-import {ProxyAbi} from "./types/templates/StrategySplitterTemplate/ProxyAbi";
 import {ADDRESS_ZERO, HUNDRED_BD, RATIO_DENOMINATOR, ZERO_BD} from "./constants";
 import {VaultAbi} from "./types/templates/StrategySplitterTemplate/VaultAbi";
 import {formatUnits} from "./helpers/common-helper";
@@ -134,6 +132,13 @@ export function handleUpgraded(event: Upgraded): void {
 export function handleRevisionIncreased(event: RevisionIncreased): void {
   const splitter = SplitterEntity.load(event.address.toHexString()) as SplitterEntity;
   splitter.revision = event.params.value.toI32();
+
+  const ctr = StrategySplitterAbi.bind(event.address);
+  const v = ctr.try_SPLITTER_VERSION();
+  if (!v.reverted) {
+    splitter.version = v.value;
+  }
+
   splitter.save();
 }
 

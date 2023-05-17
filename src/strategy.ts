@@ -4,12 +4,12 @@ import {
   CompoundRatioChanged,
   EmergencyExit,
   RevisionIncreased,
-  StrategyAbi, StrategySpecificNameChanged,
+  StrategyAbi,
+  StrategySpecificNameChanged,
   Upgraded,
   WithdrawAllToSplitter,
   WithdrawToSplitter
 } from "./types/templates/StrategyTemplate/StrategyAbi";
-import {StrategyEntity} from "./types/schema";
 import {Address, BigDecimal} from "@graphprotocol/graph-ts";
 import {StrategySplitterAbi} from "./types/templates/StrategySplitterTemplate/StrategySplitterAbi";
 import {getOrCreateStrategy, updateStrategyData} from "./helpers/strategy-helper";
@@ -39,6 +39,13 @@ export function handleCompoundRatioChanged(event: CompoundRatioChanged): void {
 export function handleRevisionIncreased(event: RevisionIncreased): void {
   const strategy = getOrCreateStrategy(event.address.toHexString());
   strategy.revision = event.params.value.toI32();
+
+  const strategyCtr = StrategyAbi.bind(event.address);
+  const v = strategyCtr.try_STRATEGY_VERSION();
+  if (!v.reverted) {
+    strategy.version = v.value;
+  }
+
   strategy.save()
 }
 
@@ -65,6 +72,7 @@ export function handleWithdrawAllToSplitter(
 export function handleWithdrawToSplitter(event: WithdrawToSplitter): void {
   _updateStrategyData(event.address.toHexString(), event.block.timestamp.toI32());
 }
+
 //
 // export function handleSentToForwarder(event: SentToForwarder): void {
 //   let info = ForwarderTokenInfo.load(event.params.token.toHexString());

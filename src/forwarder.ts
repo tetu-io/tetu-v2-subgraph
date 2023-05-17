@@ -16,9 +16,7 @@ import {
   InvestFundBalanceHistory,
   InvestFundEntity,
   TetuVoterEntity,
-  TetuVoterRewardHistory,
-  VeDistBalance,
-  VeDistEntity
+  TetuVoterRewardHistory
 } from "./types/schema";
 import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {ForwarderAbi} from "./types/ControllerData/ForwarderAbi";
@@ -56,6 +54,13 @@ export function handleInvestFundRatioChanged(event: InvestFundRatioChanged): voi
 export function handleRevisionIncreased(event: RevisionIncreased): void {
   const forwarder = ForwarderEntity.load(event.address.toHexString()) as ForwarderEntity;
   forwarder.revision = event.params.value.toI32();
+
+  const ctr = ForwarderAbi.bind(event.address);
+  const v = ctr.try_FORWARDER_VERSION();
+  if (!v.reverted) {
+    forwarder.version = v.value;
+  }
+
   forwarder.save();
 }
 

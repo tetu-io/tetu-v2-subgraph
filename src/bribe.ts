@@ -116,6 +116,13 @@ export function handleNotifyReward(event: NotifyReward): void {
 export function handleRevisionIncreased(event: RevisionIncreased): void {
   const bribe = _getOrCreateBribe(event.address.toHexString());
   bribe.revision = event.params.value.toI32();
+
+  const ctr = MultiBribeAbi.bind(event.address);
+  const v = ctr.try_MULTI_BRIBE_VERSION();
+  if (!v.reverted) {
+    bribe.version = v.value;
+  }
+
   bribe.save();
 }
 

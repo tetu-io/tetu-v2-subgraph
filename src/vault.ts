@@ -33,6 +33,7 @@ import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 import {PriceCalculatorAbi as PriceCalculatorAbiCommon} from "./common/PriceCalculatorAbi";
 import {PriceCalculatorAbi} from "./types/templates/VaultTemplate/PriceCalculatorAbi";
+import {StrategyAbi} from "./types/templates/StrategyTemplate/StrategyAbi";
 
 // *****************************************
 //            MAIN LOGIC
@@ -155,6 +156,13 @@ export function handleRevisionIncreased(event: RevisionIncreased): void {
     return;
   }
   vault.revision = event.params.value.toI32();
+
+  const ctr = VaultAbi.bind(event.address);
+  const v = ctr.try_VAULT_VERSION();
+  if (!v.reverted) {
+    vault.version = v.value;
+  }
+
   vault.save();
 }
 

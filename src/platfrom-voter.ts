@@ -1,6 +1,7 @@
 // noinspection JSUnusedGlobalSymbols
 
 import {
+  PlatformVoterAbi,
   RevisionIncreased,
   Upgraded,
   Voted,
@@ -55,7 +56,7 @@ export function handleVoted(event: Voted): void {
   vote.totalAttributeWeight = event.params.totalAttributeWeight.toBigDecimal()
   vote.totalAttributeValue = event.params.totalAttributeValue.toBigDecimal()
   vote.newValue = formatUnits(event.params.newValue, BigInt.fromI32(3))
-  if(event.params.veWeightedValue.gt(ZERO_BI)) {
+  if (event.params.veWeightedValue.gt(ZERO_BI)) {
     vote.percent = vote.totalAttributeValue.times(BigDecimal.fromString('100')).div(event.params.veWeightedValue.toBigDecimal())
   } else {
     vote.percent = ZERO_BD;
@@ -86,6 +87,13 @@ export function handleVoteRemoved(event: VoteRemoved): void {
 export function handleRevisionIncreased(event: RevisionIncreased): void {
   const voter = getPlatformVoterEntity(event.address.toHexString())
   voter.revision = event.params.value.toI32();
+
+  const ctr = PlatformVoterAbi.bind(event.address);
+  const v = ctr.try_PLATFORM_VOTER_VERSION();
+  if (!v.reverted) {
+    voter.version = v.value;
+  }
+
   voter.save();
 }
 

@@ -169,6 +169,13 @@ export function handleAddStakingToken(event: AddStakingToken): void {
 export function handleRevisionIncreased(event: RevisionIncreased): void {
   const gauge = _getOrCreateGauge(event.address.toHexString());
   gauge.revision = event.params.value.toI32();
+
+  const ctr = MultiGaugeAbi.bind(event.address);
+  const v = ctr.try_MULTI_GAUGE_VERSION();
+  if (!v.reverted) {
+    gauge.version = v.value;
+  }
+
   gauge.save();
 }
 
@@ -270,7 +277,7 @@ function updateAll(
     );
   }
 
-  if(!isDefaultTokenUpdated) {
+  if (!isDefaultTokenUpdated) {
     updateRewardInfo(
       gaugeAdr,
       vaultAdr,
