@@ -75,10 +75,11 @@ export function handleBribeWithdraw(event: BribeWithdraw): void {
 
 
 export function handleClaimRewards(event: ClaimRewards): void {
+
   updateAll(
     event.address.toHexString(),
     event.params.token.toHexString(),
-    BigInt.fromI32(event.params.account.toI32()),
+    BigInt.fromByteArray(event.params.account),
     event.block.timestamp,
     BigInt.fromI32(0),
     event.params.reward.toHexString(),
