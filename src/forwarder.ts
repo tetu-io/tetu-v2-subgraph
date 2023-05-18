@@ -20,7 +20,7 @@ import {
 } from "./types/schema";
 import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {ForwarderAbi} from "./types/ControllerData/ForwarderAbi";
-import {formatUnits, tryGetUsdPrice} from "./helpers/common-helper";
+import {formatUnits, getOrCreateToken, tryGetUsdPrice} from "./helpers/common-helper";
 import {VaultAbi} from "./types/templates/ForwarderTemplate/VaultAbi";
 import {ControllerAbi} from "./types/templates/ForwarderTemplate/ControllerAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
@@ -100,6 +100,9 @@ export function handleDistributed(event: Distributed): void {
   const tokenDecimals = BigInt.fromI32(tokenCtr.decimals());
   const liquidatorAdr = controllerCtr.liquidator().toHexString();
   const tetuPrice = _tryGetUsdPrice(liquidatorAdr, tetuAdr.toHexString(), BigInt.fromI32(18))
+
+  // create income token entity
+  getOrCreateToken(VaultAbiCommon.bind(event.params.incomeToken));
 
   distribution.forwarder = event.address.toHexString();
   distribution.time = event.block.timestamp.toI32();
