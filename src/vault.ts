@@ -5,7 +5,8 @@ import {
   InsuranceEntity,
   UserCompoundProfit,
   UserEntity,
-  UserVault, UserVaultAction,
+  UserVault,
+  UserVaultAction,
   VaultApproveEntity,
   VaultEntity,
   VaultHistory
@@ -22,7 +23,8 @@ import {
   RevisionIncreased,
   Transfer,
   Upgraded,
-  VaultAbi, WithdrawRequestBlocks,
+  VaultAbi,
+  WithdrawRequestBlocks,
 } from "./types/templates/VaultTemplate/VaultAbi";
 import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
 import {calculateApr, formatUnits, tryGetUsdPrice} from "./helpers/common-helper";
@@ -33,7 +35,6 @@ import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
 import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 import {PriceCalculatorAbi as PriceCalculatorAbiCommon} from "./common/PriceCalculatorAbi";
 import {PriceCalculatorAbi} from "./types/templates/VaultTemplate/PriceCalculatorAbi";
-import {StrategyAbi} from "./types/templates/StrategyTemplate/StrategyAbi";
 
 // *****************************************
 //            MAIN LOGIC
@@ -112,7 +113,11 @@ export function handleFeeTransfer(event: FeeTransfer): void {
     return;
   }
 
-  insurance.balance = insurance.balance.plus(formatUnits(event.params.amount, BigInt.fromI32(vault.decimals)));
+  const balRes = VaultAbi.bind(Address.fromString(vault.asset)).try_balanceOf(Address.fromString(vault.insurance));
+  if (!balRes.reverted) {
+    insurance.balance = formatUnits(balRes.value, BigInt.fromI32(vault.decimals))
+  }
+
   insurance.balanceUsd = insurance.balance.times(vault.assetPrice);
   saveInsuranceBalance(insurance, event.block.timestamp);
   insurance.save();
@@ -129,9 +134,13 @@ export function handleLossCovered(event: LossCovered): void {
     return;
   }
 
-  insurance.balance = insurance.balance.minus(formatUnits(event.params.amount, BigInt.fromI32(vault.decimals)));
+  const balRes = VaultAbi.bind(Address.fromString(vault.asset)).try_balanceOf(Address.fromString(vault.insurance));
+  if (!balRes.reverted) {
+    insurance.balance = formatUnits(balRes.value, BigInt.fromI32(vault.decimals))
+  }
   insurance.balanceUsd = insurance.balance.times(vault.assetPrice);
   insurance.covered = insurance.covered.plus(formatUnits(event.params.amount, BigInt.fromI32(vault.decimals)));
+  saveInsuranceBalance(insurance, event.block.timestamp);
   insurance.save();
 }
 
