@@ -81,8 +81,8 @@ export function handleManualAprChanged(event: ManualAprChanged): void {
   const strategy = getOrCreateStrategy(event.params.strategy.toHexString());
   const splitterCtr = StrategySplitterAbi.bind(event.address);
 
-  strategy.apr = event.params.newApr.toBigDecimal();
-  strategy.averageApr = splitterCtr.averageApr(event.params.strategy).toBigDecimal()
+  strategy.apr = event.params.newApr.toBigDecimal().times(BigDecimal.fromString('100')).div(RATIO_DENOMINATOR.toBigDecimal());
+  strategy.averageApr = splitterCtr.averageApr(event.params.strategy).toBigDecimal().times(BigDecimal.fromString('100')).div(RATIO_DENOMINATOR.toBigDecimal());
 
   saveStrategyHistory(strategy, event.block.timestamp.toI32());
   strategy.save();
