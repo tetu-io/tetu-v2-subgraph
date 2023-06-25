@@ -134,6 +134,8 @@ type VaultEntity @entity {
     totalSupply: BigDecimal!
     assetPrice: BigDecimal!
     usersCount: Int!
+    lastHistoryUpdate: Int!
+    sharePriceAfterHardWork: BigDecimal!
 
     history: [VaultHistory!]! @derivedFrom(field: "vault")
 
@@ -162,6 +164,10 @@ type VaultHistory @entity(immutable: true) {
     totalSupply: BigDecimal!
     assetPrice: BigDecimal!
     usersCount: Int!
+    aprAutoCompound: BigDecimal
+    prevSharePrice: BigDecimal
+    prevTime: Int
+    tx: String
 }
 
 type UserVault @entity {
@@ -382,6 +388,7 @@ type GaugeVaultReward @entity {
     rewardToken: TokenEntity!
 
     apr: BigDecimal!
+    aprBoosted: BigDecimal!
     rewardRate: BigDecimal!
     left: BigDecimal!
     leftUSD: BigDecimal!
@@ -403,6 +410,7 @@ type GaugeVaultRewardHistory @entity(immutable: true) {
     stakingTokenPrice: BigDecimal!
     rewardTokenPrice: BigDecimal!
     apr: BigDecimal!
+    aprBoosted: BigDecimal!
     rewardRate: BigDecimal!
     periodFinish: Int!
 }

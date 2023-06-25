@@ -1,5 +1,5 @@
 import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from '@graphprotocol/graph-ts'
-import {DAY, getUSDC, ONE_BI, ZERO_BD, ZERO_BI} from "../constants";
+import { DAY, getUSDC, HUNDRED_BD, ONE_BI, YEAR, ZERO_BD, ZERO_BI } from '../constants';
 import {TokenEntity} from "../types/schema";
 import {VaultAbi} from "../common/VaultAbi";
 import {LiquidatorAbi} from "../common/LiquidatorAbi";
@@ -36,6 +36,17 @@ export function calculateApr(
     return ZERO_BD;
   }
   return profitUSD.div(supplyUSD).div(period.div(DAY)).times(BigDecimal.fromString('36500'));
+}
+
+export function calculateCompoundApr(
+  sharePriceDiff: BigDecimal,
+  prevSharePrice: BigDecimal,
+  timeDiff: BigDecimal
+): BigDecimal {
+  if (prevSharePrice.le(BigDecimal.zero()) || timeDiff.le(BigDecimal.zero())) {
+    return ZERO_BD;
+  }
+  return (sharePriceDiff.div(prevSharePrice).times(YEAR).times(HUNDRED_BD)).div(timeDiff)
 }
 
 export function tryGetUsdPrice(
