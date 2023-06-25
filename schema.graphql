@@ -167,7 +167,6 @@ type VaultHistory @entity(immutable: true) {
     aprAutoCompound: BigDecimal
     prevSharePrice: BigDecimal
     prevTime: Int
-    tx: String
 }
 
 type UserVault @entity {

@@ -189,7 +189,7 @@ export function handleHardWork(event: HardWork): void {
 
   // TRY TO UPDATE vault stats
 
-  const vault = updateVaultAttributes(splitter.vault, event.block.timestamp.toI32(), true, event.transaction);
+  const vault = updateVaultAttributes(splitter.vault, event.block.timestamp.toI32(), true);
   vault.save();
 }
 

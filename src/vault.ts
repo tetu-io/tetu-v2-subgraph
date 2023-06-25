@@ -44,8 +44,7 @@ export function handleTransfer(event: Transfer): void {
   const vault = updateVaultAttributes(
     event.address.toHexString(),
     event.block.timestamp.toI32(),
-    false,
-    event.transaction
+    false
   );
   if (!vault) {
     return;
@@ -341,7 +340,7 @@ function updateUser(
   }
 }
 
-export function updateVaultAttributes(address: string, time: i32, canUpdateApr: boolean, tx: ethereum.Transaction): VaultEntity {
+export function updateVaultAttributes(address: string, time: i32, canUpdateApr: boolean): VaultEntity {
   const vault = VaultEntity.load(address);
   if (!vault) {
     log.critical("Vault not found {}", [address]);
@@ -385,7 +384,6 @@ export function updateVaultAttributes(address: string, time: i32, canUpdateApr: 
   history.totalSupply = vault.totalSupply;
   history.assetPrice = vault.assetPrice;
   history.usersCount = vault.usersCount;
-  history.tx = tx.hash.toHex()
   if (canUpdateApr && ((vault.lastHistoryUpdate + DAY_INT) < time)) {
     vault.lastHistoryUpdate = time;
     vault.sharePriceAfterHardWork = vault.sharePrice
