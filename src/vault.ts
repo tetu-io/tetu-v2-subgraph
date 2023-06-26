@@ -26,9 +26,9 @@ import {
   VaultAbi,
   WithdrawRequestBlocks,
 } from "./types/templates/VaultTemplate/VaultAbi";
-import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from "@graphprotocol/graph-ts";
-import {calculateApr, formatUnits, tryGetUsdPrice} from "./helpers/common-helper";
-import {ADDRESS_ZERO, getPriceCalculator, ZERO_BD} from "./constants";
+import { Address, BigDecimal, BigInt, ByteArray, crypto, ethereum, log } from '@graphprotocol/graph-ts';
+import { calculateApr, calculateCompoundApr, formatUnits, tryGetUsdPrice } from './helpers/common-helper';
+import { ADDRESS_ZERO, DAY_INT, getPriceCalculator, ZERO_BD } from './constants';
 import {ControllerAbi} from "./types/templates/VaultTemplate/ControllerAbi";
 import {LiquidatorAbi} from "./types/templates/VaultTemplate/LiquidatorAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
@@ -43,7 +43,8 @@ import {PriceCalculatorAbi} from "./types/templates/VaultTemplate/PriceCalculato
 export function handleTransfer(event: Transfer): void {
   const vault = updateVaultAttributes(
     event.address.toHexString(),
-    event.block.timestamp.toI32()
+    event.block.timestamp.toI32(),
+    false
   );
   if (!vault) {
     return;
@@ -339,7 +340,7 @@ function updateUser(
   }
 }
 
-export function updateVaultAttributes(address: string, time: i32): VaultEntity {
+export function updateVaultAttributes(address: string, time: i32, canUpdateApr: boolean): VaultEntity {
   const vault = VaultEntity.load(address);
   if (!vault) {
     log.critical("Vault not found {}", [address]);
@@ -354,6 +355,9 @@ export function updateVaultAttributes(address: string, time: i32): VaultEntity {
 
   const decimals = BigInt.fromI32(vault.decimals);
   const totalAssets = formatUnits(vaultCtr.totalAssets(), decimals);
+  const prevSharePrice = vault.sharePriceAfterHardWork;
+  const prevTime = vault.lastHistoryUpdate;
+
 
   vault.totalAssets = totalAssets
   vault.splitterAssets = formatUnits(vaultCtr.splitterAssets(), decimals)
@@ -380,6 +384,23 @@ export function updateVaultAttributes(address: string, time: i32): VaultEntity {
   history.totalSupply = vault.totalSupply;
   history.assetPrice = vault.assetPrice;
   history.usersCount = vault.usersCount;
+  if (canUpdateApr && ((vault.lastHistoryUpdate + DAY_INT) < time)) {
+    vault.lastHistoryUpdate = time;
+    vault.sharePriceAfterHardWork = vault.sharePrice
+
+    let diffTime = 0;
+    if (prevTime != 0) {
+      diffTime = time - prevTime;
+    }
+    const diffSharePrice = vault.sharePrice.minus(prevSharePrice)
+    let apr = calculateCompoundApr(diffSharePrice, prevSharePrice, BigDecimal.fromString(diffTime.toString()))
+    if (apr.lt(BigDecimal.zero())) {
+      apr = BigDecimal.zero();
+    }
+    history.prevTime = prevTime
+    history.prevSharePrice = prevSharePrice
+    history.aprAutoCompound = apr
+  }
   history.save();
 
 

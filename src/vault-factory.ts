@@ -85,6 +85,8 @@ export function handleVaultDeployed(event: VaultDeployed): void {
   vault.sharePrice = BigDecimal.fromString('1');
   vault.totalSupply = ZERO_BD;
   vault.usersCount = 0;
+  vault.lastHistoryUpdate = 0;
+  vault.sharePriceAfterHardWork = ZERO_BD;
 
   const withdrawRequestBlocksResult = vaultCtr.try_withdrawRequestBlocks();
   if (!withdrawRequestBlocksResult.reverted) {

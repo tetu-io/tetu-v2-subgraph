@@ -25,8 +25,7 @@ import {
 } from "./types/schema";
 import {Address, BigDecimal, BigInt, ByteArray, crypto} from "@graphprotocol/graph-ts";
 import {ProxyAbi} from "./types/templates/MultiGaugeTemplate/ProxyAbi";
-import {calculateApr, formatUnits, tryGetUsdPrice} from "./helpers/common-helper";
-import {VaultAbi} from "./types/templates/MultiGaugeTemplate/VaultAbi";
+import { calculateApr, formatUnits, getOrCreateToken, tryGetUsdPrice } from './helpers/common-helper';
 import {ControllerAbi} from "./types/templates/MultiGaugeTemplate/ControllerAbi";
 import {LiquidatorAbi,} from "./types/templates/MultiGaugeTemplate/LiquidatorAbi";
 import {LiquidatorAbi as LiquidatorAbiCommon} from "./common/LiquidatorAbi";
@@ -38,6 +37,7 @@ import {MultiGaugeAbi as MultiGaugeAbiCommon} from "./common/MultiGaugeAbi";
 import {ProxyAbi as ProxyAbiCommon} from "./common/ProxyAbi";
 import {PriceCalculatorAbi as PriceCalculatorAbiCommon} from "./common/PriceCalculatorAbi";
 import {PriceCalculatorAbi} from "./types/templates/MultiGaugeTemplate/PriceCalculatorAbi";
+import {VaultAbi} from "./common/VaultAbi";
 
 // ***************************************************
 //                     DEPOSIT/WITHDRAW
@@ -218,7 +218,7 @@ function updateAll(
   // get asset price
   gaugeVault.assetPrice = _tryGetUsdPrice(liquidatorAdr, asset, assetDecimals);
   gaugeVault.stakingTokenPrice = gaugeVault.assetPrice.times(sharePrice)
-  const totalSupplyUSD = gaugeVault.totalSupply.times(gaugeVault.stakingTokenPrice);
+  const totalDerivedSupplyUSD = gaugeVault.totalDerivedSupply.times(gaugeVault.stakingTokenPrice);
 
   // update user info if possible
   if (Address.fromString(ADDRESS_ZERO).notEqual(Address.fromString(account))) {
@@ -272,7 +272,7 @@ function updateAll(
       liquidatorAdr,
       asset,
       gaugeVault,
-      totalSupplyUSD,
+      totalDerivedSupplyUSD,
       time
     );
   }
@@ -285,7 +285,7 @@ function updateAll(
       liquidatorAdr,
       asset,
       gaugeVault,
-      totalSupplyUSD,
+      totalDerivedSupplyUSD,
       time
     );
   }
@@ -301,14 +301,14 @@ function updateRewardInfo(
   liquidatorAdr: string,
   asset: Address,
   gaugeVault: GaugeVaultEntity,
-  totalSupplyUSD: BigDecimal,
+  totalDerivedUSD: BigDecimal,
   time: BigInt
 ): void {
   const reward = getOrCreateReward(gaugeVault.id, rewardAdr.toHexString());
   const rewardTokenCtr = VaultAbi.bind(rewardAdr);
   const rewardTokenDecimals = BigInt.fromI32(rewardTokenCtr.decimals())
-  const rewardTokenPrice = _tryGetUsdPrice(liquidatorAdr, asset, rewardTokenDecimals);
-  updateRewardInfoAndSave(reward, gaugeAdr, gaugeVault.vault, gaugeVault.totalSupply, totalSupplyUSD, time, rewardTokenPrice, rewardTokenDecimals);
+  const rewardTokenPrice = getOrCreateToken(VaultAbi.bind(Address.fromString(reward.rewardToken))).usdPrice;
+  updateRewardInfoAndSave(reward, gaugeAdr, gaugeVault.vault, totalDerivedUSD, time, rewardTokenPrice, rewardTokenDecimals);
   saveRewardHistory(reward, time, gaugeVault);
 }
 
@@ -344,6 +344,7 @@ function getOrCreateReward(gaugeVaultId: string, rewardTokenAdr: string): GaugeV
     reward.rewardToken = rewardTokenAdr;
     reward.gaugeVault = gaugeVaultId;
     reward.apr = BigDecimal.fromString('0')
+    reward.aprBoosted = BigDecimal.fromString('0')
     reward.rewardRate = BigDecimal.fromString('0')
     reward.left = BigDecimal.fromString('0')
     reward.leftUSD = BigDecimal.fromString('0')
@@ -359,8 +360,7 @@ function updateRewardInfoAndSave(
   reward: GaugeVaultReward,
   gaugeAdr: string,
   vaultAdr: string,
-  totalSupply: BigDecimal,
-  totalSupplyUSD: BigDecimal,
+  totalDerivedUSD: BigDecimal,
   now: BigInt,
   rewardTokenPrice: BigDecimal,
   rewardTokenDecimals: BigInt
@@ -372,7 +372,8 @@ function updateRewardInfoAndSave(
   reward.left = formatUnits(gaugeCtr.left(Address.fromString(vaultAdr), Address.fromString(reward.rewardToken)), rewardTokenDecimals);
   reward.leftUSD = reward.left.times(rewardTokenPrice);
 
-  reward.apr = calculateApr(now, BigInt.fromI32(reward.periodFinish), reward.leftUSD, totalSupplyUSD);
+  reward.aprBoosted = calculateApr(now, BigInt.fromI32(reward.periodFinish), reward.leftUSD, totalDerivedUSD);
+  reward.apr = reward.aprBoosted.div(BigDecimal.fromString('2.5'));
   reward.rewardTokenPrice = rewardTokenPrice;
 
   reward.save();
@@ -392,6 +393,7 @@ function saveRewardHistory(
     history.totalSupply = vault.totalSupply;
     history.totalDerivedSupply = vault.totalDerivedSupply
     history.apr = reward.apr;
+    history.aprBoosted = reward.aprBoosted;
     history.rewardRate = reward.rewardRate;
     history.periodFinish = reward.periodFinish;
     history.assetPrice = vault.assetPrice;
