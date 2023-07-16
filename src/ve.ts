@@ -349,7 +349,7 @@ function getOrCreateVeNFT(veId: BigInt, veAdr: string): VeNFTEntity {
     veNFT.derivedAmount = formatUnits(veCtr.lockedDerivedAmount(veId), BigInt.fromI32(18));
     veNFT.lockedEnd = veCtr.lockedEnd(veId).toI32();
     veNFT.attachments = veCtr.attachments(veId).toI32();
-    veNFT.voted = veCtr.voted(veId).toI32();
+    veNFT.voted = 0;
 
 
     veNFT.veDistRewardsTotal = BigDecimal.fromString('0');
