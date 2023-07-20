@@ -237,7 +237,7 @@ function updateAll(
       const rewardTokenDecimals = BigInt.fromI32(rewardTokenCtr.decimals())
       const _earned = formatUnits(earned, rewardTokenDecimals)
       const periodDays = (time.toI32() - userReward.lastEarnedUpdate) / 60 / 60 / 24;
-      const rewardTokenPrice = _tryGetUsdPrice(liquidatorAdr, asset, rewardTokenDecimals);
+      const rewardTokenPrice = _tryGetUsdPrice(liquidatorAdr, Address.fromString(rewardToken), rewardTokenDecimals);
       const earnedUsd = _earned.times(rewardTokenPrice);
 
       if (user.stakedBalanceUSD.gt(ZERO_BD) && periodDays > 0) {
