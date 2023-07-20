@@ -331,6 +331,7 @@ function updateUser(
   userAction.time = timestamp.toI32();
   userAction.increase = increase;
   userAction.amount = sharesTransferred;
+  userAction.sharePrice = vault.sharePrice;
   userAction.amountUSD = sharesTransferred.times(vault.assetPrice);
   userAction.save();
 

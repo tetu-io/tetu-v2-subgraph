@@ -203,6 +203,7 @@ type UserVaultAction @entity(immutable: true) {
     time: Int!
     increase: Boolean!
     amount: BigDecimal!
+    sharePrice: BigDecimal!
     amountUSD: BigDecimal!
     profit: BigDecimal!
     profitUSD: BigDecimal!
