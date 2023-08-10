@@ -54,13 +54,16 @@ export function handleVoted(event: Voted): void {
   const voter = _getOrCreateTetuVoter(event.address.toHexString());
   const voterUser = getOrCreateTetuVoterUser(event.params.tokenId, voter.id, voter.ve);
   const vaultVote = getOrCreateVaultVoteEntity(voter, event.params.vault.toHexString());
-  const userVote = getOrCreateTetuVoterUserVote(voterUser, vaultVote, event.block.timestamp);
+
+  const lastVote = TetuVoterAbi.bind(event.address).lastVote(event.params.tokenId)
+
+  const userVote = getOrCreateTetuVoterUserVote(voterUser, vaultVote, lastVote);
 
   updateTetuVoter(voter, BigInt.fromI32(1));
 
   // update user info
   // assume constant 7 day time-lock
-  voterUser.voteTimeLockEnd = event.block.timestamp.toI32() + 60 * 60 * 24 * 7;
+  voterUser.voteTimeLockEnd = lastVote.toI32() + 60 * 60 * 24 * 7;
   voterUser.power = formatUnits(event.params.vePower, REWARD_TOKEN_DECIMALS);
 
   // update vote info

@@ -44,10 +44,21 @@ export function handleVoted(event: Voted): void {
   const veNFTId = generateVeNFTId(event.params.tokenId.toString(), voter.ve);
   const decimals = BigInt.fromI32(18);
 
+  // need to find a real vote and grab timestamp coz poke can keep the old value
+  let realTimestamp = event.block.timestamp.toI32();
+  const votes = PlatformVoterAbi.bind(event.address).veVotes(event.params.tokenId)
+  for(let i = 0; i < votes.length; ++i) {
+    const v = votes[i];
+    if(v.target.equals(event.params.target) && event.params._type.equals(BigInt.fromI32(v._type))) {
+      realTimestamp = v.timestamp.toI32();
+    }
+  }
+
+
   vote.platformVoter = voter.id;
   vote.veNFT = veNFTId;
   vote.voteType = event.params._type.toI32();
-  vote.date = event.block.timestamp.toI32();
+  vote.date = realTimestamp;
 
   vote.desiredValue = formatUnits(event.params.value, BigInt.fromI32(3))
   vote.target = event.params.target.toHexString();
