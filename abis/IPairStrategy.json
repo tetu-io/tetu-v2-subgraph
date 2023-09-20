@@ -1,0 +1,43 @@
+[
+  {
+    "inputs": [],
+    "name": "getDefaultState",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "addr",
+        "type": "address[]"
+      },
+      {
+        "internalType": "int24[]",
+        "name": "tickData",
+        "type": "int24[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "nums",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "bool[]",
+        "name": "boolValues",
+        "type": "bool[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "controller",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

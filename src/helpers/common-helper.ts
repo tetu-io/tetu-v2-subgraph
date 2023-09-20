@@ -49,6 +49,17 @@ export function calculateCompoundApr(
   return (sharePriceDiff.div(prevSharePrice).times(YEAR).times(HUNDRED_BD)).div(timeDiff)
 }
 
+export function getPrice(
+    liquidator: LiquidatorAbi,
+    tokenIn: string,
+    tokenOut: string,
+    amount: BigInt
+): BigDecimal {
+  const tokenCtr = VaultAbi.bind(Address.fromString(tokenOut));
+  const tokenDecimals = BigInt.fromI32(tokenCtr.decimals());
+  return formatUnits(liquidator.try_getPrice(Address.fromString(tokenIn), Address.fromString(tokenOut), amount).value, tokenDecimals)
+}
+
 export function tryGetUsdPrice(
   liquidator: LiquidatorAbi,
   priceCalculator: PriceCalculatorAbi,
