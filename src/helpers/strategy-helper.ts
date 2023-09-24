@@ -106,46 +106,56 @@ export function updateStrategyData(
 
 export function getFeesClaimed(stretegyAddress: Address, fee0: BigInt, fee1: BigInt, assetDecimals: BigInt): BigDecimal {
   const strategyCtr = IPairStrategyAbi.bind(stretegyAddress);
-  const controller = ControllerEntity.load(strategyCtr.controller().toHexString()) as ControllerEntity;
-  const defaultState = strategyCtr.getDefaultState();
-  const tokenA = defaultState.getAddr()[0]
-  const tokenB = defaultState.getAddr()[1]
-  const depositorSwapTokens = defaultState.getBoolValues()[1]
-  if (depositorSwapTokens) {
-    const feeB = getPrice(
-        changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(controller.liquidator))),
-        tokenB.toHexString(),
-        tokenA.toHexString(),
-        fee0
-    )
-    return formatUnits(fee1.plus(BigInt.fromString(feeB.toString())), assetDecimals);
-  } else {
+  const version: string = strategyCtr.STRATEGY_VERSION();
+  if (version.startsWith('2.0.')) {
+    const controller = ControllerEntity.load(strategyCtr.controller().toHexString()) as ControllerEntity;
+    const defaultState = strategyCtr.getDefaultState();
+    const tokenA = defaultState.getAddr()[0]
+    const tokenB = defaultState.getAddr()[1]
+    const depositorSwapTokens = defaultState.getBoolValues()[1]
+    if (depositorSwapTokens) {
+      const feeB = getPrice(
+          changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(controller.liquidator))),
+          tokenB.toHexString(),
+          tokenA.toHexString(),
+          fee0
+      )
+      return formatUnits(fee1.plus(feeB), assetDecimals);
+    }
+
     const feeB = getPrice(
         changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(controller.liquidator))),
         tokenB.toHexString(),
         tokenA.toHexString(),
         fee1
     )
-    return formatUnits(fee0.plus(BigInt.fromString(feeB.toString())), assetDecimals);
+    return formatUnits(fee0.plus(feeB), assetDecimals);
   }
+
+  return BigDecimal.zero();
 }
 
 export function getRewardsClaimed(stretegyAddress: Address, reward0: BigInt, reward1: BigInt, assetDecimals: BigInt, rewardToken0: Address, rewardToken1: Address): BigDecimal {
   const strategyCtr = IPairStrategyAbi.bind(stretegyAddress);
-  const controller = ControllerEntity.load(strategyCtr.controller().toHexString()) as ControllerEntity;
-  const defaultState = strategyCtr.getDefaultState();
-  const tokenA = defaultState.getAddr()[0]
-  const reward0InAssetForm = reward0.gt(BigInt.fromI32(0)) ? getPrice(
-      changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(controller.liquidator))),
-      rewardToken0.toHexString(),
-      tokenA.toHexString(),
-      reward0
-  ) : formatUnits(BigInt.fromI32(0), assetDecimals)
-  const reward1InAssetForm = reward1.gt(BigInt.fromI32(0)) ? getPrice(
-      changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(controller.liquidator))),
-      rewardToken1.toHexString(),
-      tokenA.toHexString(),
-      reward1
-  ) : formatUnits(BigInt.fromI32(0), assetDecimals)
-  return reward0InAssetForm.plus(reward1InAssetForm);
+  const version: string = strategyCtr.STRATEGY_VERSION();
+  if (version.startsWith('2.0.')) {
+    const controller = ControllerEntity.load(strategyCtr.controller().toHexString()) as ControllerEntity;
+    const defaultState = strategyCtr.getDefaultState();
+    const tokenA = defaultState.getAddr()[0]
+    const reward0InAssetForm = reward0.gt(BigInt.fromI32(0)) ? getPrice(
+        changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(controller.liquidator))),
+        rewardToken0.toHexString(),
+        tokenA.toHexString(),
+        reward0
+    ) : BigInt.fromI32(0)
+    const reward1InAssetForm = reward1.gt(BigInt.fromI32(0)) ? getPrice(
+        changetype<LiquidatorAbiCommon>(LiquidatorAbi.bind(Address.fromString(controller.liquidator))),
+        rewardToken1.toHexString(),
+        tokenA.toHexString(),
+        reward1
+    ) : BigInt.fromI32(0)
+    return formatUnits(reward0InAssetForm.plus(reward1InAssetForm), assetDecimals);
+  }
+
+  return BigDecimal.zero();
 }

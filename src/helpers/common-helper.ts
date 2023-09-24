@@ -54,10 +54,11 @@ export function getPrice(
     tokenIn: string,
     tokenOut: string,
     amount: BigInt
-): BigDecimal {
-  const tokenCtr = VaultAbi.bind(Address.fromString(tokenOut));
-  const tokenDecimals = BigInt.fromI32(tokenCtr.decimals());
-  return formatUnits(liquidator.try_getPrice(Address.fromString(tokenIn), Address.fromString(tokenOut), amount).value, tokenDecimals)
+): BigInt {
+  // const tokenCtr = VaultAbi.bind(Address.fromString(tokenOut));
+  // const tokenDecimals = BigInt.fromI32(tokenCtr.decimals());
+  // return formatUnits(liquidator.try_getPrice(Address.fromString(tokenIn), Address.fromString(tokenOut), amount).value, tokenDecimals)
+  return liquidator.try_getPrice(Address.fromString(tokenIn), Address.fromString(tokenOut), amount).value
 }
 
 export function tryGetUsdPrice(
