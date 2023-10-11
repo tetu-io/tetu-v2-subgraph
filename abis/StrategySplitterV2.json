@@ -13,6 +13,66 @@
     "type": "event"
   },
   {
+    "stateMutability": "payable",
+    "type": "fallback"
+  },
+  {
+    "inputs": [],
+    "name": "PROXY_CONTROLLED_VERSION",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "implementation",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_logic",
+        "type": "address"
+      }
+    ],
+    "name": "initProxy",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_newImplementation",
+        "type": "address"
+      }
+    ],
+    "name": "upgrade",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "receive"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -129,6 +189,19 @@
     "inputs": [
       {
         "indexed": false,
+        "internalType": "string",
+        "name": "error",
+        "type": "string"
+      }
+    ],
+    "name": "InvestFailed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
         "internalType": "address",
         "name": "strategy",
         "type": "address"
@@ -236,13 +309,13 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "slippageTolerance",
+        "name": "strategyLossOnWithdraw",
         "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "slippage",
+        "name": "strategyLossOnInvest",
         "type": "uint256"
       },
       {
@@ -272,19 +345,6 @@
       }
     ],
     "name": "RevisionIncreased",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "strategy",
-        "type": "address"
-      }
-    ],
-    "name": "ScheduledStrategyRemove",
     "type": "event"
   },
   {
@@ -430,7 +490,33 @@
   },
   {
     "inputs": [],
+    "name": "HARDWORK_LOSS_TOLERANCE",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "HISTORY_DEEP",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "INVEST_LOSS_TOLERANCE",
     "outputs": [
       {
         "internalType": "uint256",
@@ -468,6 +554,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "WITHDRAW_LOSS_TOLERANCE",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address[]",
@@ -477,6 +576,11 @@
       {
         "internalType": "uint256[]",
         "name": "expectedAPR",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "capacities",
         "type": "uint256[]"
       }
     ],
@@ -591,6 +695,24 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "earned",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "lost",
+        "type": "uint256"
+      }
+    ],
+    "name": "coverPossibleStrategyLoss",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "created",
     "outputs": [
@@ -639,6 +761,44 @@
     "name": "doHardWorkForStrategy",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "slot",
+        "type": "uint256"
+      }
+    ],
+    "name": "getSlot",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "result",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "strategy",
+        "type": "address"
+      }
+    ],
+    "name": "getStrategyCapacity",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "capacity",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -743,6 +903,25 @@
         "type": "address"
       }
     ],
+    "name": "isValidStrategy",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "name": "lastHardWorks",
     "outputs": [
       {
@@ -821,7 +1000,7 @@
       },
       {
         "internalType": "uint256",
-        "name": "slippageTolerance",
+        "name": "lossTolerance",
         "type": "uint256"
       }
     ],
@@ -831,14 +1010,8 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address[]",
-        "name": "_strategies",
-        "type": "address[]"
-      }
-    ],
-    "name": "removeScheduledStrategies",
+    "inputs": [],
+    "name": "refreshValidStrategies",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -932,21 +1105,21 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "scheduledStrategies",
-    "outputs": [
+    "inputs": [
       {
-        "internalType": "address[]",
-        "name": "_strategies",
-        "type": "address[]"
+        "internalType": "address",
+        "name": "strategy",
+        "type": "address"
       },
       {
-        "internalType": "uint256[]",
-        "name": "locks",
-        "type": "uint256[]"
+        "internalType": "uint256",
+        "name": "capacity",
+        "type": "uint256"
       }
     ],
-    "stateMutability": "view",
+    "name": "setStrategyCapacity",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -1028,6 +1201,25 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "strategy",
+        "type": "address"
+      }
+    ],
+    "name": "strategyAPRHistoryLength",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "",
         "type": "address"
       }
@@ -1057,25 +1249,6 @@
         "internalType": "bool",
         "name": "",
         "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "strategy",
-        "type": "address"
-      }
-    ],
-    "name": "strategyAPRHistoryLength",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -1117,24 +1290,6 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "strategy",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "capacity",
-        "type": "uint256"
-      }
-    ],
-    "name": "setStrategyCapacity",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
@@ -1144,88 +1299,5 @@
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "implementation",
-        "type": "address"
-      }
-    ],
-    "name": "Upgraded",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "strategy",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "Loss",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "strategy",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "Invested",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "strategy",
-        "type": "address"
-      }
-    ],
-    "name": "WithdrawFromStrategy",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "strategy",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "capacity",
-        "type": "uint256"
-      }
-    ],
-    "name": "SetStrategyCapacity",
-    "type": "event"
   }
 ]

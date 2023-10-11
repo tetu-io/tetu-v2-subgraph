@@ -23,6 +23,9 @@ import {RATIO_DENOMINATOR} from "./constants";
 
 export function handleUpgraded(event: Upgraded): void {
   const strategy = getOrCreateStrategy(event.address.toHexString());
+  if(!strategy) {
+    return;
+  }
   const implementations = strategy.implementations;
   implementations.push(event.params.implementation.toHexString())
   strategy.implementations = implementations;
@@ -31,6 +34,9 @@ export function handleUpgraded(event: Upgraded): void {
 
 export function handleCompoundRatioChanged(event: CompoundRatioChanged): void {
   const strategy = getOrCreateStrategy(event.address.toHexString());
+  if(!strategy) {
+    return;
+  }
   const compoundDenominator = RATIO_DENOMINATOR.toBigDecimal();
   strategy.compoundRatio = event.params.newValue.toBigDecimal().times(BigDecimal.fromString('100')).div(compoundDenominator);
   strategy.save()
@@ -38,6 +44,9 @@ export function handleCompoundRatioChanged(event: CompoundRatioChanged): void {
 
 export function handleRevisionIncreased(event: RevisionIncreased): void {
   const strategy = getOrCreateStrategy(event.address.toHexString());
+  if(!strategy) {
+    return;
+  }
   strategy.revision = event.params.value.toI32();
 
   const strategyCtr = StrategyAbi.bind(event.address);
@@ -51,6 +60,9 @@ export function handleRevisionIncreased(event: RevisionIncreased): void {
 
 export function handleStrategySpecificNameChanged(event: StrategySpecificNameChanged): void {
   const strategy = getOrCreateStrategy(event.address.toHexString());
+  if(!strategy) {
+    return;
+  }
   strategy.specificName = event.params.name;
   strategy.save()
 }
@@ -96,6 +108,9 @@ export function handleWithdrawToSplitter(event: WithdrawToSplitter): void {
 
 function _updateStrategyData(strategyAdr: string, time: i32): void {
   const strategy = getOrCreateStrategy(strategyAdr);
+  if(!strategy) {
+    return;
+  }
   updateStrategyData(
     strategy,
     time,

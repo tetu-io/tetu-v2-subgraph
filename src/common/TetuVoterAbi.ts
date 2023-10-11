@@ -10,6 +10,24 @@ import {
   BigInt
 } from "@graphprotocol/graph-ts";
 
+export class Upgraded extends ethereum.Event {
+  get params(): Upgraded__Params {
+    return new Upgraded__Params(this);
+  }
+}
+
+export class Upgraded__Params {
+  _event: Upgraded;
+
+  constructor(event: Upgraded) {
+    this._event = event;
+  }
+
+  get implementation(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
 export class Abstained extends ethereum.Event {
   get params(): Abstained__Params {
     return new Abstained__Params(this);
@@ -248,27 +266,51 @@ export class Voted__Params {
   }
 }
 
-export class Upgraded extends ethereum.Event {
-  get params(): Upgraded__Params {
-    return new Upgraded__Params(this);
-  }
-}
-
-export class Upgraded__Params {
-  _event: Upgraded;
-
-  constructor(event: Upgraded) {
-    this._event = event;
-  }
-
-  get implementation(): Address {
-    return this._event.parameters[0].value.toAddress();
-  }
-}
-
 export class TetuVoterAbi extends ethereum.SmartContract {
   static bind(address: Address): TetuVoterAbi {
     return new TetuVoterAbi("TetuVoterAbi", address);
+  }
+
+  PROXY_CONTROLLED_VERSION(): string {
+    let result = super.call(
+      "PROXY_CONTROLLED_VERSION",
+      "PROXY_CONTROLLED_VERSION():(string)",
+      []
+    );
+
+    return result[0].toString();
+  }
+
+  try_PROXY_CONTROLLED_VERSION(): ethereum.CallResult<string> {
+    let result = super.tryCall(
+      "PROXY_CONTROLLED_VERSION",
+      "PROXY_CONTROLLED_VERSION():(string)",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toString());
+  }
+
+  implementation(): Address {
+    let result = super.call("implementation", "implementation():(address)", []);
+
+    return result[0].toAddress();
+  }
+
+  try_implementation(): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "implementation",
+      "implementation():(address)",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
   CONTROLLABLE_VERSION(): string {
@@ -456,6 +498,25 @@ export class TetuVoterAbi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
+  getSlot(slot: BigInt): Bytes {
+    let result = super.call("getSlot", "getSlot(uint256):(bytes32)", [
+      ethereum.Value.fromUnsignedBigInt(slot)
+    ]);
+
+    return result[0].toBytes();
+  }
+
+  try_getSlot(slot: BigInt): ethereum.CallResult<Bytes> {
+    let result = super.tryCall("getSlot", "getSlot(uint256):(bytes32)", [
+      ethereum.Value.fromUnsignedBigInt(slot)
+    ]);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBytes());
+  }
+
   index(): BigInt {
     let result = super.call("index", "index():(uint256)", []);
 
@@ -520,6 +581,25 @@ export class TetuVoterAbi extends ethereum.SmartContract {
   try_isVault(_vault: Address): ethereum.CallResult<boolean> {
     let result = super.tryCall("isVault", "isVault(address):(bool)", [
       ethereum.Value.fromAddress(_vault)
+    ]);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  isVotesExist(veId: BigInt): boolean {
+    let result = super.call("isVotesExist", "isVotesExist(uint256):(bool)", [
+      ethereum.Value.fromUnsignedBigInt(veId)
+    ]);
+
+    return result[0].toBoolean();
+  }
+
+  try_isVotesExist(veId: BigInt): ethereum.CallResult<boolean> {
+    let result = super.tryCall("isVotesExist", "isVotesExist(uint256):(bool)", [
+      ethereum.Value.fromUnsignedBigInt(veId)
     ]);
     if (result.reverted) {
       return new ethereum.CallResult();
@@ -604,6 +684,29 @@ export class TetuVoterAbi extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  supportsInterface(interfaceId: Bytes): boolean {
+    let result = super.call(
+      "supportsInterface",
+      "supportsInterface(bytes4):(bool)",
+      [ethereum.Value.fromFixedBytes(interfaceId)]
+    );
+
+    return result[0].toBoolean();
+  }
+
+  try_supportsInterface(interfaceId: Bytes): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "supportsInterface",
+      "supportsInterface(bytes4):(bool)",
+      [ethereum.Value.fromFixedBytes(interfaceId)]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
   }
 
   token(): Address {
@@ -809,6 +912,92 @@ export class TetuVoterAbi extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+}
+
+export class DefaultCall extends ethereum.Call {
+  get inputs(): DefaultCall__Inputs {
+    return new DefaultCall__Inputs(this);
+  }
+
+  get outputs(): DefaultCall__Outputs {
+    return new DefaultCall__Outputs(this);
+  }
+}
+
+export class DefaultCall__Inputs {
+  _call: DefaultCall;
+
+  constructor(call: DefaultCall) {
+    this._call = call;
+  }
+}
+
+export class DefaultCall__Outputs {
+  _call: DefaultCall;
+
+  constructor(call: DefaultCall) {
+    this._call = call;
+  }
+}
+
+export class InitProxyCall extends ethereum.Call {
+  get inputs(): InitProxyCall__Inputs {
+    return new InitProxyCall__Inputs(this);
+  }
+
+  get outputs(): InitProxyCall__Outputs {
+    return new InitProxyCall__Outputs(this);
+  }
+}
+
+export class InitProxyCall__Inputs {
+  _call: InitProxyCall;
+
+  constructor(call: InitProxyCall) {
+    this._call = call;
+  }
+
+  get _logic(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class InitProxyCall__Outputs {
+  _call: InitProxyCall;
+
+  constructor(call: InitProxyCall) {
+    this._call = call;
+  }
+}
+
+export class UpgradeCall extends ethereum.Call {
+  get inputs(): UpgradeCall__Inputs {
+    return new UpgradeCall__Inputs(this);
+  }
+
+  get outputs(): UpgradeCall__Outputs {
+    return new UpgradeCall__Outputs(this);
+  }
+}
+
+export class UpgradeCall__Inputs {
+  _call: UpgradeCall;
+
+  constructor(call: UpgradeCall) {
+    this._call = call;
+  }
+
+  get _newImplementation(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class UpgradeCall__Outputs {
+  _call: UpgradeCall;
+
+  constructor(call: UpgradeCall) {
+    this._call = call;
   }
 }
 
@@ -1059,7 +1248,7 @@ export class InitCall__Inputs {
     this._call = call;
   }
 
-  get controller(): Address {
+  get _controller(): Address {
     return this._call.inputValues[0].value.toAddress();
   }
 
