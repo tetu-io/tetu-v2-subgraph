@@ -2,11 +2,6 @@ specVersion: 0.0.4
 schema:
   file: ./schema.graphql
 description: Subgraph for Tetu V2
-features:
-  - grafting
-graft:
-  base: QmfEJeUVxXiGw6nARtAUHnjPKMYHaZTCGKYEi6JewmGJPN
-  block: 48500000
 dataSources:
   - name: ControllerData
     kind: ethereum/contract
