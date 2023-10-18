@@ -38,6 +38,9 @@ import {updateVaultAttributes} from "./vault";
 
 export function handleStrategyAdded(event: StrategyAdded): void {
   const strategy = getOrCreateStrategy(event.params.strategy.toHexString());
+  if(!strategy) {
+    return;
+  }
   saveStrategyHistory(strategy, event.block.timestamp.toI32());
   strategy.splitter = event.address.toHexString();
   strategy.save();
@@ -69,6 +72,9 @@ export function handleScheduledStrategyRemove(event: StrategyScheduled): void {
 
 export function handleStrategyRemoved(event: StrategyRemoved): void {
   const strategy = getOrCreateStrategy(event.params.strategy.toHexString());
+  if(!strategy) {
+    return;
+  }
   strategy.splitter = ADDRESS_ZERO;
   strategy.save();
 }
@@ -79,6 +85,9 @@ export function handleStrategyRemoved(event: StrategyRemoved): void {
 
 export function handleManualAprChanged(event: ManualAprChanged): void {
   const strategy = getOrCreateStrategy(event.params.strategy.toHexString());
+  if(!strategy) {
+    return;
+  }
   const splitterCtr = StrategySplitterAbi.bind(event.address);
 
   strategy.apr = event.params.newApr.toBigDecimal().times(BigDecimal.fromString('100')).div(RATIO_DENOMINATOR.toBigDecimal());
@@ -91,6 +100,9 @@ export function handleManualAprChanged(event: ManualAprChanged): void {
 export function handleLoss(event: Loss): void {
   const splitter = SplitterEntity.load(event.address.toHexString()) as SplitterEntity;
   const strategy = getOrCreateStrategy(event.params.strategy.toHexString());
+  if(!strategy) {
+    return;
+  }
 
   const loss = formatUnits(event.params.amount, BigInt.fromI32(strategy.assetTokenDecimals));
 
@@ -111,12 +123,18 @@ export function handleWithdrawFromStrategy(event: WithdrawFromStrategy): void {
 
 export function handlePaused(event: Paused): void {
   const strategy = getOrCreateStrategy(event.params.strategy.toHexString());
+  if(!strategy) {
+    return;
+  }
   strategy.paused = true;
   strategy.save();
 }
 
 export function handleContinueInvesting(event: ContinueInvesting): void {
   const strategy = getOrCreateStrategy(event.params.strategy.toHexString());
+  if(!strategy) {
+    return;
+  }
   strategy.paused = false;
   strategy.save();
 }
@@ -144,6 +162,9 @@ export function handleRevisionIncreased(event: RevisionIncreased): void {
 
 export function handleSetStrategyCapacity(event: SetStrategyCapacity): void {
   const strategy = getOrCreateStrategy(event.params.strategy.toHexString());
+  if(!strategy) {
+    return;
+  }
   const asset = getOrCreateToken(strategy.asset);
   strategy.capacity = formatUnits(event.params.capacity, BigInt.fromI32(asset.decimals));
   strategy.save();
@@ -157,6 +178,9 @@ export function handleSetStrategyCapacity(event: SetStrategyCapacity): void {
 export function handleHardWork(event: HardWork): void {
   const splitter = SplitterEntity.load(event.address.toHexString()) as SplitterEntity;
   const strategy = getOrCreateStrategy(event.params.strategy.toHexString());
+  if(!strategy) {
+    return;
+  }
   const splitterCtr = StrategySplitterAbi.bind(event.address);
   const aprDenominator = RATIO_DENOMINATOR.toBigDecimal();
 
@@ -209,6 +233,9 @@ export function handleRebalance(event: Rebalance): void {
 
 function _updateStrategyData(strategyAdr: string, time: i32): void {
   const strategy = getOrCreateStrategy(strategyAdr);
+  if(!strategy) {
+    return;
+  }
   updateStrategyData(
     strategy,
     time,

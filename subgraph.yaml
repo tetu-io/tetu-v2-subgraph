@@ -1,6 +1,7 @@
 specVersion: 0.0.4
 schema:
   file: ./schema.graphql
+description: Subgraph for Tetu V2
 dataSources:
   - name: ControllerData
     kind: ethereum/contract
@@ -69,7 +70,6 @@ dataSources:
         - event: OperatorRemoved(address)
           handler: handleOperatorRemoved
       file: ./src/controller.ts
-
   - name: VaultFactoryData
     kind: ethereum/contract
     network: matic
@@ -114,7 +114,6 @@ dataSources:
           handler: handleVaultInsuranceImplChanged
         - event: SplitterImplChanged(address)
           handler: handleSplitterImplChanged
-
 templates:
   - name: PlatformVoterTemplate
     kind: ethereum/contract
@@ -142,15 +141,12 @@ templates:
       eventHandlers:
         - event: RevisionIncreased(uint256,address)
           handler: handleRevisionIncreased
-#        - event: VoteReset(uint256,uint256,address,uint256,uint256,uint256)
-#          handler: handleVoteReset
         - event: Voted(uint256,uint256,uint256,address,uint256,uint256,uint256,uint256,uint256)
           handler: handleVoted
         - event: Upgraded(indexed address)
           handler: handleUpgraded
         - event: VoteRemoved(uint256,uint256,uint256,address)
           handler: handleVoteRemoved
-
   - name: MultiBribeTemplate
     kind: ethereum/contract
     network: matic
@@ -187,7 +183,6 @@ templates:
           handler: handleRevisionIncreased
         - event: Upgraded(indexed address)
           handler: handleUpgraded
-
   - name: MultiGaugeTemplate
     kind: ethereum/contract
     network: matic
@@ -232,7 +227,6 @@ templates:
           handler: handleUpgraded
         - event: AddStakingToken(address)
           handler: handleAddStakingToken
-
   - name: TetuVoterTemplate
     kind: ethereum/contract
     network: matic
@@ -273,7 +267,6 @@ templates:
           handler: handleVoted
         - event: Upgraded(indexed address)
           handler: handleUpgraded
-
   - name: VeDistributorTemplate
     kind: ethereum/contract
     network: matic
@@ -306,7 +299,6 @@ templates:
           handler: handleRevisionIncreased
         - event: Upgraded(indexed address)
           handler: handleUpgraded
-
   - name: VeTetuTemplate
     kind: ethereum/contract
     network: matic
@@ -331,7 +323,8 @@ templates:
         - name: PriceCalculatorAbi
           file: ./abis/PriceCalculator.json
       eventHandlers:
-        - event: Deposit(indexed address,indexed address,uint256,uint256,indexed uint256,uint8,uint256)
+        - event: Deposit(indexed address,indexed address,uint256,uint256,indexed
+            uint256,uint8,uint256)
           handler: handleDeposit
         - event: TransferWhitelisted(address)
           handler: handleTransferWhitelisted
@@ -347,7 +340,6 @@ templates:
           handler: handleMerged
         - event: Split(uint256,uint256,uint256)
           handler: handleSplit
-
   - name: ForwarderTemplate
     kind: ethereum/contract
     network: matic
@@ -388,7 +380,6 @@ templates:
           handler: handleTetuThresholdChanged
         - event: Upgraded(indexed address)
           handler: handleUpgraded
-
   - name: InvestFundTemplate
     kind: ethereum/contract
     network: matic
@@ -415,7 +406,6 @@ templates:
           handler: handleFundDeposit
         - event: FundWithdrawn(indexed address,uint256)
           handler: handleFundWithdrawn
-
   - name: VaultTemplate
     kind: ethereum/contract
     network: matic
@@ -467,7 +457,6 @@ templates:
           handler: handleTransfer
         - event: WithdrawRequestBlocks(uint256)
           handler: handleWithdrawRequestBlocks
-
   - name: StrategySplitterTemplate
     kind: ethereum/contract
     network: matic
@@ -490,7 +479,7 @@ templates:
         - name: LiquidatorAbi
           file: ./abis/TetuLiquidator.json
         - name: StrategyAbi
-          file: ./abis/StrategyBaseV2.json
+          file: ./abis/StrategyBaseV3.json
         - name: ProxyAbi
           file: ./abis/Proxy.json
         - name: ForwarderAbi
@@ -528,7 +517,6 @@ templates:
           handler: handleWithdrawFromStrategy
         - event: SetStrategyCapacity(address,uint256)
           handler: handleSetStrategyCapacity
-
   - name: StrategyTemplate
     kind: ethereum/contract
     network: matic
@@ -543,7 +531,7 @@ templates:
         - StrategyEntity
       abis:
         - name: StrategyAbi
-          file: ./abis/StrategyBundle.json
+          file: ./abis/StrategyBaseV3.json
         - name: VaultAbi
           file: ./abis/TetuVaultV2.json
         - name: ForwarderAbi

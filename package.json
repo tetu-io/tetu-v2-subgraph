@@ -6,15 +6,18 @@
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
     "test": "graph test",
-    "deploy-stage": "graph deploy --node https://api.thegraph.com/deploy/ belbix/tetuv2staging",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ tetu-io/tetu-v2",
-    "deploy-studio": "graph deploy --studio tetu-v2",
-    "create-local": "graph create --node http://localhost:8020/ tetu-io/tetu-v2",
-    "remove-local": "graph remove --node http://localhost:8020/ tetu-io/tetu-v2",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 tetu-io/tetu-v2 -l v0.0.1",
-    "create-remote": "graph create --node http://164.92.180.137:8020/ tetu-io/tetu-v2",
-    "remove-remote": "graph remove --node http://164.92.180.137:8020/ tetu-io/tetu-v2",
-    "deploy-remote": "graph deploy --node http://164.92.180.137:8020/ --ipfs http://164.92.180.137:5001 tetu-io/tetu-v2 -l v0.0.1"
+
+    "deploy-matic-stage": "graph deploy --network matic --node https://api.thegraph.com/deploy/ belbix/tetuv2staging",
+    "deploy-matic": "graph deploy --network matic --node https://api.thegraph.com/deploy/ tetu-io/tetu-v2",
+    "deploy-matic-studio": "graph deploy --network matic --studio tetu-v2",
+
+    "create-matic-local": "graph create --network matic --node http://localhost:8020/ tetu-io/tetu-v2",
+    "remove-matic-local": "graph remove --network matic --node http://localhost:8020/ tetu-io/tetu-v2",
+    "deploy-matic-local": "graph deploy --network matic --node http://localhost:8020/ --ipfs http://localhost:5001 tetu-io/tetu-v2 -l v0.0.1",
+
+    "create-matic-remote": "graph create --network matic --node http://164.92.180.137:8020/ tetu-io/tetu-v2",
+    "remove-matic-remote": "graph remove --network matic --node http://164.92.180.137:8020/ tetu-io/tetu-v2",
+    "deploy-matic-remote": "graph deploy --network matic --node http://164.92.180.137:8020/ --ipfs http://164.92.180.137:5001 tetu-io/tetu-v2 -l v0.0.1"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "^0.53.0",

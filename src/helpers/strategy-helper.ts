@@ -12,13 +12,17 @@ import {LiquidatorAbi as LiquidatorAbiCommon} from "../common/LiquidatorAbi";
 import {LiquidatorAbi} from "../types/templates/MultiGaugeTemplate/LiquidatorAbi";
 
 
-export function getOrCreateStrategy(address: string): StrategyEntity {
+export function getOrCreateStrategy(address: string): StrategyEntity | null {
   let strategy = StrategyEntity.load(address);
 
   if (!strategy) {
     strategy = new StrategyEntity(address);
     const strategyCtr = StrategyAbi.bind(Address.fromString(address));
-    const splitterAdr = strategyCtr.splitter();
+    const splitterAdrT = strategyCtr.try_splitter();
+    if (splitterAdrT.reverted) {
+      return null;
+    }
+    const splitterAdr = splitterAdrT.value;
     const splitterCtr = StrategySplitterAbi.bind(splitterAdr);
     const vaultAdr = splitterCtr.vault();
     const vaultCtr = VaultAbi.bind(vaultAdr);
@@ -37,7 +41,7 @@ export function getOrCreateStrategy(address: string): StrategyEntity {
 
     strategy.name = strategyCtr.NAME();
     const n = strategyCtr.try_strategySpecificName();
-    if(!n.reverted) {
+    if (!n.reverted) {
       strategy.specificName = n.value;
     }
     strategy.platform = strategyCtr.PLATFORM();

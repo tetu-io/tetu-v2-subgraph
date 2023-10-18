@@ -3,19 +3,6 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "_type",
-        "type": "uint256"
-      }
-    ],
-    "name": "AddressAnnounceRemove",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
         "indexed": true,
         "internalType": "address",
         "name": "implementation",
@@ -26,29 +13,76 @@
     "type": "event"
   },
   {
-    "anonymous": false,
-    "inputs": [
+    "stateMutability": "payable",
+    "type": "fallback"
+  },
+  {
+    "inputs": [],
+    "name": "PROXY_CONTROLLED_VERSION",
+    "outputs": [
       {
-        "indexed": false,
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "implementation",
+    "outputs": [
+      {
         "internalType": "address",
-        "name": "operator",
+        "name": "",
         "type": "address"
       }
     ],
-    "name": "OperatorAdded",
-    "type": "event"
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_logic",
+        "type": "address"
+      }
+    ],
+    "name": "initProxy",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_newImplementation",
+        "type": "address"
+      }
+    ],
+    "name": "upgrade",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "receive"
   },
   {
     "anonymous": false,
     "inputs": [
       {
         "indexed": false,
-        "internalType": "address",
-        "name": "operator",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "_type",
+        "type": "uint256"
       }
     ],
-    "name": "OperatorRemoved",
+    "name": "AddressAnnounceRemove",
     "type": "event"
   },
   {
@@ -131,6 +165,32 @@
       }
     ],
     "name": "Initialized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "operator",
+        "type": "address"
+      }
+    ],
+    "name": "OperatorAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "operator",
+        "type": "address"
+      }
+    ],
+    "name": "OperatorRemoved",
     "type": "event"
   },
   {
@@ -394,6 +454,25 @@
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "slot",
+        "type": "uint256"
+      }
+    ],
+    "name": "getSlot",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "result",
+        "type": "bytes32"
       }
     ],
     "stateMutability": "view",
@@ -722,6 +801,25 @@
   {
     "inputs": [
       {
+        "internalType": "bytes4",
+        "name": "interfaceId",
+        "type": "bytes4"
+      }
+    ],
+    "name": "supportsInterface",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address[]",
         "name": "proxies",
         "type": "address[]"
@@ -730,19 +828,6 @@
     "name": "upgradeProxy",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "vaultController",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
