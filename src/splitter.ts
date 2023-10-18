@@ -41,7 +41,7 @@ export function handleStrategyAdded(event: StrategyAdded): void {
   if(!strategy) {
     return;
   }
-  saveStrategyHistory(strategy, event.block.timestamp.toI32());
+  saveStrategyHistory(strategy, event.block.timestamp.toI32(), event.block.number.toI32());
   strategy.splitter = event.address.toHexString();
   strategy.save();
 }
@@ -93,7 +93,7 @@ export function handleManualAprChanged(event: ManualAprChanged): void {
   strategy.apr = event.params.newApr.toBigDecimal().times(BigDecimal.fromString('100')).div(RATIO_DENOMINATOR.toBigDecimal());
   strategy.averageApr = splitterCtr.averageApr(event.params.strategy).toBigDecimal().times(BigDecimal.fromString('100')).div(RATIO_DENOMINATOR.toBigDecimal());
 
-  saveStrategyHistory(strategy, event.block.timestamp.toI32());
+  saveStrategyHistory(strategy, event.block.timestamp.toI32(), event.block.number.toI32());
   strategy.save();
 }
 
@@ -114,11 +114,11 @@ export function handleLoss(event: Loss): void {
 }
 
 export function handleInvested(event: Invested): void {
-  _updateStrategyData(event.params.strategy.toHexString(), event.block.timestamp.toI32());
+  _updateStrategyData(event.params.strategy.toHexString(), event.block.timestamp.toI32(), event.block.number.toI32());
 }
 
 export function handleWithdrawFromStrategy(event: WithdrawFromStrategy): void {
-  _updateStrategyData(event.params.strategy.toHexString(), event.block.timestamp.toI32());
+  _updateStrategyData(event.params.strategy.toHexString(), event.block.timestamp.toI32(), event.block.number.toI32());
 }
 
 export function handlePaused(event: Paused): void {
@@ -207,7 +207,7 @@ export function handleHardWork(event: HardWork): void {
 
   strategy.lastHardWork = event.block.timestamp.toI32();
 
-  saveStrategyHistory(strategy, event.block.timestamp.toI32());
+  saveStrategyHistory(strategy, event.block.timestamp.toI32(), event.block.number.toI32());
   splitter.save();
   strategy.save();
 
@@ -222,8 +222,8 @@ export function handleHardWork(event: HardWork): void {
 // ***************************************************
 
 export function handleRebalance(event: Rebalance): void {
-  _updateStrategyData(event.params.lowStrategy.toHexString(), event.block.timestamp.toI32());
-  _updateStrategyData(event.params.topStrategy.toHexString(), event.block.timestamp.toI32());
+  _updateStrategyData(event.params.lowStrategy.toHexString(), event.block.timestamp.toI32(), event.block.number.toI32());
+  _updateStrategyData(event.params.topStrategy.toHexString(), event.block.timestamp.toI32(), event.block.number.toI32());
 }
 
 // ***************************************************
@@ -231,7 +231,7 @@ export function handleRebalance(event: Rebalance): void {
 // ***************************************************
 
 
-function _updateStrategyData(strategyAdr: string, time: i32): void {
+function _updateStrategyData(strategyAdr: string, time: i32, block: i32): void {
   const strategy = getOrCreateStrategy(strategyAdr);
   if(!strategy) {
     return;
@@ -239,6 +239,7 @@ function _updateStrategyData(strategyAdr: string, time: i32): void {
   updateStrategyData(
     strategy,
     time,
+    block,
     changetype<StrategySplitterAbiCommon>(StrategySplitterAbi.bind(Address.fromString(strategy.splitter))),
     changetype<StrategyAbiCommon>(StrategyAbi.bind(Address.fromString(strategyAdr))),
   )

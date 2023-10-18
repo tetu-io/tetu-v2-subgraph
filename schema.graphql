@@ -338,6 +338,7 @@ type StrategyHistory @entity(immutable: true) {
 
     #attributes
     time: Int!
+    block: Int!
     tvl: BigDecimal!
     profit: BigDecimal!
     loss: BigDecimal!

@@ -531,7 +531,7 @@ templates:
         - StrategyEntity
       abis:
         - name: StrategyAbi
-          file: ./abis/StrategyBaseV3.json
+          file: ./abis/StrategyBundle.json
         - name: VaultAbi
           file: ./abis/TetuVaultV2.json
         - name: ForwarderAbi

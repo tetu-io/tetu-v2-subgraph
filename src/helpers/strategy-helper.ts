@@ -70,11 +70,11 @@ export function getOrCreateStrategy(address: string): StrategyEntity | null {
   return strategy;
 }
 
-export function saveStrategyHistory(strategy: StrategyEntity, time: i32): void {
+export function saveStrategyHistory(strategy: StrategyEntity, time: i32, block: i32): void {
   const h = new StrategyHistory(strategy.id + '_' + BigInt.fromI32(time).toString());
   h.strategy = strategy.id;
   h.time = time;
-
+  h.block = block;
   h.tvl = strategy.tvl;
   h.profit = strategy.profit;
   h.loss = strategy.loss;
@@ -94,6 +94,7 @@ export function saveStrategyHistory(strategy: StrategyEntity, time: i32): void {
 export function updateStrategyData(
   strategy: StrategyEntity,
   time: i32,
+  block: i32,
   splitterCtr: StrategySplitterAbi,
   strategyCtr: StrategyAbi
 ): void {
@@ -104,14 +105,14 @@ export function updateStrategyData(
   } else {
     strategy.tvlAllocationPercent = strategy.tvl.times(HUNDRED_BD).div(totalAssets);
   }
-  saveStrategyHistory(strategy, time);
+  saveStrategyHistory(strategy, time, block);
   strategy.save();
 }
 
 export function getFeesClaimed(stretegyAddress: Address, fee0: BigInt, fee1: BigInt, assetDecimals: BigInt): BigDecimal {
   const strategyCtr = IPairStrategyAbi.bind(stretegyAddress);
   const version: string = strategyCtr.STRATEGY_VERSION();
-  if (version.startsWith('2.0.')) {
+  if (getMajorVersion(version) >= 2) {
     const controller = ControllerEntity.load(strategyCtr.controller().toHexString()) as ControllerEntity;
     const defaultState = strategyCtr.getDefaultState();
     const tokenA = defaultState.getAddr()[0]
@@ -142,7 +143,7 @@ export function getFeesClaimed(stretegyAddress: Address, fee0: BigInt, fee1: Big
 export function getRewardsClaimed(stretegyAddress: Address, reward0: BigInt, reward1: BigInt, assetDecimals: BigInt, rewardToken0: Address, rewardToken1: Address): BigDecimal {
   const strategyCtr = IPairStrategyAbi.bind(stretegyAddress);
   const version: string = strategyCtr.STRATEGY_VERSION();
-  if (version.startsWith('2.0.')) {
+  if (getMajorVersion(version) >= 2) {
     const controller = ControllerEntity.load(strategyCtr.controller().toHexString()) as ControllerEntity;
     const defaultState = strategyCtr.getDefaultState();
     const tokenA = defaultState.getAddr()[0]
@@ -162,4 +163,8 @@ export function getRewardsClaimed(stretegyAddress: Address, reward0: BigInt, rew
   }
 
   return BigDecimal.zero();
+}
+
+export function getMajorVersion(version: string): number {
+  return parseInt(version.split('.')[0]);
 }
