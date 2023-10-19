@@ -1,4 +1,4 @@
-# noinspection GraphQLMissingType
+# noinspection GraphQLMissingType,GraphQLUnresolvedReference
 
 # derivedFrom doc https://thegraph.com/docs/en/developer/create-subgraph-hosted/#reverse-lookups
 # Need to use for all one-to-many relationships for performance reason.
@@ -322,6 +322,12 @@ type StrategyEntity @entity {
     apr: BigDecimal!
     averageApr: BigDecimal!
     tvlAllocationPercent: BigDecimal!
+
+    feesClaimed: BigDecimal!
+    rewardsClaimed: BigDecimal!
+    profitCovered: BigDecimal!
+    lossCoveredFromInsurance: BigDecimal!
+    lossCoveredFromRewards: BigDecimal!
 }
 
 type StrategyHistory @entity(immutable: true) {
@@ -332,12 +338,18 @@ type StrategyHistory @entity(immutable: true) {
 
     #attributes
     time: Int!
+    block: Int!
     tvl: BigDecimal!
     profit: BigDecimal!
     loss: BigDecimal!
     apr: BigDecimal!
     averageApr: BigDecimal!
     tvlAllocationPercent: BigDecimal!
+    feesClaimed: BigDecimal!
+    rewardsClaimed: BigDecimal!
+    profitCovered: BigDecimal!
+    lossCoveredFromInsurance: BigDecimal!
+    lossCoveredFromRewards: BigDecimal!
 }
 
 ###############################################

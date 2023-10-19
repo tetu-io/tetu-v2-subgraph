@@ -531,7 +531,7 @@ templates:
         - StrategyEntity
       abis:
         - name: StrategyAbi
-          file: ./abis/StrategyBaseV3.json
+          file: ./abis/StrategyBundle.json
         - name: VaultAbi
           file: ./abis/TetuVaultV2.json
         - name: ForwarderAbi
@@ -542,6 +542,8 @@ templates:
           file: ./abis/TetuLiquidator.json
         - name: PriceCalculatorAbi
           file: ./abis/PriceCalculator.json
+        - name: IPairStrategyAbi
+          file: ./abis/IPairStrategy.json
       eventHandlers:
         - event: Upgraded(indexed address)
           handler: handleUpgraded
@@ -557,3 +559,21 @@ templates:
           handler: handleWithdrawToSplitter
         - event: StrategySpecificNameChanged(string)
           handler: handleStrategySpecificNameChanged
+        - event: AlgebraFeesClaimed(uint256,uint256)
+          handler: handleAlgebraFeesClaimed
+        - event: KyberFeesClaimed(uint256,uint256)
+          handler: handleKyberFeesClaimed
+        - event: UniV3FeesClaimed(uint256,uint256)
+          handler: handleUniV3FeesClaimed
+        - event: AlgebraRewardsClaimed(uint256,uint256)
+          handler: handleAlgebraRewardsClaimed
+        - event: KyberRewardsClaimed(uint256)
+          handler: handleKyberRewardsClaimed
+        - event: Rebalanced(uint256,uint256,uint256)
+          handler: handleRebalanced
+        - event: RebalancedDebt(uint256,uint256,uint256)
+          handler: handleRebalancedDebt
+        - event: FixPriceChanges(uint256,uint256)
+          handler: handleFixPriceChanges
+        - event: UncoveredLoss(uint256,uint256,uint256,uint256)
+          handler: handleLUncoveredLoss

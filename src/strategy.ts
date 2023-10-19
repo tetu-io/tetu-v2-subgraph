@@ -10,12 +10,19 @@ import {
   WithdrawAllToSplitter,
   WithdrawToSplitter
 } from "./types/templates/StrategyTemplate/StrategyAbi";
-import {Address, BigDecimal} from "@graphprotocol/graph-ts";
+import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {StrategySplitterAbi} from "./types/templates/StrategySplitterTemplate/StrategySplitterAbi";
-import {getOrCreateStrategy, updateStrategyData} from "./helpers/strategy-helper";
+import {getFeesClaimed, getOrCreateStrategy, getRewardsClaimed, updateStrategyData} from "./helpers/strategy-helper";
 import {StrategySplitterAbi as StrategySplitterAbiCommon} from "./common/StrategySplitterAbi";
 import {StrategyAbi as StrategyAbiCommon} from "./common/StrategyAbi";
-import {RATIO_DENOMINATOR} from "./constants";
+import {ADDRESS_ZERO, getdQUICK, getKNC, getWNative, RATIO_DENOMINATOR} from "./constants";
+import {
+  AlgebraFeesClaimed, AlgebraRewardsClaimed, FixPriceChanges,
+  KyberFeesClaimed, KyberRewardsClaimed, Rebalanced, RebalancedDebt, UncoveredLoss,
+  UniV3FeesClaimed
+} from "./types/templates/StrategyTemplate/StrategyAbi";
+import {formatUnits} from "./helpers/common-helper";
+import {StrategyEntity} from "./types/schema";
 
 // ***************************************************
 //                 STATE CHANGES
@@ -68,21 +75,131 @@ export function handleStrategySpecificNameChanged(event: StrategySpecificNameCha
 }
 
 // ***************************************************
+//                 EARNS AND LOSSES
+// ***************************************************
+
+export function handleAlgebraFeesClaimed(event: AlgebraFeesClaimed): void {
+  const strategy = getOrCreateStrategy(event.address.toHexString());
+  if (strategy) {
+    strategy.feesClaimed = strategy.feesClaimed.plus(getFeesClaimed(
+        event.address,
+        event.params.fee0,
+        event.params.fee1,
+        BigInt.fromI32(strategy.assetTokenDecimals)
+    ))
+    _updateStrategyEntityData(strategy, event.block.timestamp.toI32(), event.block.number.toI32());
+  }
+}
+
+export function handleKyberFeesClaimed(event: KyberFeesClaimed): void {
+  const strategy = getOrCreateStrategy(event.address.toHexString());
+  if (strategy) {
+    strategy.feesClaimed = strategy.feesClaimed.plus(getFeesClaimed(
+        event.address,
+        event.params.fee0,
+        event.params.fee1,
+        BigInt.fromI32(strategy.assetTokenDecimals)
+    ))
+    _updateStrategyEntityData(strategy, event.block.timestamp.toI32(), event.block.number.toI32());
+  }
+}
+
+export function handleUniV3FeesClaimed(event: UniV3FeesClaimed): void {
+  const strategy = getOrCreateStrategy(event.address.toHexString());
+  if (strategy) {
+    strategy.feesClaimed = strategy.feesClaimed.plus(getFeesClaimed(
+        event.address,
+        event.params.fee0,
+        event.params.fee1,
+        BigInt.fromI32(strategy.assetTokenDecimals)
+    ))
+    _updateStrategyEntityData(strategy, event.block.timestamp.toI32(), event.block.number.toI32());
+  }
+}
+
+export function handleAlgebraRewardsClaimed(event: AlgebraRewardsClaimed): void {
+  const strategy = getOrCreateStrategy(event.address.toHexString());
+  if (strategy) {
+    strategy.rewardsClaimed = strategy.rewardsClaimed.plus(getRewardsClaimed(
+        event.address,
+        event.params.reward,
+        event.params.bonusReward,
+        BigInt.fromI32(strategy.assetTokenDecimals),
+        getdQUICK(),
+        getWNative()
+    ))
+    _updateStrategyEntityData(strategy, event.block.timestamp.toI32(), event.block.number.toI32());
+  }
+}
+
+export function handleKyberRewardsClaimed(event: KyberRewardsClaimed): void {
+  const strategy = getOrCreateStrategy(event.address.toHexString());
+  if (strategy) {
+    strategy.rewardsClaimed = strategy.rewardsClaimed.plus(getRewardsClaimed(
+        event.address,
+        event.params.reward,
+        BigInt.fromI32(0),
+        BigInt.fromI32(strategy.assetTokenDecimals),
+        getKNC(),
+        Address.fromString(ADDRESS_ZERO)
+    ))
+    _updateStrategyEntityData(strategy, event.block.timestamp.toI32(), event.block.number.toI32());
+  }
+}
+
+export function handleRebalanced(event: Rebalanced): void {
+  const strategy = getOrCreateStrategy(event.address.toHexString());
+  if (strategy) {
+    strategy.profitCovered = strategy.profitCovered.plus(formatUnits(event.params.profitToCover, BigInt.fromI32(strategy.assetTokenDecimals)))
+    strategy.lossCoveredFromRewards = strategy.lossCoveredFromRewards.plus(formatUnits(event.params.coveredByRewards, BigInt.fromI32(strategy.assetTokenDecimals)))
+    _updateStrategyEntityData(strategy, event.block.timestamp.toI32(), event.block.number.toI32());
+  }
+}
+
+export function handleRebalancedDebt(event: RebalancedDebt): void {
+  const strategy = getOrCreateStrategy(event.address.toHexString());
+  if (strategy) {
+    strategy.profitCovered = strategy.profitCovered.plus(formatUnits(event.params.profitToCover, BigInt.fromI32(strategy.assetTokenDecimals)))
+    strategy.lossCoveredFromRewards = strategy.lossCoveredFromRewards.plus(formatUnits(event.params.coveredByRewards, BigInt.fromI32(strategy.assetTokenDecimals)))
+    _updateStrategyEntityData(strategy, event.block.timestamp.toI32(), event.block.number.toI32());
+  }
+}
+
+export function handleFixPriceChanges(event: FixPriceChanges): void {
+  const strategy = getOrCreateStrategy(event.address.toHexString());
+  if (strategy) {
+    if (event.params.investedAssetsOut.lt(event.params.investedAssetsBefore)) {
+      const loss = event.params.investedAssetsBefore.minus(event.params.investedAssetsOut)
+      strategy.lossCoveredFromInsurance = strategy.lossCoveredFromInsurance.plus(formatUnits(loss, BigInt.fromI32(strategy.assetTokenDecimals)));
+      _updateStrategyEntityData(strategy, event.block.timestamp.toI32(), event.block.number.toI32());
+    }
+  }
+}
+
+export function handleLUncoveredLoss(event: UncoveredLoss): void {
+  const strategy = getOrCreateStrategy(event.address.toHexString());
+  if (strategy) {
+    strategy.lossCoveredFromInsurance = strategy.lossCoveredFromInsurance.minus(formatUnits(event.params.lossUncovered, BigInt.fromI32(strategy.assetTokenDecimals)));
+    _updateStrategyEntityData(strategy, event.block.timestamp.toI32(), event.block.number.toI32());
+  }
+}
+
+// ***************************************************
 //                    ACTIONS
 // ***************************************************
 
 export function handleEmergencyExit(event: EmergencyExit): void {
-  _updateStrategyData(event.address.toHexString(), event.block.timestamp.toI32());
+  _updateStrategyData(event.address.toHexString(), event.block.timestamp.toI32(), event.block.number.toI32());
 }
 
 export function handleWithdrawAllToSplitter(
   event: WithdrawAllToSplitter
 ): void {
-  _updateStrategyData(event.address.toHexString(), event.block.timestamp.toI32());
+  _updateStrategyData(event.address.toHexString(), event.block.timestamp.toI32(), event.block.number.toI32());
 }
 
 export function handleWithdrawToSplitter(event: WithdrawToSplitter): void {
-  _updateStrategyData(event.address.toHexString(), event.block.timestamp.toI32());
+  _updateStrategyData(event.address.toHexString(), event.block.timestamp.toI32(), event.block.number.toI32());
 }
 
 //
@@ -106,7 +223,7 @@ export function handleWithdrawToSplitter(event: WithdrawToSplitter): void {
 //                    HELPERS
 // ***************************************************
 
-function _updateStrategyData(strategyAdr: string, time: i32): void {
+function _updateStrategyData(strategyAdr: string, time: i32, block: i32): void {
   const strategy = getOrCreateStrategy(strategyAdr);
   if(!strategy) {
     return;
@@ -114,7 +231,18 @@ function _updateStrategyData(strategyAdr: string, time: i32): void {
   updateStrategyData(
     strategy,
     time,
+    block,
     changetype<StrategySplitterAbiCommon>(StrategySplitterAbi.bind(Address.fromString(strategy.splitter))),
     changetype<StrategyAbiCommon>(StrategyAbi.bind(Address.fromString(strategyAdr))),
+  )
+}
+
+function _updateStrategyEntityData(strategy: StrategyEntity, time: i32, block: i32): void {
+  updateStrategyData(
+      strategy,
+      time,
+      block,
+      changetype<StrategySplitterAbiCommon>(StrategySplitterAbi.bind(Address.fromString(strategy.splitter))),
+      changetype<StrategyAbiCommon>(StrategyAbi.bind(Address.fromString(strategy.id))),
   )
 }

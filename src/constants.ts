@@ -29,6 +29,30 @@ export function getUSDC(): Address {
   return Address.fromString(ADDRESS_ZERO)
 }
 
+export function getWNative(): Address {
+  if (dataSource.network() == 'matic') {
+    return Address.fromString("0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270"); // wmatic
+  }
+  log.critical("WRONG_NETWORK {}", [dataSource.network()]);
+  return Address.fromString(ADDRESS_ZERO)
+}
+
+export function getdQUICK(): Address {
+  if (dataSource.network() == 'matic') {
+    return Address.fromString("0x958d208Cdf087843e9AD98d23823d32E17d723A1");
+  }
+  log.critical("WRONG_NETWORK {}", [dataSource.network()]);
+  return Address.fromString(ADDRESS_ZERO)
+}
+
+export function getKNC(): Address {
+  if (dataSource.network() == 'matic') {
+    return Address.fromString("0x1C954E8fe737F99f68Fa1CCda3e51ebDB291948C");
+  }
+  log.critical("WRONG_NETWORK {}", [dataSource.network()]);
+  return Address.fromString(ADDRESS_ZERO)
+}
+
 export function getPriceCalculator(): Address {
   if (dataSource.network() == 'mainnet') {
     return Address.fromString("0x3E75231c1cc0E6D30d03346B3B87B92Bb3a1F856");
