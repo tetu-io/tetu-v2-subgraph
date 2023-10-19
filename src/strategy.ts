@@ -20,7 +20,7 @@ import {
   AlgebraFeesClaimed, AlgebraRewardsClaimed, FixPriceChanges,
   KyberFeesClaimed, KyberRewardsClaimed, Rebalanced, RebalancedDebt, UncoveredLoss,
   UniV3FeesClaimed
-} from "./types/templates/StrategyTemplate/StrategyLibsAbi";
+} from "./types/templates/StrategyTemplate/StrategyAbi";
 import {formatUnits} from "./helpers/common-helper";
 import {StrategyEntity} from "./types/schema";
 
