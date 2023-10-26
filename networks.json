@@ -8,5 +8,15 @@
       "address": "0xaAd7a2517b0d0d15E3Da5C37C5371F7283cCc074",
       "startBlock": 36865497
     }
+  },
+  "base": {
+    "ControllerData": {
+      "address": "0x255707B70BF90aa112006E1b07B9AeA6De021424",
+      "startBlock": 4461157
+    },
+    "VaultFactoryData": {
+      "address": "0xdc08482Fe34ccf74300e996966030cAc0F81F271",
+      "startBlock": 4461898
+    }
   }
 }

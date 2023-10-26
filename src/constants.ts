@@ -24,6 +24,8 @@ export function getUSDC(): Address {
     return Address.fromString("0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174");
   }else if (dataSource.network() == 'sepolia') {
     return Address.fromString("0x27af55366a339393865FC5943C04bc2600F55C9F");
+  }else if (dataSource.network() == 'base') {
+    return Address.fromString("0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913");
   }
   log.critical("WRONG_NETWORK {}", [dataSource.network()]);
   return Address.fromString(ADDRESS_ZERO)
@@ -32,6 +34,9 @@ export function getUSDC(): Address {
 export function getWNative(): Address {
   if (dataSource.network() == 'matic') {
     return Address.fromString("0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270"); // wmatic
+  }
+  if (dataSource.network() == 'base') {
+    return Address.fromString("0x4200000000000000000000000000000000000006"); // weth
   }
   log.critical("WRONG_NETWORK {}", [dataSource.network()]);
   return Address.fromString(ADDRESS_ZERO)

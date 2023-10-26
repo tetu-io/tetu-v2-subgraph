@@ -1,5 +1,5 @@
-import {Address, BigDecimal, BigInt, ByteArray, crypto, log} from '@graphprotocol/graph-ts'
-import { DAY, getUSDC, HUNDRED_BD, ONE_BI, YEAR, ZERO_BD, ZERO_BI } from '../constants';
+import {Address, BigDecimal, BigInt, log} from '@graphprotocol/graph-ts'
+import {ADDRESS_ZERO, DAY, getUSDC, HUNDRED_BD, ONE_BI, YEAR, ZERO_BD, ZERO_BI} from '../constants';
 import {TokenEntity} from "../types/schema";
 import {VaultAbi} from "../common/VaultAbi";
 import {LiquidatorAbi} from "../common/LiquidatorAbi";
@@ -50,10 +50,10 @@ export function calculateCompoundApr(
 }
 
 export function getPrice(
-    liquidator: LiquidatorAbi,
-    tokenIn: string,
-    tokenOut: string,
-    amount: BigInt
+  liquidator: LiquidatorAbi,
+  tokenIn: string,
+  tokenOut: string,
+  amount: BigInt
 ): BigInt {
   // const tokenCtr = VaultAbi.bind(Address.fromString(tokenOut));
   // const tokenDecimals = BigInt.fromI32(tokenCtr.decimals());
@@ -63,7 +63,7 @@ export function getPrice(
 
 export function tryGetUsdPrice(
   liquidator: LiquidatorAbi,
-  priceCalculator: PriceCalculatorAbi,
+  priceCalculator: PriceCalculatorAbi | null,
   tokenCtr: VaultAbi,
   decimals: BigInt
 ): BigDecimal {
@@ -86,19 +86,21 @@ export function tryGetUsdPrice(
     }
   }
 
-  const calculatorPrice = priceCalculator.try_getPriceWithDefaultOutput(
-    Address.fromString(tokenCtr._address.toHexString()),
-  );
+  if (priceCalculator !== null && priceCalculator._address.notEqual(Address.fromString(ADDRESS_ZERO))) {
+    const calculatorPrice = priceCalculator.try_getPriceWithDefaultOutput(
+      Address.fromString(tokenCtr._address.toHexString()),
+    );
 
-  if (!calculatorPrice.reverted) {
-    let token = getOrCreateToken(tokenCtr);
-    token.usdPrice = formatUnits(calculatorPrice.value, BigInt.fromI32(18));
-    token.save();
-    return token.usdPrice;
+    if (!calculatorPrice.reverted) {
+      let token = getOrCreateToken(tokenCtr);
+      token.usdPrice = formatUnits(calculatorPrice.value, BigInt.fromI32(18));
+      token.save();
+      return token.usdPrice;
+    }
   }
 
   log.error("=== FAILED GET PRICE === liquidator: {} priceCalculator: {} asset: {}",
-    [liquidator._address.toHexString(), priceCalculator._address.toHexString(), tokenCtr._address.toHexString()]);
+    [liquidator._address.toHexString(), priceCalculator ? priceCalculator._address.toHexString() : '', tokenCtr._address.toHexString()]);
   return BigDecimal.fromString('0')
 }
 

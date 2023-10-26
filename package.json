@@ -9,6 +9,7 @@
 
     "deploy-matic-stage": "graph deploy --network matic --node https://api.thegraph.com/deploy/ belbix/tetuv2staging",
     "deploy-matic": "graph deploy --network matic --node https://api.thegraph.com/deploy/ tetu-io/tetu-v2",
+    "deploy-base": "graph deploy --network base --node https://api.thegraph.com/deploy/ tetu-io/tetu-v2-base",
     "deploy-matic-studio": "graph deploy --network matic --studio tetu-v2",
 
     "create-matic-local": "graph create --network matic --node http://localhost:8020/ tetu-io/tetu-v2",
