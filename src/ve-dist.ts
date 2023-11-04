@@ -24,6 +24,11 @@ import {VaultAbi as VaultAbiCommon} from "./common/VaultAbi";
 import {generateVeNFTId} from "./helpers/id-helper";
 import {PriceCalculatorAbi as PriceCalculatorAbiCommon} from "./common/PriceCalculatorAbi";
 import {PriceCalculatorAbi} from "./types/templates/VeDistributorTemplate/PriceCalculatorAbi";
+import {
+  Checkpoint,
+  RewardsClaimed,
+  VeDistributorV2Abi
+} from "./types/templates/VeDistributorV2Template/VeDistributorV2Abi";
 
 // ***************************************************
 //                    MAIN LOGIC
@@ -54,6 +59,57 @@ export function handleClaimed(event: Claimed): void {
 
 
   updateVeDist(veDist, rewardPrice);
+}
+
+export function handleCheckpointV2(event: Checkpoint): void {
+  const veDist = getVeDist(event.address.toHexString());
+  const controller = ControllerEntity.load(veDist.controller) as ControllerEntity;
+  const decimals = BigInt.fromI32(veDist.decimals);
+  const rewardPrice = _tryGetUsdPrice(controller.liquidator, veDist.rewardToken, decimals);
+
+
+  const veDistCtr = VeDistributorV2Abi.bind(Address.fromString(veDist.id));
+
+  const tokenDecimals = BigInt.fromI32(veDist.decimals);
+
+  const tokenCtr = VaultAbi.bind(Address.fromString(veDist.rewardToken));
+  veDist.tokenBalance = formatUnits(tokenCtr.balanceOf(Address.fromString(veDist.id)), tokenDecimals);
+
+  veDist.activePeriod = event.params.epoch.toI32();
+
+  const prevEpoch = veDistCtr.epochInfos(event.params.epoch.minus(BigInt.fromI32(1)));
+  const period = event.params.newEpochTs.minus(prevEpoch.getTs());
+
+
+  const rewards = formatUnits(event.params.tokenDiff, tokenDecimals);
+  const rewardsUSD = rewards.times(rewardPrice);
+
+  const ve = VeTetuEntity.load(veDist.ve) as VeTetuEntity;
+  veDist.apr = calculateApr(BigInt.fromI32(0), period, rewardsUSD, ve.lockedAmountUSD);
+
+  veDist.save();
+}
+
+export function handleClaimedV2(event: RewardsClaimed): void {
+  const veDist = getVeDist(event.address.toHexString());
+
+  const decimals = BigInt.fromI32(veDist.decimals);
+  const controller = ControllerEntity.load(veDist.controller) as ControllerEntity;
+  const veNFT = VeNFTEntity.load(generateVeNFTId(event.params.tokenId.toString(), veDist.ve)) as VeNFTEntity;
+  const claimed = formatUnits(event.params.amount, decimals);
+  const rewardPrice = _tryGetUsdPrice(controller.liquidator, veDist.rewardToken, decimals);
+  const claimedUSD = claimed.times(rewardPrice);
+  veNFT.veDistRewardsTotal = veNFT.veDistRewardsTotal.plus(claimed);
+  veNFT.veDistLastApr = veDist.apr;
+  veNFT.veDistLastClaim = event.block.timestamp.toI32();
+  saveRewardHistory(veNFT, event.block.timestamp, claimed, claimedUSD);
+  veNFT.save();
+
+  // update ve dist
+  const tokenDecimals = BigInt.fromI32(veDist.decimals);
+  const tokenCtr = VaultAbi.bind(Address.fromString(veDist.rewardToken));
+  veDist.tokenBalance = formatUnits(tokenCtr.balanceOf(Address.fromString(veDist.id)), tokenDecimals);
+  veDist.save();
 }
 
 // ***************************************************

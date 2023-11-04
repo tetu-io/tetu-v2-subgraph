@@ -299,6 +299,38 @@ templates:
           handler: handleRevisionIncreased
         - event: Upgraded(indexed address)
           handler: handleUpgraded
+  - name: VeDistributorV2Template
+    kind: ethereum/contract
+    network: base
+    source:
+      abi: VeDistributorV2Abi
+    mapping:
+      file: ./src/ve-dist.ts
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - VeDistEntity
+      abis:
+        - name: VeDistributorV2Abi
+          file: ./abis/VeDistributorV2.json
+        - name: VaultAbi
+          file: ./abis/TetuVaultV2.json
+        - name: ProxyAbi
+          file: ./abis/Proxy.json
+        - name: LiquidatorAbi
+          file: ./abis/TetuLiquidator.json
+        - name: PriceCalculatorAbi
+          file: ./abis/PriceCalculator.json
+      eventHandlers:
+        - event: Checkpoint(uint256,uint256,uint256,uint256,uint256,uint256,uint256)
+          handler: handleCheckpointV2
+        - event: RewardsClaimed(uint256,address,uint256)
+          handler: handleClaimedV2
+        - event: RevisionIncreased(uint256,address)
+          handler: handleRevisionIncreased
+        - event: Upgraded(indexed address)
+          handler: handleUpgraded
   - name: VeTetuTemplate
     kind: ethereum/contract
     network: base
