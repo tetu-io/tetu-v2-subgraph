@@ -44,6 +44,7 @@ import {ForwarderAbi} from "./types/ControllerData/ForwarderAbi";
 import {VaultAbi} from "./types/ControllerData/VaultAbi";
 import {TetuVoterAbi} from "./types/ControllerData/TetuVoterAbi";
 import {VeDistributorAbi} from "./types/ControllerData/VeDistributorAbi";
+import {VeDistributorV2Abi} from "./types/ControllerData/VeDistributorV2Abi";
 import {PlatformVoterAbi} from "./types/ControllerData/PlatformVoterAbi";
 import {getOrCreateTetuVoter} from "./helpers/tetu-voter-helper";
 import {TetuVoterAbi as TetuVoterAbiCommon} from "./common/TetuVoterAbi";
@@ -51,7 +52,6 @@ import {ProxyAbi as ProxyAbiCommon} from "./common/ProxyAbi";
 import {getOrCreateBribe} from "./helpers/bribe-helper";
 import {MultiBribeAbi as MultiBribeAbiCommon} from "./common/MultiBribeAbi";
 import {MultiBribeAbi} from "./types/templates/TetuVoterTemplate/MultiBribeAbi";
-import {VeDistributorV2Abi} from "./types/templates/VeDistributorV2Template/VeDistributorV2Abi";
 
 export function handleContractInitialized(event: ContractInitialized): void {
   const controller = new ControllerEntity(event.params.controller.toHexString());
@@ -232,15 +232,16 @@ function createVeDist(address: string): void {
   if (!veDist) {
     veDist = new VeDistEntity(address);
   }
+  const version = VeDistributorAbi.bind(Address.fromString(address)).VE_DIST_VERSION();
 
-  if (veDist.version.startsWith('1')) {
+  if (version.startsWith('1')) {
     const veDistCtr = VeDistributorAbi.bind(Address.fromString(address));
     const proxy = ProxyAbi.bind(Address.fromString(address));
     const tokenAdr = veDistCtr.rewardToken();
     const tokenCtr = VaultAbi.bind(tokenAdr);
     const tokenDecimals = BigInt.fromI32(tokenCtr.decimals());
 
-    veDist.version = veDistCtr.VE_DIST_VERSION();
+    veDist.version = version;
     veDist.revision = veDistCtr.revision().toI32();
     veDist.createdTs = veDistCtr.created().toI32();
     veDist.createdBlock = veDistCtr.createdBlock().toI32();
@@ -269,7 +270,7 @@ function createVeDist(address: string): void {
     const tokenCtr = VaultAbi.bind(tokenAdr);
     const tokenDecimals = BigInt.fromI32(tokenCtr.decimals());
 
-    veDist.version = veDistCtr.VE_DIST_VERSION();
+    veDist.version = version;
     veDist.revision = veDistCtr.revision().toI32();
     veDist.createdTs = veDistCtr.created().toI32();
     veDist.createdBlock = veDistCtr.createdBlock().toI32();
