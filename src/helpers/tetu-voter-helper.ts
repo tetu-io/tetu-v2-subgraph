@@ -1,5 +1,5 @@
 import {TetuVoterEntity} from "../types/schema";
-import {ZERO_BD} from "../constants";
+import {ADDRESS_ZERO, ZERO_BD} from "../constants";
 import {TetuVoterAbi} from "../common/TetuVoterAbi";
 import {ProxyAbi} from "../common/ProxyAbi";
 import {TetuVoterTemplate} from "../types/templates";
@@ -21,7 +21,13 @@ export function getOrCreateTetuVoter(
     voter.controller = voterCtr.controller().toHexString();
     voter.ve = voterCtr.ve().toHexString();
     voter.gauge = voterCtr.gauge().toHexString();
-    voter.bribe = voterCtr.bribe().toHexString();
+    const bribeR = voterCtr.try_bribe();
+    if (!bribeR.reverted) {
+      voter.bribe = bribeR.value.toHexString();
+    } else {
+      voter.bribe = ADDRESS_ZERO;
+    }
+
     voter.token = voterCtr.token().toHexString();
 
     voter.rewardsBalance = ZERO_BD;

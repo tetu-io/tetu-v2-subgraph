@@ -124,7 +124,7 @@ export function handleAddressChangeAnnounced(event: AddressChangeAnnounced): voi
 
 export function handleAddressChanged(event: AddressChanged): void {
   let controller = ControllerEntity.load(event.address.toHexString())
-  if (!controller) {
+  if (!controller || event.params.newAddress.equals(Address.fromString(ADDRESS_ZERO))) {
     return;
   }
   const id = mapAnnounceType(event.params._type)
@@ -313,7 +313,16 @@ function createForwarder(address: string): void {
     forwarder.tetu = forwarderCtr.tetu().toHexString();
     forwarder.tetuThreshold = formatUnits(forwarderCtr.tetuThreshold(), BigInt.fromI32(18));
     forwarder.toInvestFundRatio = forwarderCtr.toInvestFundRatio().toBigDecimal().times(BigDecimal.fromString('100')).div(denominator);
-    forwarder.toGaugesRatio = forwarderCtr.toGaugesRatio().toBigDecimal().times(BigDecimal.fromString('100')).div(denominator);
+
+    const gRatio = forwarderCtr.try_toGaugesRatio()
+    if(gRatio.reverted) {
+      forwarder.toGaugesRatio = ZERO_BD;
+    } else {
+      forwarder.toGaugesRatio = gRatio.value.toBigDecimal().times(BigDecimal.fromString('100')).div(denominator);
+    }
+
+
+
     forwarder.controller = forwarderCtr.controller().toHexString();
 
     forwarder.toInvestFundTotal = BigDecimal.fromString('0');

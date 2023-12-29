@@ -18,7 +18,10 @@
 
     "create-matic-remote": "graph create --network matic --node http://164.92.180.137:8020/ tetu-io/tetu-v2",
     "remove-matic-remote": "graph remove --network matic --node http://164.92.180.137:8020/ tetu-io/tetu-v2",
-    "deploy-matic-remote": "graph deploy --network matic --node http://164.92.180.137:8020/ --ipfs http://164.92.180.137:5001 tetu-io/tetu-v2 -l v0.0.1"
+    "deploy-matic-remote": "graph deploy --network matic --node http://164.92.180.137:8020/ --ipfs http://164.92.180.137:5001 tetu-io/tetu-v2 -l v0.0.1",
+
+    "create-zkevm": "graph create --node http://167.71.52.114:8720/ tetu-io/tetu-v2-zkevm",
+    "deploy-zkevm": "graph deploy --network zkevm --node http://167.71.52.114:8720/ --ipfs http://167.71.52.114:5001 tetu-io/tetu-v2-zkevm -l v0.0.1"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "^0.53.0",
