@@ -18,5 +18,15 @@
       "address": "0xdc08482Fe34ccf74300e996966030cAc0F81F271",
       "startBlock": 4461898
     }
+  },
+  "zkevm": {
+    "ControllerData": {
+      "address": "0x35B0329118790B8c8FC36262812D92a4923C6795",
+      "startBlock": 8665975
+    },
+    "VaultFactoryData": {
+      "address": "0xeFBc16b8c973DecA383aAAbAB07153D2EB676556",
+      "startBlock": 8666167
+    }
   }
 }
