@@ -1,7 +1,7 @@
 import {VeTetuEntity, VeTetuTokenEntity} from "../types/schema";
 import {Address, BigDecimal, BigInt} from "@graphprotocol/graph-ts";
 import {VeTetuTemplate} from "../types/templates";
-import {ZERO_BD} from "../constants";
+import {ADDRESS_ZERO, ZERO_BD} from "../constants";
 import {ProxyAbi} from "../common/ProxyAbi";
 import {VeTetuAbi} from "../common/VeTetuAbi";
 import {generateVeTetuTokenEntityId} from "./id-helper";
@@ -13,23 +13,40 @@ export function getOrCreateVe(veCtr: VeTetuAbi, proxy: ProxyAbi): VeTetuEntity {
   if (!ve) {
     ve = new VeTetuEntity(veCtr._address.toHexString());
 
-    ve.version = veCtr.VE_VERSION();
-    ve.revision = veCtr.revision().toI32()
-    ve.createdTs = veCtr.created().toI32()
-    ve.createdBlock = veCtr.createdBlock().toI32()
-    ve.implementations = [proxy.implementation().toHexString()]
-    ve.controller = veCtr.controller().toHexString()
-    ve.count = veCtr.tokenId().toI32();
-    ve.epoch = veCtr.epoch().toI32();
-    ve.allowedPawnshops = []
-    ve.lockedAmountUSD = BigDecimal.fromString('0');
-    ve.totalSupply = BigDecimal.fromString('0');
+    if (veCtr._address.equals(Address.fromString(ADDRESS_ZERO))) {
+      ve.version = 'EMPTY';
+      ve.revision = 0
+      ve.createdTs = 0
+      ve.createdBlock = 0
+      ve.implementations = [ADDRESS_ZERO]
+      ve.controller = ADDRESS_ZERO
+      ve.count = 0;
+      ve.epoch = 0;
+      ve.allowedPawnshops = []
+      ve.lockedAmountUSD = BigDecimal.fromString('0');
+      ve.totalSupply = BigDecimal.fromString('0');
+    } else {
+      ve.version = veCtr.VE_VERSION();
+      ve.revision = veCtr.revision().toI32()
+      ve.createdTs = veCtr.created().toI32()
+      ve.createdBlock = veCtr.createdBlock().toI32()
+      ve.implementations = [proxy.implementation().toHexString()]
+      ve.controller = veCtr.controller().toHexString()
+      ve.count = veCtr.tokenId().toI32();
+      ve.epoch = veCtr.epoch().toI32();
+      ve.allowedPawnshops = []
+      ve.lockedAmountUSD = BigDecimal.fromString('0');
+      ve.totalSupply = BigDecimal.fromString('0');
 
-    VeTetuTemplate.create(Address.fromString(veCtr._address.toHexString()));
+      VeTetuTemplate.create(Address.fromString(veCtr._address.toHexString()));
+    }
+
     ve.save();
 
-    const tokenAdr = veCtr.tokens(BigInt.fromI32(0));
-    getOrCreateVeTetuTokenEntity(ve.id, tokenAdr);
+    if (!veCtr._address.equals(Address.fromString(ADDRESS_ZERO))) {
+      const tokenAdr = veCtr.tokens(BigInt.fromI32(0));
+      getOrCreateVeTetuTokenEntity(ve.id, tokenAdr);
+    }
   }
   return ve;
 }

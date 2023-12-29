@@ -1,8 +1,8 @@
 import {GaugeEntity} from "../types/schema";
-import {Address} from "@graphprotocol/graph-ts";
 import {MultiGaugeTemplate} from "../types/templates";
 import {ProxyAbi} from "../common/ProxyAbi";
 import {MultiGaugeAbi} from "../common/MultiGaugeAbi";
+import {ADDRESS_ZERO} from "../constants";
 
 export function getOrCreateGauge(gaugeCtr: MultiGaugeAbi, proxy: ProxyAbi): GaugeEntity {
   let gauge = GaugeEntity.load(gaugeCtr._address.toHexString());
@@ -14,7 +14,14 @@ export function getOrCreateGauge(gaugeCtr: MultiGaugeAbi, proxy: ProxyAbi): Gaug
     gauge.createdTs = gaugeCtr.created().toI32()
     gauge.createdBlock = gaugeCtr.createdBlock().toI32()
     gauge.implementations = [proxy.implementation().toHexString()]
-    gauge.ve = gaugeCtr.ve().toHexString();
+
+    const veR = gaugeCtr.try_ve();
+    if (veR.reverted) {
+      gauge.ve = ADDRESS_ZERO;
+    } else {
+      gauge.ve = veR.value.toHexString();
+    }
+
     gauge.controller = gaugeCtr.controller().toHexString();
     gauge.defaultRewardToken = gaugeCtr.defaultRewardToken().toHexString()
 
