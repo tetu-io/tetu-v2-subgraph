@@ -26,6 +26,8 @@ export function getUSDC(): Address {
     return Address.fromString("0x27af55366a339393865FC5943C04bc2600F55C9F");
   }else if (dataSource.network() == 'base') {
     return Address.fromString("0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913");
+  }else if (dataSource.network() == 'zkevm') {
+    return Address.fromString("0xA8CE8aee21bC2A48a5EF670afCc9274C7bbbC035");
   }
   log.critical("WRONG_NETWORK {}", [dataSource.network()]);
   return Address.fromString(ADDRESS_ZERO)
@@ -37,6 +39,9 @@ export function getWNative(): Address {
   }
   if (dataSource.network() == 'base') {
     return Address.fromString("0x4200000000000000000000000000000000000006"); // weth
+  }
+  if (dataSource.network() == 'zkevm') {
+    return Address.fromString("0x4F9A0e7FD2Bf6067db6994CF12E4495Df938E6e9"); // weth
   }
   log.critical("WRONG_NETWORK {}", [dataSource.network()]);
   return Address.fromString(ADDRESS_ZERO)
@@ -65,6 +70,8 @@ export function getPriceCalculator(): Address {
     return Address.fromString("0x0B62ad43837A69Ad60289EEea7C6e907e759F6E8");
   } else if (dataSource.network() == 'base') {
     return Address.fromString("0x6C3246e749472879D1088C24Dacd2A37CAaEe9B1");
+  }else if (dataSource.network() == 'zkevm') {
+    return Address.fromString("0xB52dc27FEB1549514E32E7CE496Fb6820D6398b5");
   }
   log.warning("NO PRICE CALCULATOR ON NETWORK {}", [dataSource.network()]);
   return Address.fromString(ADDRESS_ZERO)
