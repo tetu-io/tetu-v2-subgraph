@@ -35,16 +35,12 @@ import {
   ForwarderTemplate,
   InvestFundTemplate,
   PlatformVoterTemplate,
-  VeDistributorTemplate,
-  VeDistributorV2Template
 } from "./types/templates";
 import {formatUnits} from "./helpers/common-helper";
 import {InvestFundAbi} from "./types/ControllerData/InvestFundAbi";
 import {ForwarderAbi} from "./types/ControllerData/ForwarderAbi";
 import {VaultAbi} from "./types/ControllerData/VaultAbi";
 import {TetuVoterAbi} from "./types/ControllerData/TetuVoterAbi";
-import {VeDistributorAbi} from "./types/ControllerData/VeDistributorAbi";
-import {VeDistributorV2Abi} from "./types/ControllerData/VeDistributorV2Abi";
 import {PlatformVoterAbi} from "./types/ControllerData/PlatformVoterAbi";
 import {getOrCreateTetuVoter} from "./helpers/tetu-voter-helper";
 import {TetuVoterAbi as TetuVoterAbiCommon} from "./common/TetuVoterAbi";
@@ -166,7 +162,7 @@ export function handleAddressChanged(event: AddressChanged): void {
   // *** VE_DIST
   if (BigInt.fromI32(7).equals(event.params._type)) {
     controller.veDistributor = event.params.newAddress.toHexString();
-    createVeDist(event.params.newAddress.toHexString());
+    // createVeDist(event.params.newAddress.toHexString());
   }
 
   controller.save();
@@ -226,75 +222,75 @@ function createInvestFund(address: string): void {
     fund.save();
   }
 }
-
-function createVeDist(address: string): void {
-  let veDist = VeDistEntity.load(address);
-  if (!veDist) {
-    veDist = new VeDistEntity(address);
-  }
-  const version = VeDistributorAbi.bind(Address.fromString(address)).VE_DIST_VERSION();
-
-  if (version.startsWith('1')) {
-    const veDistCtr = VeDistributorAbi.bind(Address.fromString(address));
-    const proxy = ProxyAbi.bind(Address.fromString(address));
-    const tokenAdr = veDistCtr.rewardToken();
-    const tokenCtr = VaultAbi.bind(tokenAdr);
-    const tokenDecimals = BigInt.fromI32(tokenCtr.decimals());
-
-    veDist.version = version;
-    veDist.revision = veDistCtr.revision().toI32();
-    veDist.createdTs = veDistCtr.created().toI32();
-    veDist.createdBlock = veDistCtr.createdBlock().toI32();
-    veDist.implementations = [proxy.implementation().toHexString()];
-    veDist.controller = veDistCtr.controller().toHexString();
-
-    veDist.ve = veDistCtr.ve().toHexString();
-    veDist.rewardToken = tokenAdr.toHexString();
-    veDist.activePeriod = veDistCtr.activePeriod().toI32();
-    veDist.timeCursor = veDistCtr.timeCursor().toI32();
-    veDist.tokenLastBalance = formatUnits(veDistCtr.tokenLastBalance(), tokenDecimals);
-    veDist.tokenBalance = formatUnits(tokenCtr.balanceOf(Address.fromString(address)), tokenDecimals);
-    veDist.lastTokenTime = veDistCtr.lastTokenTime().toI32();
-    const thisWeek = BigInt.fromI32(veDist.lastTokenTime).div(BigInt.fromString(WEEK.toString())).times(BigInt.fromString(WEEK.toString()));
-    veDist.tokensPerWeek = formatUnits(veDistCtr.tokensPerWeek(thisWeek), tokenDecimals);
-    veDist.apr = BigDecimal.fromString('0');
-    veDist.left = BigDecimal.fromString('0');
-
-    veDist.decimals = tokenDecimals.toI32();
-
-    VeDistributorTemplate.create(Address.fromString(address));
-  } else {
-    const veDistCtr = VeDistributorV2Abi.bind(Address.fromString(address));
-    const proxy = ProxyAbi.bind(Address.fromString(address));
-    const tokenAdr = veDistCtr.rewardToken();
-    const tokenCtr = VaultAbi.bind(tokenAdr);
-    const tokenDecimals = BigInt.fromI32(tokenCtr.decimals());
-
-    veDist.version = version;
-    veDist.revision = veDistCtr.revision().toI32();
-    veDist.createdTs = veDistCtr.created().toI32();
-    veDist.createdBlock = veDistCtr.createdBlock().toI32();
-    veDist.implementations = [proxy.implementation().toHexString()];
-    veDist.controller = veDistCtr.controller().toHexString();
-
-    veDist.ve = veDistCtr.ve().toHexString();
-    veDist.rewardToken = tokenAdr.toHexString();
-    veDist.activePeriod = 0;
-    veDist.timeCursor = 0;
-    veDist.tokenLastBalance = ZERO_BD;
-    veDist.tokenBalance = ZERO_BD;
-    veDist.lastTokenTime = 0;
-    veDist.tokensPerWeek = ZERO_BD;
-    veDist.apr = BigDecimal.fromString('0');
-    veDist.left = BigDecimal.fromString('0');
-
-    veDist.decimals = tokenDecimals.toI32();
-
-    VeDistributorV2Template.create(Address.fromString(address));
-  }
-
-  veDist.save();
-}
+//
+// function createVeDist(address: string): void {
+//   let veDist = VeDistEntity.load(address);
+//   if (!veDist) {
+//     veDist = new VeDistEntity(address);
+//   }
+//   const version = VeDistributorAbi.bind(Address.fromString(address)).VE_DIST_VERSION();
+//
+//   if (version.startsWith('1')) {
+//     const veDistCtr = VeDistributorAbi.bind(Address.fromString(address));
+//     const proxy = ProxyAbi.bind(Address.fromString(address));
+//     const tokenAdr = veDistCtr.rewardToken();
+//     const tokenCtr = VaultAbi.bind(tokenAdr);
+//     const tokenDecimals = BigInt.fromI32(tokenCtr.decimals());
+//
+//     veDist.version = version;
+//     veDist.revision = veDistCtr.revision().toI32();
+//     veDist.createdTs = veDistCtr.created().toI32();
+//     veDist.createdBlock = veDistCtr.createdBlock().toI32();
+//     veDist.implementations = [proxy.implementation().toHexString()];
+//     veDist.controller = veDistCtr.controller().toHexString();
+//
+//     veDist.ve = veDistCtr.ve().toHexString();
+//     veDist.rewardToken = tokenAdr.toHexString();
+//     veDist.activePeriod = veDistCtr.activePeriod().toI32();
+//     veDist.timeCursor = veDistCtr.timeCursor().toI32();
+//     veDist.tokenLastBalance = formatUnits(veDistCtr.tokenLastBalance(), tokenDecimals);
+//     veDist.tokenBalance = formatUnits(tokenCtr.balanceOf(Address.fromString(address)), tokenDecimals);
+//     veDist.lastTokenTime = veDistCtr.lastTokenTime().toI32();
+//     const thisWeek = BigInt.fromI32(veDist.lastTokenTime).div(BigInt.fromString(WEEK.toString())).times(BigInt.fromString(WEEK.toString()));
+//     veDist.tokensPerWeek = formatUnits(veDistCtr.tokensPerWeek(thisWeek), tokenDecimals);
+//     veDist.apr = BigDecimal.fromString('0');
+//     veDist.left = BigDecimal.fromString('0');
+//
+//     veDist.decimals = tokenDecimals.toI32();
+//
+//     VeDistributorTemplate.create(Address.fromString(address));
+//   } else {
+//     const veDistCtr = VeDistributorV2Abi.bind(Address.fromString(address));
+//     const proxy = ProxyAbi.bind(Address.fromString(address));
+//     const tokenAdr = veDistCtr.rewardToken();
+//     const tokenCtr = VaultAbi.bind(tokenAdr);
+//     const tokenDecimals = BigInt.fromI32(tokenCtr.decimals());
+//
+//     veDist.version = version;
+//     veDist.revision = veDistCtr.revision().toI32();
+//     veDist.createdTs = veDistCtr.created().toI32();
+//     veDist.createdBlock = veDistCtr.createdBlock().toI32();
+//     veDist.implementations = [proxy.implementation().toHexString()];
+//     veDist.controller = veDistCtr.controller().toHexString();
+//
+//     veDist.ve = veDistCtr.ve().toHexString();
+//     veDist.rewardToken = tokenAdr.toHexString();
+//     veDist.activePeriod = 0;
+//     veDist.timeCursor = 0;
+//     veDist.tokenLastBalance = ZERO_BD;
+//     veDist.tokenBalance = ZERO_BD;
+//     veDist.lastTokenTime = 0;
+//     veDist.tokensPerWeek = ZERO_BD;
+//     veDist.apr = BigDecimal.fromString('0');
+//     veDist.left = BigDecimal.fromString('0');
+//
+//     veDist.decimals = tokenDecimals.toI32();
+//
+//     VeDistributorV2Template.create(Address.fromString(address));
+//   }
+//
+//   veDist.save();
+// }
 
 function createForwarder(address: string): void {
   let forwarder = ForwarderEntity.load(address);

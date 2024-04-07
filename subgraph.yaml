@@ -5,11 +5,11 @@ description: Subgraph for Tetu V2
 dataSources:
   - name: ControllerData
     kind: ethereum/contract
-    network: zkevm
+    network: matic
     source:
       abi: ControllerAbi
-      address: "0x35B0329118790B8c8FC36262812D92a4923C6795"
-      startBlock: 8665975
+      address: "0x33b27e0A2506a4A2FBc213a01C51d0451745343a"
+      startBlock: 36865497
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -38,12 +38,8 @@ dataSources:
           file: ./abis/TetuVoter.json
         - name: PlatformVoterAbi
           file: ./abis/PlatformVoter.json
-        - name: VeDistributorAbi
-          file: ./abis/VeDistributor.json
         - name: MultiBribeAbi
           file: ./abis/MultiBribe.json
-        - name: VeDistributorV2Abi
-          file: ./abis/VeDistributorV2.json
       eventHandlers:
         - event: AddressChangeAnnounced(uint256,address)
           handler: handleAddressChangeAnnounced
@@ -74,11 +70,11 @@ dataSources:
       file: ./src/controller.ts
   - name: VaultFactoryData
     kind: ethereum/contract
-    network: zkevm
+    network: matic
     source:
       abi: VaultFactoryAbi
-      address: "0xeFBc16b8c973DecA383aAAbAB07153D2EB676556"
-      startBlock: 8666167
+      address: "0xaAd7a2517b0d0d15E3Da5C37C5371F7283cCc074"
+      startBlock: 36865497
     mapping:
       file: ./src/vault-factory.ts
       kind: ethereum/events
@@ -119,7 +115,7 @@ dataSources:
 templates:
   - name: PlatformVoterTemplate
     kind: ethereum/contract
-    network: zkevm
+    network: matic
     source:
       abi: PlatformVoterAbi
     mapping:
@@ -151,7 +147,7 @@ templates:
           handler: handleVoteRemoved
   - name: MultiBribeTemplate
     kind: ethereum/contract
-    network: zkevm
+    network: matic
     source:
       abi: MultiBribeAbi
     mapping:
@@ -187,7 +183,7 @@ templates:
           handler: handleUpgraded
   - name: MultiGaugeTemplate
     kind: ethereum/contract
-    network: zkevm
+    network: matic
     source:
       abi: MultiGaugeAbi
     mapping:
@@ -231,7 +227,7 @@ templates:
           handler: handleAddStakingToken
   - name: TetuVoterTemplate
     kind: ethereum/contract
-    network: zkevm
+    network: matic
     source:
       abi: TetuVoterAbi
     mapping:
@@ -269,73 +265,9 @@ templates:
           handler: handleVoted
         - event: Upgraded(indexed address)
           handler: handleUpgraded
-  - name: VeDistributorTemplate
-    kind: ethereum/contract
-    network: zkevm
-    source:
-      abi: VeDistributorAbi
-    mapping:
-      file: ./src/ve-dist.ts
-      kind: ethereum/events
-      apiVersion: 0.0.7
-      language: wasm/assemblyscript
-      entities:
-        - VeDistEntity
-      abis:
-        - name: VeDistributorAbi
-          file: ./abis/VeDistributor.json
-        - name: VaultAbi
-          file: ./abis/TetuVaultV2.json
-        - name: ProxyAbi
-          file: ./abis/Proxy.json
-        - name: LiquidatorAbi
-          file: ./abis/TetuLiquidator.json
-        - name: PriceCalculatorAbi
-          file: ./abis/PriceCalculator.json
-      eventHandlers:
-        - event: CheckpointToken(uint256,uint256)
-          handler: handleCheckpointToken
-        - event: Claimed(uint256,uint256,uint256,uint256)
-          handler: handleClaimed
-        - event: RevisionIncreased(uint256,address)
-          handler: handleRevisionIncreased
-        - event: Upgraded(indexed address)
-          handler: handleUpgraded
-  - name: VeDistributorV2Template
-    kind: ethereum/contract
-    network: zkevm
-    source:
-      abi: VeDistributorV2Abi
-    mapping:
-      file: ./src/ve-dist.ts
-      kind: ethereum/events
-      apiVersion: 0.0.7
-      language: wasm/assemblyscript
-      entities:
-        - VeDistEntity
-      abis:
-        - name: VeDistributorV2Abi
-          file: ./abis/VeDistributorV2.json
-        - name: VaultAbi
-          file: ./abis/TetuVaultV2.json
-        - name: ProxyAbi
-          file: ./abis/Proxy.json
-        - name: LiquidatorAbi
-          file: ./abis/TetuLiquidator.json
-        - name: PriceCalculatorAbi
-          file: ./abis/PriceCalculator.json
-      eventHandlers:
-        - event: Checkpoint(uint256,uint256,uint256,uint256,uint256,uint256,uint256)
-          handler: handleCheckpointV2
-        - event: RewardsClaimed(uint256,address,uint256)
-          handler: handleClaimedV2
-        - event: RevisionIncreased(uint256,address)
-          handler: handleRevisionIncreased
-        - event: Upgraded(indexed address)
-          handler: handleUpgraded
   - name: VeTetuTemplate
     kind: ethereum/contract
-    network: zkevm
+    network: matic
     source:
       abi: VeTetuAbi
     mapping:
@@ -376,7 +308,7 @@ templates:
           handler: handleSplit
   - name: ForwarderTemplate
     kind: ethereum/contract
-    network: zkevm
+    network: matic
     source:
       abi: ForwarderAbi
     mapping:
@@ -416,7 +348,7 @@ templates:
           handler: handleUpgraded
   - name: InvestFundTemplate
     kind: ethereum/contract
-    network: zkevm
+    network: matic
     source:
       abi: InvestFundAbi
     mapping:
@@ -442,7 +374,7 @@ templates:
           handler: handleFundWithdrawn
   - name: VaultTemplate
     kind: ethereum/contract
-    network: zkevm
+    network: matic
     source:
       abi: VaultAbi
     mapping:
@@ -493,7 +425,7 @@ templates:
           handler: handleWithdrawRequestBlocks
   - name: StrategySplitterTemplate
     kind: ethereum/contract
-    network: zkevm
+    network: matic
     source:
       abi: StrategySplitterAbi
     mapping:
@@ -553,7 +485,7 @@ templates:
           handler: handleSetStrategyCapacity
   - name: StrategyTemplate
     kind: ethereum/contract
-    network: zkevm
+    network: matic
     source:
       abi: StrategyAbi
     mapping:
